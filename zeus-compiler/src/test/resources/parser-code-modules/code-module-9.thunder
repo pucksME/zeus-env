@@ -1,0 +1,16 @@
+module unaryExpressions
+::this code module demonstrates unary expressions
+{
+  var flag: boolean = false;
+  var number: int = -10;
+  var list: [int]#5;
+
+  if (!flag) {
+    number = -number;
+    flag = !flag;
+
+    if (#list < 5) {
+      number = -#list;
+    }
+  }
+}

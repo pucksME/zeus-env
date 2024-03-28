@@ -1,0 +1,24 @@
+module ifElse
+::this code module demonstrates if statements
+{
+  input data: int;
+  output result: string = "";
+
+  if [true, false] {
+    var test: int = 1;
+
+    if #[1, 2, 3] {
+      test = 2;
+    } else {
+      test = 3;
+    }
+
+  } else {
+    var test: [int] = [4];
+  }
+
+  if data {
+    result = "ok";
+  }
+
+}

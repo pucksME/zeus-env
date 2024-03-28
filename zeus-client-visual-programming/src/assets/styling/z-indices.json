@@ -1,0 +1,20 @@
+{
+  "toolbar": {
+    "subMenu": 100,
+    "indicatorIcon": 150
+  },
+  "dragAndDropPreview": {
+    "preview": 10
+  },
+  "window": {
+    "window": 1050,
+    "overlay": 1051,
+    "windowResizeButton": 1060
+  },
+  "thunderCodeEditor": {
+    "currentLineIndication": 1051
+  },
+  "codeModule": {
+    "editIcon": 100
+  }
+}

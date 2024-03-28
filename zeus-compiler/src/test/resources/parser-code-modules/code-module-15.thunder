@@ -1,0 +1,8 @@
+module maps
+::this code module demonstrates maps
+{
+  var map: [int, string];
+  var map2: [int, float] = [(0, 1.0), (1, 1.5)];
+  map[1] = "test";
+  map2[2] = map2[1][1];
+}

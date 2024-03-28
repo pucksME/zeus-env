@@ -1,0 +1,5 @@
+module codeModule
+::This is an example description
+{
+// this is a comment
+}

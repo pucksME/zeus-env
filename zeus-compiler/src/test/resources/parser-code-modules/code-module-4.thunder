@@ -1,0 +1,5 @@
+module lists
+::this code module demonstrates basic lists
+{
+  [false, 1, 2, "3, 4"]
+}

@@ -1,0 +1,9 @@
+module lists2
+::this code module demonstrates basic lists
+{
+  input input1: int;
+  input input2: int;
+  output result: int;
+  var list: [int] = [false, 1, 2, "3, 4"];
+  list = [];
+}

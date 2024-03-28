@@ -1,0 +1,7 @@
+.toolbarMenuItemParent:hover > .toolbarMenuItemChildren {
+  display: block;
+}
+
+.toolbarMenuItemChildren {
+  display: none;
+}

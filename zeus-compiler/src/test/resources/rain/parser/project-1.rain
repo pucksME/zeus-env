@@ -1,0 +1,25 @@
+[project project1]
+
+[view main height=100px; width=100px;]
+component test {
+  position {
+    x = 10px;
+    y = 10px;
+    sorting = 0;
+  }
+
+  shape rectangle rect {
+    position {
+      x = 0px;
+      y = 0px;
+      sorting = 0;
+    }
+
+    properties {
+      background color = #000000;
+    }
+  }
+
+  code modules {`
+  `}
+}

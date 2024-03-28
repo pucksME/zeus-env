@@ -1,0 +1,17 @@
+module expressionGrouping
+::this code module demonstrates expressionGrouping
+{
+  var number: float = 0.5;
+  var number2: int = 1;
+  var flag: boolean = (number != 0 && number > 0.1) || number2 >= 1;
+
+  if (flag && number != 0.1 ? number >= 0.5 : number2 == 1) && number > number2 {
+    flag = true;
+  }
+
+  if (flag) {
+    number = (number < 1 && number > 0) || number2 < number ? 1 : 0;
+  } else {
+    flag = (flag || (number2 > number)) && number < 1;
+  }
+}

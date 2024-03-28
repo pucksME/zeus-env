@@ -1,0 +1,14 @@
+[project project2]
+
+[blueprint components]
+blueprint component b1 {
+}
+
+[view root home height=100px; width=100px;]
+component c1 references b2 {
+  position {
+    x = 10px;
+    y = 10px;
+    sorting = 0;
+  }
+}

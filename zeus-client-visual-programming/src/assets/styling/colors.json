@@ -1,0 +1,24 @@
+{
+  "primary": {
+    "main": "#FC8373",
+    "light": "",
+    "dark": "#FC715F",
+    "contrastText": "#F7FCFC"
+  },
+  "secondary": {
+    "main": "#76A0A6",
+    "light": "",
+    "dark": "#618D94",
+    "contrastText": "#F7FCFC"
+  },
+  "text": {
+    "primary": "#444444",
+    "secondary": "#777777"
+  },
+  "background_dark": "#414C4E",
+  "background_light": "#f7f7f7",
+  "border_main": "#dddddd",
+  "border_light": "#eeeeee",
+  "color_white": "#ffffff",
+  "color_dark": "#222222"
+}

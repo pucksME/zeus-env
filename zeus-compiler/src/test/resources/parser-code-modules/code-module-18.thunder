@@ -1,0 +1,4 @@
+module objectWriteAccess::this code module demonstrates object write access {
+    var user: { id: int } = { id: 0 };
+    user.id = user.id + 1;
+}

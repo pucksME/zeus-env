@@ -1,0 +1,17 @@
+# postgres for docker:
+# https://hub.docker.com/_/postgres
+# docker volumes / ports:
+# https://www.digitalocean.com/community/questions/how-to-create-a-persistent-data-volume-for-postgres-database-container-within-a-docker-project
+version: '3.1'
+services:
+  database:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: zeus
+      POSTGRES_PASSWORD: zeus
+      POSTGRES_DB: zeus
+    volumes:
+      - ./data/database:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"

@@ -1,0 +1,12 @@
+module ternaryExpressions
+::this code module demonstrates ternary expressions
+{
+  var flag: boolean = false;
+  var number: int = 1;
+
+  if !flag ? number > 0 : number <= 1 {
+    number = number * 2;
+  }
+
+  flag = number % 2 != 0 ? true : number >= 1;
+}

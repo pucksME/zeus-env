@@ -1,0 +1,10 @@
+module configuration
+::this code module demonstrates configuration
+{
+  config amount: [int]#1 = [1, 2, 3];
+
+  var count: int = 0;
+  while count < amount {
+    count = count + 1;
+  }
+}

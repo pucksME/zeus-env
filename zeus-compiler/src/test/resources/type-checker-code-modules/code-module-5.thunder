@@ -1,0 +1,4 @@
+module assignmentToInput::this code module demonstrates assignments to inputs {
+  input number: int;
+  number = 1;
+}

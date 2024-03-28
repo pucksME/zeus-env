@@ -1,0 +1,4 @@
+module assignmentToConfig::this code module demonstrates assignments to configs {
+  config mode: string;
+  mode = "default";
+}

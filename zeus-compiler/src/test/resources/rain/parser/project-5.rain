@@ -1,0 +1,78 @@
+[project project5]
+
+[blueprint components]
+blueprint component blueprintTest {
+  position {
+    x = 10px;
+    y = 10px;
+    sorting = 0;
+  }
+
+  shape text fontTest {
+    position {
+      x = 0px;
+      y = 0px;
+      sorting = 1;
+    }
+
+    properties {
+      font family = arial;
+      text decoration = underline;
+    }
+  }
+}
+
+[view main height=100px; width=100px;]
+component test {
+  position {
+    x = 10px;
+    y = 10px;
+    sorting = 0;
+  }
+
+  shape rectangle rect {
+    position {
+      x = 0px;
+      y = 0px;
+      sorting = 0;
+    }
+
+    properties {
+      background color = #000000;
+    }
+  }
+
+  code modules {`
+  `}
+}
+
+component blueprintRefTest references blueprintTest {
+  position {
+    x = 10px;
+    y = 5px;
+    sorting=2;
+  }
+
+  component mutation test {
+    position {
+      x = 0px;
+      y = 0px;
+    }
+  }
+
+  shape mutation fontTest {
+    properties {
+      font style = bold;
+    }
+  }
+
+  shape mutation test {
+    position {
+      y = -10px;
+    }
+
+    properties {
+      background color enabled = false;
+    }
+  }
+}

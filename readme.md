@@ -1,0 +1,2 @@
+# Zeus Environment
+Zeus-Env is a programming environment for developing general-purpose applications. It includes visual programming capabilities, a core API as well as a compiler for transforming the textual programming languages rain and thunder into a specific target.

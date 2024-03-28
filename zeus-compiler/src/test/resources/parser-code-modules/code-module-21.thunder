@@ -1,0 +1,6 @@
+module instance serverConnections::connecting a server {
+  request.url.param1 -> moduleOne.in1;
+  request.body.param2 -> moduleTwo.in1;
+  moduleOne.out1 -> moduleTwo.in2;
+  moduleTwo.out1 -> response.param1;
+}

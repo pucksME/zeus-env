@@ -1,0 +1,3 @@
+module publicTypes::this code module demonstrates public types {
+  public type userType = { id: int, name: string };
+}

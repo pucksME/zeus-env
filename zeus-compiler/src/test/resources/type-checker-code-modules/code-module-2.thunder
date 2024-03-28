@@ -1,0 +1,3 @@
+module head::This code module demonstrates head components {
+  input input1: string;
+}

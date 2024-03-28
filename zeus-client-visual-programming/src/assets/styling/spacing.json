@@ -1,0 +1,71 @@
+{
+  "navigation": {
+    "button": {
+      "paddingHorizontal": 15
+    },
+    "items": {
+      "margin": 10
+    },
+    "height": 48
+  },
+  "toolbar": {
+    "paddingVertical": 10,
+    "width": 50
+  },
+  "toolbox": {
+    "list": {
+      "padding": 10,
+      "header": {
+        "paddingBottom": 5,
+        "paddingTop": 15
+      },
+      "items": {
+        "paddingVertical": 5,
+        "icons": {
+          "margin": 10
+        }
+      }
+    },
+    "cards": {
+      "margin": 20,
+      "blueprints": {
+        "previewPadding": 10
+      }
+    },
+    "padding": 15,
+    "width": 300
+  },
+  "configurator": {
+    "width": 325,
+    "padding": 20,
+    "previewHeight": 200,
+    "previewPadding": 25,
+    "contentPadding": 15
+  },
+  "buttons": {
+    "margin_between_buttons": 10
+  },
+  "window": {
+    "topPanelHeight": 50
+  },
+  "designerBlueprintComponentWorkspace": {
+    "initialStageHeight": 300,
+    "initialStageWidth": 300,
+    "minStageHeight": 300,
+    "minStageWidth": 300
+  },
+  "codeModuleInstance": {
+    "nameFontSize": 14,
+    "descriptionFontSize": 12,
+    "descriptionMargin": 5,
+    "delimiterHeight": 0.5,
+    "width": 200,
+    "paddingHorizontal": 12,
+    "paddingVertical": 15,
+    "port": {
+      "fontSize": 12,
+      "radius": 4,
+      "margin": 10
+    }
+  }
+}

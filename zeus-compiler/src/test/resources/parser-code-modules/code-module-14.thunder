@@ -1,0 +1,10 @@
+module listOperations
+::this code module demonstrates list operations
+{
+  var list: [int] = [1, 2, 3];
+  var number: int = (int) list[1 + 1];
+  list[2 - 1] = 0;
+
+  var list2: [int] = list + [4, 5];
+  list2 = list2 + 6;
+}

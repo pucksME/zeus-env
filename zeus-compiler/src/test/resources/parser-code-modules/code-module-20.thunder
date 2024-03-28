@@ -1,0 +1,11 @@
+module codeModuleOne::first code module {
+  output dataOutput: string;
+}
+
+module codeModuleTwo::second code module {
+  input dataInput: string;
+}
+
+module instance instanceCodeModule::connects both code modules {
+  codeModuleOne.outputOutput -> codeModuleTwo.dataInput;
+}

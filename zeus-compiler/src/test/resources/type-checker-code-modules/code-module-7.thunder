@@ -1,0 +1,3 @@
+module missingConfigDeclaration::this code module demonstrates a missing config declaration {
+  config numbers: [int]#1;
+}

@@ -1,0 +1,15 @@
+module typesAndObjects
+::this code module demonstrates types and objects
+{
+  type userType = { id: int, name: string };
+  var user: userType;
+  var user2: userType = null;
+  var user3: userType = { id: 1, name: "test user"};
+  var users: [userType] = [];
+  var user3Name: string = user3.name;
+
+  var object: { id: int };
+  var object2: { id: int, data: { value: string }} = { id: 1 + 1, data: { value: "something"}};
+  var objects: [{ id: int }];
+  var objectId: int = objects[0].id;
+}

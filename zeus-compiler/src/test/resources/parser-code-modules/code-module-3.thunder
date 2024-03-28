@@ -1,0 +1,7 @@
+module codeModule
+::this is the module's description
+{
+  input data: boolean;
+  output valid: int;
+  output invalid: int;
+}

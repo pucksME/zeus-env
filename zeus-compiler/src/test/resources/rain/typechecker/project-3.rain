@@ -1,0 +1,18 @@
+[project project3]
+
+[view root home height=100px; width=100px;]
+component test {
+  position {
+    x = 0px;
+    y = 0px;
+    sorting = 0;
+  }
+
+  code modules {`
+    module a::first code module {
+      input in1: int;
+      output out1: int;
+      out1 = in1;
+    }
+  `}
+}

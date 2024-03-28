@@ -1,0 +1,5 @@
+export enum StageMode {
+  DESIGNER,
+  DESIGNER_BLUEPRINT_COMPONENT,
+  VISUALIZER
+}

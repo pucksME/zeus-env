@@ -1,0 +1,5 @@
+module assignmentToOutput::this code module demonstrates assignments to outputs {
+  input number: int;
+  output result: int = 1;
+  result = result + number;
+}

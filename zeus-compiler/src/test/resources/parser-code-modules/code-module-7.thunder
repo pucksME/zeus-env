@@ -1,0 +1,14 @@
+module whileLoops
+::this code module demonstrates while statements
+{
+  input flag: boolean;
+
+  while flag {
+    if false {
+      while 0 {
+        var test: int = 1;
+      }
+    }
+    flag = false;
+  }
+}

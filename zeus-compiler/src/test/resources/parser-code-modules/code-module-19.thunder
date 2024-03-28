@@ -1,0 +1,8 @@
+module codeModuleOne::first code module {
+  input data: string;
+}
+
+module codeModuleTwo::second code module {
+  input data: int;
+  output valid: boolean;
+}

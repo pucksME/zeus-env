@@ -1,0 +1,15 @@
+module types::public types {
+  public type userType = { id: int, name: string };
+}
+
+module codeModuleA::a code module {
+  output user: userType;
+}
+
+module codeModuleB::another code module {
+  input user: userType;
+}
+
+module instance connection::code module connection {
+  codeModuleA.user -> codeModuleB.user;
+}

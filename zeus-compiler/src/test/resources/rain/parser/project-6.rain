@@ -1,0 +1,11 @@
+[project project6]
+
+[server localhost:1]
+route GET test {
+  code modules {` `}
+}
+
+[server localhost:2]
+route POST test {
+  code modules {` `}
+}
