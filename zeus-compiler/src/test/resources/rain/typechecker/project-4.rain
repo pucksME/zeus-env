@@ -1,0 +1,34 @@
+[project project4]
+
+[server localhost:81]
+route POST test {
+    code modules {`
+        module urlParameterHandler::handles request url parameters {
+            input param1: string;
+            input param2: int;
+            output result: string;
+        }
+
+        module bodyParameterHandler::handles request body data {
+            input param1: int;
+            input: param2: string;
+            output result: int;
+        }
+
+        module resultHandler::handles results {
+            input urlParameterResult: string;
+            input bodyParameterResult: int;
+            output result: {urlParameterResult: string, bodyParameterResult: int};
+        }
+
+        module instance connection::endpoint connection {
+            request.url.param1 -> urlParameterHandler.param1;
+            request.url.param2 -> urlParameterHandler.param2;
+            request.body.param1 -> bodyParameterHandler.param1;
+            request.body.param2 -> bodyParameterHandler.param2;
+            urlParameterHandler.result -> resultHandler.urlParameterResult;
+            bodyParameterHandler.result -> resultHandler.bodyParameterResult;
+            resultHandler.result -> response.result;
+        }
+    `}
+}

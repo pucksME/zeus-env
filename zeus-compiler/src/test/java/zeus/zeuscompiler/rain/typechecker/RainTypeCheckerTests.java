@@ -43,4 +43,10 @@ public class RainTypeCheckerTests {
     runAnalyzer("project-3.rain");
     assertThat(rainAnalyzer.hasErrors()).isFalse();
   }
+
+  @Test()
+  void test4() throws IOException {
+    runAnalyzer("project-4.rain");
+    assertThat(rainAnalyzer.hasErrors()).isFalse();
+  }
 }
