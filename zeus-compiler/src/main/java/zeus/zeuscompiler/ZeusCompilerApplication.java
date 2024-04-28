@@ -121,7 +121,7 @@ public class ZeusCompilerApplication {
   })
   @PostMapping("/translateProject")
   ExportedProjectDto translateProject(@RequestBody TranslateProjectDto translateProjectDto) {
-    RainAnalyzer rainAnalyzer = new RainAnalyzer(CompilerPhase.PARSER);
+    RainAnalyzer rainAnalyzer = new RainAnalyzer(CompilerPhase.TYPE_CHECKER);
     Optional<Project> projectOptional = rainAnalyzer.analyze(CharStreams.fromString(translateProjectDto.code()));
 
     if (projectOptional.isEmpty()) {
