@@ -11,7 +11,7 @@ route POST test {
 
         module bodyParameterHandler::handles request body data {
             input param1: int;
-            input: param2: string;
+            input param2: string;
             output result: int;
         }
 

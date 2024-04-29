@@ -20,7 +20,7 @@ public class RainTypeChecker {
   }
 
   public Project checkTypes() {
-    RainVisitor rainVisitor = new RainVisitor(this.symbolTable);
+    RainVisitor rainVisitor = new RainVisitor(this.symbolTable, this.compilerErrors);
     Project project = (Project) rainVisitor.visit(parseTree);
     // TODO: perform type checking
     project.check(this.symbolTable, this.compilerErrors);

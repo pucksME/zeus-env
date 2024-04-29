@@ -1,26 +1,31 @@
 package zeus.zeuscompiler.rain.compiler.visitors;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.grammars.RainParser;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.*;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.*;
 import zeus.zeuscompiler.rain.compiler.utils.RainUtils;
+import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
+import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.grammars.RainBaseVisitor;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
+import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RainVisitor extends RainBaseVisitor<Object> {
   SymbolTable symbolTable;
+  List<CompilerError> compilerErrors;
   ShapeProperties currentShapeProperties;
 
-  public RainVisitor(SymbolTable symbolTable) {
+  public RainVisitor(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
     this.symbolTable = symbolTable;
+    this.compilerErrors = compilerErrors;
     this.currentShapeProperties = null;
   }
 
@@ -39,7 +44,8 @@ public class RainVisitor extends RainBaseVisitor<Object> {
         : ctx.blueprintComponents().blueprintComponent().stream()
           .map(blueprintComponentContext -> (Element) visit(blueprintComponentContext))
           .toList(),
-      ctx.view().stream().map(viewContext -> (View) visit(viewContext)).toList()
+      ctx.view().stream().map(viewContext -> (View) visit(viewContext)).toList(),
+      ctx.server().stream().map(serverContext -> (Server) visit(serverContext)).toList()
     );
   }
 
@@ -336,6 +342,46 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       new BlueprintComponentReference(ctx.ID(1).getText(), new ArrayList<>(), new ArrayList<>()),
       null,
       new ArrayList<>()
+    );
+  }
+
+  @Override
+  public Object visitServer(RainParser.ServerContext ctx) {
+    return new Server(
+            ctx.getStart().getLine(),
+            ctx.getStart().getCharPositionInLine(),
+            (ctx.ID() != null) ? ctx.ID().getText() : ctx.SERVER_IP().getText(),
+            Integer.parseInt(ctx.NUMBER().getText()),
+            ctx.route().stream().map(routeContext -> (Route) visit(routeContext)).toList()
+    );
+  }
+
+  @Override
+  public Object visitRoute(RainParser.RouteContext ctx) {
+    RouteMethod routeMethod = RouteMethod.GET;
+    if (ctx.ROUTE_POST() != null) {
+      routeMethod = RouteMethod.POST;
+    }
+
+    if (ctx.ROUTE_UPDATE() != null) {
+      routeMethod = RouteMethod.UPDATE;
+    }
+
+    if (ctx.ROUTE_DELETE() != null) {
+      routeMethod = RouteMethod.DELETE;
+    }
+
+    ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.SERVER);
+    String code = ctx.codeModules().CODE_MODULES_CODE().getText();
+    Optional<CodeModules> codeModulesOptional = thunderAnalyzer.analyze(code.substring(1, code.length() - 2));
+    this.compilerErrors.addAll(thunderAnalyzer.getErrors());
+
+    return new Route(
+            ctx.getStart().getLine(),
+            ctx.getStart().getCharPositionInLine(),
+            ctx.ID().getText(),
+            routeMethod,
+            codeModulesOptional.orElse(null)
     );
   }
 }

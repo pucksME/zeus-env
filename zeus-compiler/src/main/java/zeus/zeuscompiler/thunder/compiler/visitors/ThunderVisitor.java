@@ -3,14 +3,14 @@ package zeus.zeuscompiler.thunder.compiler.visitors;
 import org.antlr.v4.runtime.Token;
 import zeus.zeuscompiler.grammars.ThunderBaseVisitor;
 import zeus.zeuscompiler.grammars.ThunderParser;
+import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.symboltable.VariableType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.UnknownLiteralException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary.*;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleInputExpression;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleOutputExpression;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.ternary.IfElseExpression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.ternary.TernaryExpressionType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary.*;
@@ -24,9 +24,11 @@ import java.util.stream.Collectors;
 
 public class ThunderVisitor extends ThunderBaseVisitor<Object> {
   SymbolTable symbolTable;
+  ThunderAnalyzerMode thunderAnalyzerMode;
 
-  public ThunderVisitor(SymbolTable symbolTable) {
+  public ThunderVisitor(SymbolTable symbolTable, ThunderAnalyzerMode thunderAnalyzerMode) {
     this.symbolTable = symbolTable;
+    this.thunderAnalyzerMode = thunderAnalyzerMode;
   }
 
   @Override
@@ -720,6 +722,45 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
         expressionCodeModuleOutputContext.ID(0).getSymbol().getCharPositionInLine(),
         expressionCodeModuleOutputContext.ID(0).getText(),
         expressionCodeModuleOutputContext.ID(1).getText()
+      )
+    );
+  }
+
+  @Override
+  public Object visitServerRequestConnectionStatement(ThunderParser.ServerRequestConnectionStatementContext ctx) {
+    return new ConnectionStatement(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      new CodeModuleInputExpression(
+        ctx.expressionCodeModulePort().ID(0).getSymbol().getLine(),
+        ctx.expressionCodeModulePort().ID(0).getSymbol().getCharPositionInLine(),
+        ctx.expressionCodeModulePort().ID(0).getText(),
+        ctx.expressionCodeModulePort().ID(1).getText()
+      ),
+      new CodeModuleRequestExpression(
+        ctx.KEYWORD_REQUEST().getSymbol().getLine(),
+        ctx.KEYWORD_REQUEST().getSymbol().getCharPositionInLine(),
+        ctx.ID().getText(),
+        (ctx.KEYWORD_URL() != null) ? RequestParameterType.URL : RequestParameterType.BODY
+      )
+    );
+  }
+
+  @Override
+  public Object visitServerResponseConnectionStatement(ThunderParser.ServerResponseConnectionStatementContext ctx) {
+    return new ConnectionStatement(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      new CodeModuleResponseExpression(
+        ctx.KEYWORD_RESPONSE().getSymbol().getLine(),
+        ctx.KEYWORD_RESPONSE().getSymbol().getCharPositionInLine(),
+        ctx.ID().getText()
+      ),
+      new CodeModuleOutputExpression(
+        ctx.expressionCodeModulePort().getStart().getLine(),
+        ctx.expressionCodeModulePort().getStart().getCharPositionInLine(),
+        ctx.expressionCodeModulePort().ID(0).getText(),
+        ctx.expressionCodeModulePort().ID(1).getText()
       )
     );
   }

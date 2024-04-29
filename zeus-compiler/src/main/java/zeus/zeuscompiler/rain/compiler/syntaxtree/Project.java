@@ -9,23 +9,27 @@ import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class Project extends Node {
   List<Element> elements;
   List<View> views;
+  List<Server> servers;
 
   public Project(
     int line,
     int linePosition,
     String name,
     List<Element> elements,
-    List<View> views
+    List<View> views,
+    List<Server> servers
   ) {
     super(line, linePosition, name);
     this.elements = elements;
     this.views = views;
+    this.servers = servers;
   }
 
   @Override
@@ -105,7 +109,8 @@ public class Project extends Node {
       exportProjectDto.exportElementDtos().stream().map(
         exportElementDto -> Element.fromDto(exportElementDto, true)
       ).toList(),
-      exportProjectDto.exportViewDtos().stream().map(View::fromDto).toList()
+      exportProjectDto.exportViewDtos().stream().map(View::fromDto).toList(),
+      new ArrayList<>()
     );
   }
 }

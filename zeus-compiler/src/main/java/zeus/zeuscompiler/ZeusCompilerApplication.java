@@ -15,6 +15,7 @@ import zeus.zeuscompiler.rain.dtos.ExportProjectDto;
 import zeus.zeuscompiler.rain.dtos.ExportedFileDto;
 import zeus.zeuscompiler.rain.dtos.ExportedProjectDto;
 import zeus.zeuscompiler.rain.dtos.TranslateProjectDto;
+import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.thunder.dtos.CodeModulesDto;
@@ -49,7 +50,7 @@ public class ZeusCompilerApplication {
   @PostMapping("/createCodeModules")
   List<CodeModulesDto> createCodeModules(@RequestBody List<CreateCodeModuleDto> createCodeModuleDtos) {
     return createCodeModuleDtos.stream().map(createCodeModuleDto -> {
-      ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER);
+      ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.CLIENT);
 
       return ThunderUtils.buildCodeModulesDto(
         createCodeModuleDto.uuid(),

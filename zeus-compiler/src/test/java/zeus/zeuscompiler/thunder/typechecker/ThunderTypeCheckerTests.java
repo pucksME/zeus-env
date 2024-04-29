@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
+import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.InvalidAssignmentException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.MissingDeclarationException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -19,7 +20,7 @@ public class ThunderTypeCheckerTests {
 
   @BeforeEach
   void inti() {
-    this.thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER);
+    this.thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.CLIENT);
   }
 
   void runAnalyzer(String filename) throws IOException {

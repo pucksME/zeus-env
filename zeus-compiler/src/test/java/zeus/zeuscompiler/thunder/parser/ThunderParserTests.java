@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import static org.assertj.core.api.Assertions.assertThat;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
+import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.io.IOException;
@@ -17,7 +18,7 @@ public class ThunderParserTests {
 
   @BeforeEach()
   void init() {
-    this.thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.PARSER);
+    this.thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.PARSER, ThunderAnalyzerMode.CLIENT);
   }
 
   void runAnalyzer(String filename) throws IOException {

@@ -16,8 +16,10 @@ import java.util.List;
 import java.util.Optional;
 
 public class ThunderAnalyzer extends Analyzer<CodeModules> {
-  public ThunderAnalyzer(CompilerPhase compilerPhase) {
+  ThunderAnalyzerMode thunderAnalyzerMode;
+  public ThunderAnalyzer(CompilerPhase compilerPhase, ThunderAnalyzerMode thunderAnalyzerMode) {
     super(compilerPhase);
+    this.thunderAnalyzerMode = thunderAnalyzerMode;
   }
 
   @Override
@@ -39,7 +41,12 @@ public class ThunderAnalyzer extends Analyzer<CodeModules> {
   }
 
   private CodeModules runTypeChecker(ParseTree parseTree) {
-    ThunderTypeChecker thunderTypeChecker = new ThunderTypeChecker(parseTree, this.getSymbolTable(), this.getErrors());
+    ThunderTypeChecker thunderTypeChecker = new ThunderTypeChecker(
+            parseTree,
+            this.getSymbolTable(),
+            this.getErrors(),
+            this.thunderAnalyzerMode
+    );
     return thunderTypeChecker.checkTypes();
   }
 

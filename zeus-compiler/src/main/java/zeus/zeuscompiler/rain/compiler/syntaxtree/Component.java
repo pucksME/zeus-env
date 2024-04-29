@@ -10,6 +10,7 @@ import zeus.zeuscompiler.rain.dtos.ExportComponentDto;
 import zeus.zeuscompiler.rain.dtos.ExportComponentMutationDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
+import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -55,7 +56,7 @@ public class Component extends Element {
     }
 
     if (this.code != null) {
-      ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER);
+      ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.CLIENT);
       thunderAnalyzer.analyze(this.code);
       compilerErrors.addAll(thunderAnalyzer.getErrors());
     }
@@ -75,7 +76,7 @@ public class Component extends Element {
   }
 
   public String translateCode(int dept, ExportTarget exportTarget) {
-    ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER);
+    ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.CLIENT);
     Optional<CodeModules> codeModulesOptional = thunderAnalyzer.analyze(this.code);
 
     assert !thunderAnalyzer.hasErrors() && codeModulesOptional.isPresent();

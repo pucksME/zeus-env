@@ -2,22 +2,21 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
 
 import java.util.List;
 
-public class Server extends Node {
-    String ip;
-    int port;
-    List<Route> routes;
+public class Route extends Node {
+    String id;
+    RouteMethod routeMethod;
+    CodeModules codeModules;
 
-    public Server(int line, int linePosition, String ip, int port, List<Route> routes) {
+    public Route(int line, int linePosition, String id, RouteMethod routeMethod, CodeModules codeModules) {
         super(line, linePosition, "");
-        this.ip = ip;
-        this.port = port;
-        this.routes = routes;
+        this.id = id;
+        this.routeMethod = routeMethod;
+        this.codeModules = codeModules;
     }
 
     @Override
@@ -27,8 +26,5 @@ public class Server extends Node {
 
     @Override
     public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
-        for (Route route : this.routes) {
-            route.check(symbolTable, compilerErrors);
-        }
     }
 }
