@@ -5,6 +5,8 @@ import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleInputExpression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleOutputExpression;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleRequestExpression;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleResponseExpression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -29,12 +31,20 @@ public class ConnectionStatement extends Statement {
 
   @Override
   public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+    if (codeModuleInputExpression instanceof CodeModuleResponseExpression) {
+      return;
+    }
+
     Optional<Type> codeModuleInputTypeOptional = this.codeModuleInputExpression.evaluateType(
       symbolTable,
       compilerErrors
     );
 
     if (codeModuleInputTypeOptional.isEmpty()) {
+      return;
+    }
+
+    if (codeModuleOutputExpression instanceof CodeModuleRequestExpression) {
       return;
     }
 

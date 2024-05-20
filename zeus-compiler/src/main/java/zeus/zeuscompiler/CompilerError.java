@@ -6,7 +6,7 @@ import zeus.zeuscompiler.thunder.compiler.utils.ThunderUtils;
 import zeus.zeuscompiler.thunder.dtos.ErrorDto;
 
 public class CompilerError implements Convertable<ErrorDto> {
-  final int line;
+  int line;
   final int linePosition;
   Exception exception;
   final CompilerPhase compilerPhase;
@@ -45,5 +45,9 @@ public class CompilerError implements Convertable<ErrorDto> {
 
   public CompilerPhase getCompilerPhase() {
     return compilerPhase;
+  }
+
+  public void setLine(int line) {
+    this.line = line;
   }
 }

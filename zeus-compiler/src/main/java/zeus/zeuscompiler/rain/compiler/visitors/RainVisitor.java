@@ -29,6 +29,11 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     this.currentShapeProperties = null;
   }
 
+  private void addCompilerErrors(List<CompilerError> compilerErrors, int lineOffset) {
+    compilerErrors.forEach(compilerError -> compilerError.setLine(compilerError.getLine() + lineOffset));
+    this.compilerErrors.addAll(compilerErrors);
+  }
+
   private void resetCurrentShapeProperties() {
     this.currentShapeProperties = null;
   }
@@ -374,7 +379,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.SERVER);
     String code = ctx.codeModules().CODE_MODULES_CODE().getText();
     Optional<CodeModules> codeModulesOptional = thunderAnalyzer.analyze(code.substring(1, code.length() - 2));
-    this.compilerErrors.addAll(thunderAnalyzer.getErrors());
+    addCompilerErrors(thunderAnalyzer.getErrors(), ctx.codeModules().start.getLine() - 1);
 
     return new Route(
             ctx.getStart().getLine(),
