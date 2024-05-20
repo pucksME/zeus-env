@@ -2,11 +2,10 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Server extends Node {
     String ip;
@@ -22,7 +21,9 @@ public class Server extends Node {
 
     @Override
     public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
-        return null;
+        return this.routes.stream()
+          .map(route -> route.translate(symbolTable, depth, exportTarget))
+          .collect(Collectors.joining("\n"));
     }
 
     @Override

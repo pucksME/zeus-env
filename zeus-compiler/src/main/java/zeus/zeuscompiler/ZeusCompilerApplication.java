@@ -132,6 +132,12 @@ public class ZeusCompilerApplication {
       );
     }
 
-    return new ExportedProjectDto(new ArrayList<>(), new ArrayList<>());
+    return new ExportedProjectDto(
+      projectOptional.get().translateServers(
+        rainAnalyzer.getSymbolTable(),
+        translateProjectDto.exportTarget()
+      ).stream().map(code -> new ExportedFileDto(code, "routes.tsx")).toList(),
+      new ArrayList<>()
+    );
   }
 }

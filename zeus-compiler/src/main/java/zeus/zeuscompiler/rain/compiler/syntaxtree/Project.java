@@ -84,6 +84,10 @@ public class Project extends Node {
     };
   }
 
+  public List<String> translateServers(SymbolTable symbolTable, ExportTarget exportTarget) {
+    return this.servers.stream().map(server -> server.translate(symbolTable, 0, exportTarget)).toList();
+  }
+
   @Override
   public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {

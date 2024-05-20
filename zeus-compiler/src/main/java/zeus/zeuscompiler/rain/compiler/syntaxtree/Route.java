@@ -21,7 +21,7 @@ public class Route extends Node {
 
     @Override
     public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
-        return null;
+        return this.codeModules.translate(symbolTable, depth, exportTarget);
     }
 
     @Override
