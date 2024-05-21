@@ -98,7 +98,7 @@ serverRequestConnectionStatement : KEYWORD_REQUEST OPERATOR_ACCESS (
   | KEYWORD_BODY
 ) OPERATOR_ACCESS ID OPERATOR_CONNECTION expressionCodeModulePort ';' ;
 
-serverResponseConnectionStatement : expressionCodeModulePort OPERATOR_CONNECTION  KEYWORD_RESPONSE OPERATOR_ACCESS ID ';' ;
+serverResponseConnectionStatement : expressionCodeModulePort OPERATOR_CONNECTION  KEYWORD_RESPONSE OPERATOR_ACCESS KEYWORD_BODY OPERATOR_ACCESS ID ';' ;
 WHITESPACE : [ \r\t\n]+ -> skip ;
 COMMENT_SINGLE_LINE : '//' ~[\r\n]* NEW_LINE -> skip ;
 

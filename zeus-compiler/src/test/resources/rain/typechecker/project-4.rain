@@ -28,7 +28,7 @@ route POST test {
             request.body.param2 -> bodyParameterHandler.param2;
             urlParameterHandler.result -> resultHandler.urlParameterResult;
             bodyParameterHandler.result -> resultHandler.bodyParameterResult;
-            resultHandler.result -> response.result;
+            resultHandler.result -> response.body.result;
         }
     `}
 }

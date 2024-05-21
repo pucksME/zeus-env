@@ -11,4 +11,8 @@ public class CodeModuleRequestExpression extends CodeModuleOutputExpression {
         super(line, linePosition, "request", outputId);
         this.requestParameterType = requestParameterType;
     }
+
+    public RequestParameterType getRequestParameterType() {
+        return requestParameterType;
+    }
 }

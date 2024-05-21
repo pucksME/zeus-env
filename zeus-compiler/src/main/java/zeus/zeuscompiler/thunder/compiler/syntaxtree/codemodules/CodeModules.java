@@ -46,6 +46,10 @@ public class CodeModules extends TypeCheckableNode implements Convertable<List<C
     return Optional.ofNullable(this.instanceCodeModules.get(id));
   }
 
+  public void addClientCodeModule(ClientCodeModule clientCodeModule) {
+    this.clientCodeModules.put(clientCodeModule.id, clientCodeModule);
+  }
+
   @Override
   public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
     for (CodeModule codeModule : this.getCodeModules()) {

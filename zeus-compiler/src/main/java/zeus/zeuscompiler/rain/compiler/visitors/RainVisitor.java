@@ -12,7 +12,8 @@ import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.grammars.RainBaseVisitor;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.util.*;
@@ -382,6 +383,24 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     addCompilerErrors(thunderAnalyzer.getErrors(), ctx.codeModules().start.getLine() - 1);
     // TODO: this should not work for multiple servers
     this.symbolTable.setCodeModules(thunderAnalyzer.getSymbolTable().getCodeModules());
+    ClientCodeModule requestCodeModule = new ClientCodeModule(-1, -1, "request", "");
+    requestCodeModule.setHead(new Head(
+      new ArrayList<>(),
+      new ArrayList<>(List.of(
+        new Output(-1, -1, "url", new ObjectType(new HashMap<>()), null),
+        new Output(-1, -1, "body", new ObjectType(new HashMap<>()), null)
+      )),
+      new ArrayList<>()
+    ));
+
+    ClientCodeModule responseCodeModule = new ClientCodeModule(-1, -1, "response", "");
+    responseCodeModule.setHead(new Head(
+      new ArrayList<>(List.of(new Input(-1, -1, "body", new ObjectType(new HashMap<>())))),
+      new ArrayList<>(),
+      new ArrayList<>()
+    ));
+    this.symbolTable.getCodeModules().addClientCodeModule(requestCodeModule);
+    this.symbolTable.getCodeModules().addClientCodeModule(responseCodeModule);
 
     return new Route(
             ctx.getStart().getLine(),
