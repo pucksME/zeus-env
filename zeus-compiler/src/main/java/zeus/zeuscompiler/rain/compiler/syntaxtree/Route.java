@@ -4,6 +4,7 @@ import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
+import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.List;
 
@@ -19,9 +20,34 @@ public class Route extends Node {
         this.codeModules = codeModules;
     }
 
+    private String translateRequestMethod(ExportTarget exportTarget) {
+        return switch (exportTarget) {
+            case REACT_TYPESCRIPT -> switch (this.routeMethod) {
+                case DELETE -> "delete";
+                case GET -> "get";
+                case POST -> "post";
+                case UPDATE -> "update";
+            };
+        };
+    }
+
     @Override
     public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
-        return this.codeModules.translate(symbolTable, depth, exportTarget);
+        return switch (exportTarget) {
+            case REACT_TYPESCRIPT -> String.format(
+              CompilerUtils.buildLinesFormat(
+                new String[]{
+                  "function app.%s('/%s', function(req, res) {",
+                  CompilerUtils.buildLinePadding(depth + 1) + "%s",
+                  "});"
+                },
+                depth
+              ),
+              this.translateRequestMethod(exportTarget),
+              this.id,
+              this.codeModules.translate(symbolTable, depth, exportTarget)
+            );
+        };
     }
 
     @Override
