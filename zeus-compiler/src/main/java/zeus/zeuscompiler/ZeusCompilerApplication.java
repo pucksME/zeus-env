@@ -125,7 +125,7 @@ public class ZeusCompilerApplication {
     RainAnalyzer rainAnalyzer = new RainAnalyzer(CompilerPhase.TYPE_CHECKER);
     Optional<Project> projectOptional = rainAnalyzer.analyze(CharStreams.fromString(translateProjectDto.code()));
 
-    if (projectOptional.isEmpty()) {
+    if (projectOptional.isEmpty() || rainAnalyzer.hasErrors()) {
       return new ExportedProjectDto(
         new ArrayList<>(),
         rainAnalyzer.getErrors().stream().map(CompilerError::toDto).toList()

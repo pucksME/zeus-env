@@ -86,30 +86,17 @@ expressionObject : BLOCK_START expressionObjectItem (',' expressionObjectItem)* 
 instanceCodeModule : KEYWORD_CODE_MODULE KEYWORD_INSTANCE ID DESCRIPTION BLOCK_START instanceBody BLOCK_END;
 
 instanceBody : instanceStatement*;
-instanceStatement : connectionStatement
-                    | serverRequestConnectionStatement
-                    | serverResponseConnectionStatement
-                    ;
+instanceStatement : connectionStatement ;
 
 connectionStatement : expressionCodeModulePort OPERATOR_CONNECTION expressionCodeModulePort ';' ;
 expressionCodeModulePort : ID OPERATOR_ACCESS ID ;
-serverRequestConnectionStatement : KEYWORD_REQUEST OPERATOR_ACCESS (
-  KEYWORD_URL
-  | KEYWORD_BODY
-) OPERATOR_ACCESS ID OPERATOR_CONNECTION expressionCodeModulePort ';' ;
 
-serverResponseConnectionStatement : expressionCodeModulePort OPERATOR_CONNECTION  KEYWORD_RESPONSE OPERATOR_ACCESS KEYWORD_BODY OPERATOR_ACCESS ID ';' ;
 WHITESPACE : [ \r\t\n]+ -> skip ;
 COMMENT_SINGLE_LINE : '//' ~[\r\n]* NEW_LINE -> skip ;
 
 KEYWORD_CODE_MODULE : 'module' ;
 KEYWORD_INSTANCE : 'instance' ;
 
-KEYWORD_REQUEST : 'request' ;
-KEYWORD_URL : 'url' ;
-KEYWORD_BODY : 'body' ;
-
-KEYWORD_RESPONSE : 'response' ;
 
 KEYWORD_INPUT : 'input' ;
 KEYWORD_OUTPUT : 'output' ;

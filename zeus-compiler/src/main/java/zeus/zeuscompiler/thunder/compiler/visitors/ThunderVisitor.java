@@ -725,43 +725,4 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       )
     );
   }
-
-  @Override
-  public Object visitServerRequestConnectionStatement(ThunderParser.ServerRequestConnectionStatementContext ctx) {
-    return new ConnectionStatement(
-      ctx.getStart().getLine(),
-      ctx.getStart().getCharPositionInLine(),
-      new CodeModuleInputExpression(
-        ctx.expressionCodeModulePort().ID(0).getSymbol().getLine(),
-        ctx.expressionCodeModulePort().ID(0).getSymbol().getCharPositionInLine(),
-        ctx.expressionCodeModulePort().ID(0).getText(),
-        ctx.expressionCodeModulePort().ID(1).getText()
-      ),
-      new CodeModuleRequestExpression(
-        ctx.KEYWORD_REQUEST().getSymbol().getLine(),
-        ctx.KEYWORD_REQUEST().getSymbol().getCharPositionInLine(),
-        ctx.ID().getText(),
-        (ctx.KEYWORD_URL() != null) ? RequestParameterType.URL : RequestParameterType.BODY
-      )
-    );
-  }
-
-  @Override
-  public Object visitServerResponseConnectionStatement(ThunderParser.ServerResponseConnectionStatementContext ctx) {
-    return new ConnectionStatement(
-      ctx.getStart().getLine(),
-      ctx.getStart().getCharPositionInLine(),
-      new CodeModuleResponseExpression(
-        ctx.KEYWORD_RESPONSE().getSymbol().getLine(),
-        ctx.KEYWORD_RESPONSE().getSymbol().getCharPositionInLine(),
-        ctx.ID().getText()
-      ),
-      new CodeModuleOutputExpression(
-        ctx.expressionCodeModulePort().getStart().getLine(),
-        ctx.expressionCodeModulePort().getStart().getCharPositionInLine(),
-        ctx.expressionCodeModulePort().ID(0).getText(),
-        ctx.expressionCodeModulePort().ID(1).getText()
-      )
-    );
-  }
 }

@@ -78,8 +78,4 @@ public class ObjectType extends Type {
     Type propertyType = this.propertyTypes.get(propertyId);
     return (propertyType == null) ? Optional.empty() : Optional.of(propertyType);
   }
-
-  public void addPropertyType(String propertyId, Type type) {
-    this.propertyTypes.put(propertyId, type);
-  }
 }
