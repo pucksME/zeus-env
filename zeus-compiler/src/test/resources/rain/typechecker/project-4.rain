@@ -3,32 +3,43 @@
 [server localhost:81]
 route POST test {
     code modules {`
+        module types::type specifications {
+            public type requestUrlType = {param1: string, param2: int};
+            public type requestBodyType = {param1: int, param2: string};
+            public type responseBodyType = {result: {urlParameterResult: string, bodyParameterResult: int}};
+        }
+
+        module request::request specification {
+            output url: requestUrlType;
+            output body: requestBodyType;
+        }
+
+        module response:: response specification {
+            input body: responseBodyType;
+        }
+
         module urlParameterHandler::handles request url parameters {
-            input param1: string;
-            input param2: int;
-            output result: string;
+            input requestUrl: requestUrlType;
+            output result: string = requestUrl.param1;
         }
 
         module bodyParameterHandler::handles request body data {
-            input param1: int;
-            input param2: string;
-            output result: int;
+            input requestBody: requestBodyType;
+            output result: int = requestBody.param1;
         }
 
         module resultHandler::handles results {
             input urlParameterResult: string;
             input bodyParameterResult: int;
-            output result: {urlParameterResult: string, bodyParameterResult: int};
+            output result: responseBodyType;
         }
 
         module instance connection::endpoint connection {
-            request.url.param1 -> urlParameterHandler.param1;
-            request.url.param2 -> urlParameterHandler.param2;
-            request.body.param1 -> bodyParameterHandler.param1;
-            request.body.param2 -> bodyParameterHandler.param2;
+            request.url -> urlParameterHandler.requestUrl;
+            request.body -> bodyParameterHandler.requestBody;
             urlParameterHandler.result -> resultHandler.urlParameterResult;
             bodyParameterHandler.result -> resultHandler.bodyParameterResult;
-            resultHandler.result -> response.body.result;
+            resultHandler.result -> response.body;
         }
     `}
 }
