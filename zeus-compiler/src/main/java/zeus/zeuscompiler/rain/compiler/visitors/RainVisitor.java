@@ -383,6 +383,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     addCompilerErrors(thunderAnalyzer.getErrors(), ctx.codeModules().start.getLine() - 1);
     // TODO: this should not work for multiple servers
     this.symbolTable.setCodeModules(thunderAnalyzer.getSymbolTable().getCodeModules());
+    this.symbolTable.getPublicTypes().putAll(thunderAnalyzer.getSymbolTable().getPublicTypes());
 
     return new Route(
             ctx.getStart().getLine(),
