@@ -47,12 +47,28 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
 
   @Override
   public ClientCodeModule visitClientCodeModule(ThunderParser.ClientCodeModuleContext ctx) {
-    ClientCodeModule clientCodeModule = new ClientCodeModule(
-      ctx.KEYWORD_CODE_MODULE().getSymbol().getLine(),
-      ctx.KEYWORD_CODE_MODULE().getSymbol().getCharPositionInLine(),
-      ctx.ID().getText(),
-      ctx.DESCRIPTION().getText()
-    );
+    ClientCodeModule clientCodeModule = switch (ctx.ID().getText()) {
+      case "request" -> new RequestCodeModule(
+        ctx.KEYWORD_CODE_MODULE().getSymbol().getLine(),
+        ctx.KEYWORD_CODE_MODULE().getSymbol().getCharPositionInLine(),
+        ctx.ID().getText(),
+        ctx.DESCRIPTION().getText()
+      );
+
+      case "response" -> new ResponseCodeModule(
+        ctx.KEYWORD_CODE_MODULE().getSymbol().getLine(),
+        ctx.KEYWORD_CODE_MODULE().getSymbol().getCharPositionInLine(),
+        ctx.ID().getText(),
+        ctx.DESCRIPTION().getText()
+      );
+
+      default -> new ClientCodeModule(
+        ctx.KEYWORD_CODE_MODULE().getSymbol().getLine(),
+        ctx.KEYWORD_CODE_MODULE().getSymbol().getCharPositionInLine(),
+        ctx.ID().getText(),
+        ctx.DESCRIPTION().getText()
+      );
+    };
 
     this.symbolTable.setCurrentCodeModule(clientCodeModule);
     clientCodeModule.setHead((Head) visit(ctx.head()));

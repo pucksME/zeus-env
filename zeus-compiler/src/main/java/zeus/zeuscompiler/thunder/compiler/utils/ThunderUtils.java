@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.CodeModuleComponent;
 import zeus.zeuscompiler.thunder.dtos.*;
 
 import java.util.List;
@@ -24,5 +25,14 @@ public abstract class ThunderUtils {
 
   public static String buildErrorMessage(String description, int line, int linePosition) {
     return description + " at [" + line + "," + linePosition + "]";
+  }
+
+  public static String codeModuleComponentToString(CodeModuleComponent codeModuleComponent) {
+    return switch (codeModuleComponent) {
+      case INPUT -> "input";
+      case OUTPUT -> "output";
+      case CONFIG -> "config";
+      case BODY -> "body";
+    };
   }
 }
