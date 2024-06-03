@@ -6,6 +6,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import zeus.zeuscompiler.rain.compiler.RainAnalyzer;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.UnknownBlueprintComponentException;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.CodeModuleComponent;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnsupportedCodeModuleComponentsException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -48,5 +51,108 @@ public class RainTypeCheckerTests {
   void test4() throws IOException {
     runAnalyzer("project-4.rain");
     assertThat(rainAnalyzer.hasErrors()).isFalse();
+  }
+
+  @Test()
+  void test5() throws IOException {
+    runAnalyzer("project-5.rain");
+    assertThat(rainAnalyzer.getErrors().size()).isEqualTo(1);
+    assertThat(rainAnalyzer.getErrors().get(0).getLine()).isEqualTo(7);
+    assertThat(rainAnalyzer.getErrors().get(0).getLinePosition()).isEqualTo(12);
+    assertThat(rainAnalyzer.getErrors().get(0).getException()).isInstanceOf(IncompatibleTypeException.class);
+  }
+
+  @Test()
+  void test6() throws IOException {
+    runAnalyzer("project-6.rain");
+    assertThat(rainAnalyzer.getErrors().size()).isEqualTo(1);
+    assertThat(rainAnalyzer.getErrors().get(0).getLine()).isEqualTo(7);
+    assertThat(rainAnalyzer.getErrors().get(0).getLinePosition()).isEqualTo(12);
+    assertThat(rainAnalyzer.getErrors().get(0).getException()).isInstanceOf(IncompatibleTypeException.class);
+  }
+
+  @Test()
+  void test7() throws IOException {
+    runAnalyzer("project-7.rain");
+    assertThat(rainAnalyzer.getErrors().size()).isEqualTo(1);
+    assertThat(rainAnalyzer.getErrors().get(0).getLine()).isEqualTo(7);
+    assertThat(rainAnalyzer.getErrors().get(0).getLinePosition()).isEqualTo(12);
+    assertThat(rainAnalyzer.getErrors().get(0).getException()).isInstanceOf(IncompatibleTypeException.class);
+  }
+
+  @Test()
+  void test8() throws IOException {
+    runAnalyzer("project-8.rain");
+    assertThat(rainAnalyzer.getErrors().size()).isEqualTo(1);
+    assertThat(rainAnalyzer.getErrors().get(0).getLine()).isEqualTo(6);
+    assertThat(rainAnalyzer.getErrors().get(0).getLinePosition()).isEqualTo(8);
+    assertThat(
+      rainAnalyzer.getErrors().get(0).getException()
+    ).isInstanceOf(UnsupportedCodeModuleComponentsException.class);
+    assertThat(
+      ((UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()).getCodeModuleId()
+    ).isEqualTo("request");
+    assertThat(
+      (
+        (UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()
+      ).getCodeModuleComponent()
+    ).isEqualTo(CodeModuleComponent.INPUT);
+  }
+
+  @Test()
+  void test9() throws IOException {
+    runAnalyzer("project-9.rain");
+    assertThat(rainAnalyzer.getErrors().size()).isEqualTo(1);
+    assertThat(rainAnalyzer.getErrors().get(0).getLine()).isEqualTo(6);
+    assertThat(rainAnalyzer.getErrors().get(0).getLinePosition()).isEqualTo(8);
+    assertThat(
+      rainAnalyzer.getErrors().get(0).getException()
+    ).isInstanceOf(UnsupportedCodeModuleComponentsException.class);
+    assertThat(
+      ((UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()).getCodeModuleId()
+    ).isEqualTo("request");
+    assertThat(
+      (
+        (UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()
+      ).getCodeModuleComponent()
+    ).isEqualTo(CodeModuleComponent.BODY);
+  }
+
+  @Test()
+  void test10() throws IOException {
+    runAnalyzer("project-10.rain");
+    assertThat(rainAnalyzer.getErrors().size()).isEqualTo(1);
+    assertThat(rainAnalyzer.getErrors().get(0).getLine()).isEqualTo(6);
+    assertThat(rainAnalyzer.getErrors().get(0).getLinePosition()).isEqualTo(8);
+    assertThat(
+      rainAnalyzer.getErrors().get(0).getException()
+    ).isInstanceOf(UnsupportedCodeModuleComponentsException.class);
+    assertThat(
+      ((UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()).getCodeModuleId()
+    ).isEqualTo("response");
+    assertThat(
+      (
+        (UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()
+      ).getCodeModuleComponent()
+    ).isEqualTo(CodeModuleComponent.OUTPUT);
+  }
+
+  @Test()
+  void test11() throws IOException {
+    runAnalyzer("project-11.rain");
+    assertThat(rainAnalyzer.getErrors().size()).isEqualTo(1);
+    assertThat(rainAnalyzer.getErrors().get(0).getLine()).isEqualTo(6);
+    assertThat(rainAnalyzer.getErrors().get(0).getLinePosition()).isEqualTo(8);
+    assertThat(
+      rainAnalyzer.getErrors().get(0).getException()
+    ).isInstanceOf(UnsupportedCodeModuleComponentsException.class);
+    assertThat(
+      ((UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()).getCodeModuleId()
+    ).isEqualTo("response");
+    assertThat(
+      (
+        (UnsupportedCodeModuleComponentsException) rainAnalyzer.getErrors().get(0).getException()
+      ).getCodeModuleComponent()
+    ).isEqualTo(CodeModuleComponent.BODY);
   }
 }

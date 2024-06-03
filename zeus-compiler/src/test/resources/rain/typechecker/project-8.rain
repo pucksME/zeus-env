@@ -1,0 +1,10 @@
+[project project5]
+
+[server localhost:81]
+route POST test {
+    code modules {`
+        module request::request specification {
+            input parameter: string;
+        }
+    `}
+}

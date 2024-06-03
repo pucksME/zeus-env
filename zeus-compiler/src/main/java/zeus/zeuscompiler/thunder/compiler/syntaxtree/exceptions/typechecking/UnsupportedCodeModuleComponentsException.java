@@ -11,6 +11,14 @@ public class UnsupportedCodeModuleComponentsException extends TypeCheckingExcept
     this.codeModuleComponent = codeModuleComponent;
   }
 
+  public String getCodeModuleId() {
+    return codeModuleId;
+  }
+
+  public CodeModuleComponent getCodeModuleComponent() {
+    return codeModuleComponent;
+  }
+
   @Override
   public String toString() {
     return String.format(
