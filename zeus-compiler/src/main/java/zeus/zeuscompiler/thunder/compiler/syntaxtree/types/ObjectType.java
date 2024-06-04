@@ -53,6 +53,14 @@ public class ObjectType extends Type {
     return true;
   }
 
+  public String translateToUrlParameters(ExportTarget exportTarget) {
+    return switch (exportTarget) {
+      case REACT_TYPESCRIPT -> this.propertyTypes.keySet().stream()
+        .map(key -> String.format("%s/:%s", key, key))
+        .collect(Collectors.joining("/"));
+    };
+  }
+
   @Override
   public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {

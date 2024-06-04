@@ -128,7 +128,7 @@ public class SymbolTable {
   public Optional<TypeInformation> getType(CodeModule codeModule, String id) {
     Map<String, List<TypeInformation>> types = this.types.get(codeModule);
 
-    if (types.get(id) == null) {
+    if (types == null || types.get(id) == null) {
       types = this.publicTypes;
     }
 
