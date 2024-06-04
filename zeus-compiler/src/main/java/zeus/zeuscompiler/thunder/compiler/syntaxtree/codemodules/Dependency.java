@@ -45,6 +45,31 @@ public class Dependency implements Translatable {
     return this.children.stream().flatMap(dependency -> dependency.getLeaves().stream()).toList();
   }
 
+  String translateResponseAccess(int depth, ExportTarget exportTarget) {
+    return switch (exportTarget) {
+      case REACT_TYPESCRIPT -> this.connectionStatements.stream()
+        .map(connectionStatement -> String.format(
+          "res['body'] = %s_%s",
+          connectionStatement.getCodeModuleOutputExpression().getCodeModuleId(),
+          connectionStatement.getCodeModuleOutputExpression().getOutputId()
+        ))
+        .collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 1)));
+    };
+  }
+
+  String translateRequestAccess(SymbolTable symbolTable, ClientCodeModule clientCodeModule, int depth, ExportTarget exportTarget) {
+    return switch (exportTarget) {
+      case REACT_TYPESCRIPT -> clientCodeModule.getOutputs().stream()
+        .map(output -> String.format(
+          "const request_%s = req['%s'] as %s",
+          output.getId(),
+          (output.getId().equals("url") ? "params" : "body"),
+          output.type.translate(symbolTable, depth, exportTarget)
+        ))
+        .collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 1)));
+    };
+  }
+
   String translateOutputs(ClientCodeModule clientCodeModule, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
@@ -92,15 +117,25 @@ public class Dependency implements Translatable {
     assert codeModuleOptional.isPresent();
     ClientCodeModule clientCodeModule = (ClientCodeModule) codeModuleOptional.get();
 
+    if (clientCodeModule.hasEmptyTranslation()){
+      return "";
+    }
+
     if (!this.translated) {
-      translations.add(switch (exportTarget) {
-        case REACT_TYPESCRIPT -> String.format(
-          "%s = %s(%s);",
-          this.translateOutputs(clientCodeModule, exportTarget),
-          clientCodeModule.getId(),
-          (this.connectionStatements.size() != 0) ? this.translateInputs(clientCodeModule, exportTarget) : ""
-        );
-      });
+      if (clientCodeModule instanceof RequestCodeModule) {
+        translations.add(this.translateRequestAccess(symbolTable, clientCodeModule, depth, exportTarget));
+      } else if (clientCodeModule instanceof ResponseCodeModule) {
+        translations.add(this.translateResponseAccess(depth, exportTarget));
+      } else {
+        translations.add(switch (exportTarget) {
+          case REACT_TYPESCRIPT -> String.format(
+            "%s = %s(%s);",
+            this.translateOutputs(clientCodeModule, exportTarget),
+            clientCodeModule.getId(),
+            (this.connectionStatements.size() != 0) ? this.translateInputs(clientCodeModule, exportTarget) : ""
+          );
+        });
+      }
     }
 
     this.translated = true;

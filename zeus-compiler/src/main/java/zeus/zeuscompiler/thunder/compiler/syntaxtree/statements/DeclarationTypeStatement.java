@@ -12,10 +12,12 @@ import java.util.Optional;
 
 public class DeclarationTypeStatement extends Statement {
   String id;
+  boolean isPublic;
 
-  public DeclarationTypeStatement(int line, int linePosition, String id) {
+  public DeclarationTypeStatement(int line, int linePosition, String id, boolean isPublic) {
     super(line, linePosition);
     this.id = id;
+    this.isPublic = isPublic;
   }
 
   @Override
@@ -33,5 +35,9 @@ public class DeclarationTypeStatement extends Statement {
         ? String.format("type %s = %s;", this.id, typeInformation.getType().translate(symbolTable, depth, exportTarget))
         : "";
     };
+  }
+
+  public boolean isPublic() {
+    return isPublic;
   }
 }

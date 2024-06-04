@@ -3,6 +3,7 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationTypeStatement;
 import zeus.zeuscompiler.thunder.dtos.ClientCodeModuleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleType;
@@ -25,6 +26,15 @@ public class ClientCodeModule extends CodeModule {
 
   public ClientCodeModule(int line, int linePosition, String id, String description) {
     super(line, linePosition, id, description);
+  }
+
+  public boolean hasEmptyTranslation() {
+    return this.head.isEmpty() &&
+      this.body.getBodyComponents().stream()
+        .allMatch(
+          bodyComponent -> bodyComponent instanceof DeclarationTypeStatement &&
+            ((DeclarationTypeStatement) bodyComponent).isPublic()
+        );
   }
 
   @Override
@@ -85,6 +95,10 @@ public class ClientCodeModule extends CodeModule {
 
   @Override
   public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+    if (this.hasEmptyTranslation() || this instanceof RequestCodeModule || this instanceof ResponseCodeModule) {
+      return "";
+    }
+
     Collection<Output> outputs = this.getOutputs();
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(

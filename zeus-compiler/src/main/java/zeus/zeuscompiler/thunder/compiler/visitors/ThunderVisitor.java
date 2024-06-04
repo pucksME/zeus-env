@@ -167,7 +167,12 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       ? ctx.KEYWORD_PUBLIC().getSymbol()
       : ctx.KEYWORD_TYPE().getSymbol();
 
-    return new DeclarationTypeStatement(startToken.getLine(), startToken.getCharPositionInLine(), typeId);
+    return new DeclarationTypeStatement(
+      startToken.getLine(),
+      startToken.getCharPositionInLine(),
+      typeId,
+      ctx.KEYWORD_PUBLIC() != null
+    );
   }
 
   @Override

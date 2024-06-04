@@ -15,4 +15,8 @@ public class Head {
     this.outputs = outputs.stream().collect(Collectors.toMap(Output::getId, output -> output));
     this.configs = configs.stream().collect(Collectors.toMap(Config::getId, config -> config));
   }
+
+  public boolean isEmpty() {
+    return this.inputs.isEmpty() && this.outputs.isEmpty() && this.configs.isEmpty();
+  }
 }
