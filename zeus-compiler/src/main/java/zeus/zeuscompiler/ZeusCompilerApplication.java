@@ -82,29 +82,14 @@ public class ZeusCompilerApplication {
     if (projectOptional.isEmpty()) {
       return new ExportedProjectDto(
         new ArrayList<>(),
+        new ArrayList<>(),
         rainAnalyzer.getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
 
-    String appFileName = switch (exportProjectDto.exportTarget()) {
-      case REACT_TYPESCRIPT -> "app.tsx";
-    };
-
-    String viewsFileName = switch (exportProjectDto.exportTarget()) {
-      case REACT_TYPESCRIPT -> "views.tsx";
-    };
-
     return new ExportedProjectDto(
-      List.of(
-        new ExportedFileDto(
-          projectOptional.get().translate(rainAnalyzer.getSymbolTable(), 0, exportProjectDto.exportTarget()),
-          appFileName
-        ),
-        new ExportedFileDto(
-          projectOptional.get().translateViews(appFileName, exportProjectDto.exportTarget()),
-          viewsFileName
-        )
-      ),
+      projectOptional.get().translateClients(rainAnalyzer.getSymbolTable(), exportProjectDto.exportTarget()),
+      new ArrayList<>(),
       new ArrayList<>()
     );
   }
@@ -128,15 +113,14 @@ public class ZeusCompilerApplication {
     if (projectOptional.isEmpty() || rainAnalyzer.hasErrors()) {
       return new ExportedProjectDto(
         new ArrayList<>(),
+        new ArrayList<>(),
         rainAnalyzer.getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
 
     return new ExportedProjectDto(
-      projectOptional.get().translateServers(
-        rainAnalyzer.getSymbolTable(),
-        translateProjectDto.exportTarget()
-      ).stream().map(code -> new ExportedFileDto(code, "routes.tsx")).toList(),
+      new ArrayList<>(),
+      projectOptional.get().translateServers(rainAnalyzer.getSymbolTable(), translateProjectDto.exportTarget()),
       new ArrayList<>()
     );
   }

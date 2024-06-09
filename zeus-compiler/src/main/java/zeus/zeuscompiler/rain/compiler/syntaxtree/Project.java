@@ -3,8 +3,7 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
-import zeus.zeuscompiler.rain.dtos.ExportProjectDto;
-import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.rain.dtos.*;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -84,8 +83,23 @@ public class Project extends Node {
     };
   }
 
-  public List<String> translateServers(SymbolTable symbolTable, ExportTarget exportTarget) {
-    return this.servers.stream().map(server -> server.translate(symbolTable, 0, exportTarget)).toList();
+  public List<ExportedClientDto> translateClients(SymbolTable symbolTable, ExportTarget exportTarget) {
+    String appFileName = switch (exportTarget) {
+      case REACT_TYPESCRIPT -> "app.tsx";
+    };
+
+    return List.of(new ExportedClientDto(List.of(
+      new ExportedFileDto(this.translate(symbolTable, 0, exportTarget), appFileName),
+      new ExportedFileDto(this.translateViews(appFileName, exportTarget), "views.tsx")
+    )));
+  }
+
+  public List<ExportedServerDto> translateServers(SymbolTable symbolTable, ExportTarget exportTarget) {
+    return this.servers.stream()
+      .map(server -> new ExportedServerDto(
+        List.of(new ExportedFileDto(server.translate(symbolTable, 0, exportTarget), "routes.tsx"))
+      ))
+      .toList();
   }
 
   @Override

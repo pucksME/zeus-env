@@ -4,5 +4,9 @@ import zeus.zeuscompiler.thunder.dtos.ErrorDto;
 
 import java.util.List;
 
-public record ExportedProjectDto(List<ExportedFileDto> exportedFileDtos, List<ErrorDto> errors) {
+public record ExportedProjectDto(
+  List<ExportedClientDto> exportedClientDtos,
+  List<ExportedServerDto> exportedServerDtos,
+  List<ErrorDto> errors
+) {
 }
