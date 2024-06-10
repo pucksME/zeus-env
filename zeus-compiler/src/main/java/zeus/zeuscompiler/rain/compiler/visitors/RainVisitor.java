@@ -356,7 +356,8 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     return new Server(
             ctx.getStart().getLine(),
             ctx.getStart().getCharPositionInLine(),
-            (ctx.ID() != null) ? ctx.ID().getText() : ctx.SERVER_IP().getText(),
+            ctx.name.getText(),
+            (ctx.hostname != null) ? ctx.hostname.getText() : ctx.ipAddress.getText(),
             Integer.parseInt(ctx.NUMBER().getText()),
             ctx.route().stream().map(routeContext -> (Route) visit(routeContext)).toList()
     );

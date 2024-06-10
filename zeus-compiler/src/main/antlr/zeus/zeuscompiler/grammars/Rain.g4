@@ -114,7 +114,7 @@ shape : shapeRectangle | shapeCircle | shapeText;
 componentElement: (component | componentReference) ;
 view : '[' VIEW ROOT? ID propertyHeight propertyWidth ']' componentElement*;
 route : ROUTE (ROUTE_GET | ROUTE_POST | ROUTE_UPDATE | ROUTE_DELETE) ID BLOCK_START codeModules BLOCK_END ;
-server : '[' SERVER (ID | SERVER_IP) (':' NUMBER)? ']' route+ ;
+server : '[' SERVER name=ID '@' (hostname=ID | ipAddress=SERVER_IP) (':' NUMBER)? ']' route+ ;
 
 BLOCK_START : '{' ;
 BLOCK_END : '}' ;

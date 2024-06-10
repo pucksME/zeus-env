@@ -4,5 +4,6 @@ public enum AmbiguousElementType {
   VIEW,
   BLUEPRINT_COMPONENT,
   COMPONENT,
-  SHAPE
+  SHAPE,
+  SERVER
 }

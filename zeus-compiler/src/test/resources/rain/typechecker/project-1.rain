@@ -112,7 +112,4 @@ component test {
       background color enabled = false;
     }
   }
-
-  code modules {`
-  `}
 }

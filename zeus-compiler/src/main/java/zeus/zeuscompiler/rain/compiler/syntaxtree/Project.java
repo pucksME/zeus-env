@@ -9,7 +9,9 @@ import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Project extends Node {
@@ -29,6 +31,23 @@ public class Project extends Node {
     this.elements = elements;
     this.views = views;
     this.servers = servers;
+  }
+
+  private void checkServers(List<CompilerError> compilerErrors) {
+    Set<String> serverNames = new HashSet<>();
+
+    for (Server server : this.servers) {
+      if (serverNames.add(server.name)) {
+        continue;
+      }
+
+      compilerErrors.add(new CompilerError(
+        server.line,
+        server.linePosition,
+        new AmbiguousElementException(server.name, AmbiguousElementType.SERVER),
+        CompilerPhase.TYPE_CHECKER
+      ));
+    }
   }
 
   @Override
@@ -59,6 +78,8 @@ public class Project extends Node {
 
       view.check(symbolTable, compilerErrors);
     }
+
+    this.checkServers(compilerErrors);
   }
 
   public String translateViews(String appFileName, ExportTarget exportTarget) {
@@ -97,6 +118,7 @@ public class Project extends Node {
   public List<ExportedServerDto> translateServers(SymbolTable symbolTable, ExportTarget exportTarget) {
     return this.servers.stream()
       .map(server -> new ExportedServerDto(
+        server.name,
         List.of(new ExportedFileDto(server.translate(symbolTable, 0, exportTarget), "routes.tsx"))
       ))
       .toList();

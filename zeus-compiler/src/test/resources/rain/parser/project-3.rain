@@ -24,19 +24,19 @@ component test {
   `}
 }
 
-[server localhost:8080]
+[server main1@localhost:8080]
 route GET test {
   code modules {`
   `}
 }
 
-[server 127.0.0.1]
+[server main2@127.0.0.1]
 route GET test {
   code modules {`
   `}
 }
 
-[server 127.0.0.1:80]
+[server main3@127.0.0.1:80]
 route GET test {
   code modules {`
   `}

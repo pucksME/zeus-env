@@ -24,7 +24,7 @@ component test {
   `}
 }
 
-[server localhost:1]
+[server main@localhost:1]
 route GET test {
   code modules {`
   `}

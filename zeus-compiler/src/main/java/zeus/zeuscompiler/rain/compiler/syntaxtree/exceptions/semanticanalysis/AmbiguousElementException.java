@@ -18,6 +18,7 @@ public class AmbiguousElementException extends SemanticAnalysisException {
         case BLUEPRINT_COMPONENT -> "blueprint component";
         case COMPONENT -> "component";
         case SHAPE -> "shape";
+        case SERVER -> "server";
       },
       this.name
     );

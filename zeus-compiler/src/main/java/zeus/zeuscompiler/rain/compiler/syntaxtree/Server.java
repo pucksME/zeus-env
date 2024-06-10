@@ -8,13 +8,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class Server extends Node {
-    String ip;
+    String address;
     int port;
     List<Route> routes;
 
-    public Server(int line, int linePosition, String ip, int port, List<Route> routes) {
-        super(line, linePosition, "");
-        this.ip = ip;
+    public Server(int line, int linePosition, String name, String address, int port, List<Route> routes) {
+        super(line, linePosition, name);
+        this.address = address;
         this.port = port;
         this.routes = routes;
     }
