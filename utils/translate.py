@@ -9,7 +9,7 @@ def extract_output(code: str, directory_path: str | None):
         return
 
     code_json = json.loads(code)
-    if code_json['exportedFileDtos'] is None or code_json['errors'] is None:
+    if 'exportedClientDtos' not in code_json or 'exportedServerDtos' not in code_json or 'errors' not in code_json:
         print('invalid output: could not perform extraction')
         return
 
@@ -22,9 +22,15 @@ def extract_output(code: str, directory_path: str | None):
     if not path.exists():
         path.mkdir(parents=True, exist_ok=True)
 
-    for file in code_json['exportedFileDtos']:
-        with open(path.joinpath(file['filename']).resolve(), 'w') as code_file:
-            code_file.write(file['code'])
+    for server in code_json['exportedServerDtos']:
+        server_path = path.joinpath('server-' + server['name']).resolve()
+
+        if not server_path.exists():
+            server_path.mkdir(parents=True, exist_ok=True)
+
+        for file in server['exportedFileDtos']:
+            with open(server_path.joinpath(file['filename']).resolve(), 'w') as code_file:
+                code_file.write(file['code'])
 
     errors = []
     for error in code_json['errors']:
