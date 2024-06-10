@@ -1,5 +1,5 @@
 import express from 'express';
-import {name, port} from './routes.ts';
+import {name, address, port} from './routes';
 
-const app = express();
-app.listen(port, () => console.log(`Server "${name} is running on port "${port}"`));
+export const app = express();
+app.listen(port, () => console.log(`Server "${name}" is running @ ${address}:${port}`));

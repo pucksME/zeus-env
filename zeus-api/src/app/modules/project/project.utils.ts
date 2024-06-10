@@ -21,8 +21,8 @@ import {
   ExportShapeMutationDto,
   ExportShapePropertyDto,
   ExportShapePropertyDtoKeyEnum,
-  ExportViewDto
-} from '../../../gen/thunder-api-client';
+  ExportViewDto, TranslateProjectDtoExportTargetEnum
+} from "../../../gen/thunder-api-client";
 import {ExportTarget} from './enums/export-target.enum';
 import {BlueprintComponent} from '../designer/entities/blueprint-component.entity';
 import {Shape} from '../designer/entities/shape.entity';
@@ -372,7 +372,9 @@ export abstract class ProjectUtils {
   ): ExportedProjectDto {
     return {
       uuid: projectUuid,
-      exportedFileDtos: compilerExportedProjectDto.exportedFileDtos.map(ProjectUtils.buildExportedFileDto),
+      exportedFileDtos: (compilerExportedProjectDto.exportedClientDtos.length == 0)
+        ? []
+        : compilerExportedProjectDto.exportedClientDtos[0].exportedFileDtos.map(ProjectUtils.buildExportedFileDto),
       exportTarget,
       errors: compilerExportedProjectDto.errors.map(CodeModuleUtils.buildErrorDto)
     };
@@ -380,6 +382,15 @@ export abstract class ProjectUtils {
 
   static translateError(error: Error): string {
     return error.message;
+  }
+
+  static buildZeusCompilerExportTarget(exportTarget: ExportTarget): TranslateProjectDtoExportTargetEnum {
+    switch (exportTarget) {
+      case ExportTarget.REACT_TYPESCRIPT:
+        return TranslateProjectDtoExportTargetEnum.ReactTypescript
+      case ExportTarget.EXPRESS_TYPESCRIPT:
+        return TranslateProjectDtoExportTargetEnum.ReactTypescript
+    }
   }
 
   static buildExportProjectFrameworkFiles(archiver: Archiver, frameworkPath: string, filePaths: string[]): Archiver {
@@ -394,7 +405,7 @@ export abstract class ProjectUtils {
       case ExportTarget.REACT_TYPESCRIPT:
         return ProjectUtils.buildExportProjectFrameworkFiles(
           archiver,
-          './apps/zeus/frameworks/framework-react-typescript/',
+          './frameworks/framework-react-typescript/',
           [
             'src/main.tsx',
             'src/vite-env.d.ts',
@@ -408,6 +419,15 @@ export abstract class ProjectUtils {
             'vite.config.ts'
           ]
         );
+      case ExportTarget.EXPRESS_TYPESCRIPT:
+        return ProjectUtils.buildExportProjectFrameworkFiles(
+          archiver,
+          './frameworks/framework-express-typescript/',
+          [
+            'index.ts',
+            'package.json'
+          ]
+        )
     }
   }
 

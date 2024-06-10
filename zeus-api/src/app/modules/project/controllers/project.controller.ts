@@ -288,4 +288,24 @@ export class ProjectController {
   ): Promise<void> {
     (await this.projectService.downloadRain(exportedProjectUuid)).pipe(res);
   }
+
+  @ApiOperation({
+    summary: 'Packages and downloads a project',
+    description: 'Packages and downloads a translated rain project'
+  })
+  @ApiOkResponse({
+    description: 'The project was downloaded successfully'
+  })
+  @ApiNotFoundResponse({ description: 'There was no project with the given uuid or the project was not exported' })
+  @ApiBadRequestResponse({ description: 'The sent payload was not valid (invalid JSON syntax, failed validation pipeline, ...)' })
+  @Public()
+  @Post('packageRain')
+  @Header('Content-Type', 'application/zip')
+  @Header('Content-Disposition', 'attachment; filename="application-export.zip"')
+  async packageRain(
+    @Res() res,
+    @Body(ValidationPipe) exportRainProjectDto: ExportRainProjectDto
+  ): Promise<void> {
+    (await this.projectService.packageRain(exportRainProjectDto)).pipe(res);
+  }
 }

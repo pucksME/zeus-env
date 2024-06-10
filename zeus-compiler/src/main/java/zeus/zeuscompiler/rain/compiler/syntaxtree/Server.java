@@ -25,7 +25,7 @@ public class Server extends Node {
         return switch (exportTarget) {
             case REACT_TYPESCRIPT -> String.format(
               CompilerUtils.buildLinesFormat(new String[]{
-                "import {app} from './index.ts';",
+                "import {app} from './index';",
                 "export const name = \"%s\";",
                 "export const address = \"%s\";",
                 "export const port = \"%s\";",

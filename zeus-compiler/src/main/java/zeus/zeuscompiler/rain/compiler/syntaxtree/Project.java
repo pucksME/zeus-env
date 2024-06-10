@@ -119,7 +119,7 @@ public class Project extends Node {
     return this.servers.stream()
       .map(server -> new ExportedServerDto(
         server.name,
-        List.of(new ExportedFileDto(server.translate(symbolTable, 0, exportTarget), "routes.tsx"))
+        List.of(new ExportedFileDto(server.translate(symbolTable, 0, exportTarget), "routes.ts"))
       ))
       .toList();
   }

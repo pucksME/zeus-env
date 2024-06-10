@@ -1,44 +1,46 @@
-import { Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
-import { ProjectDataService } from '../data/project-data.service';
-import { CreateProjectDto } from '../dtos/create-project.dto';
-import { Project } from '../entities/project.entity';
-import { ProjectUtils } from '../project.utils';
-import { User } from '../../user/entities/user.entity';
-import { DesignerWorkspace } from '../../designer/entities/designer-workspace.entity';
-import { View } from '../../designer/entities/view.entity';
-import { ViewType } from '../../designer/enums/view-type.enum';
-import { ViewUtils } from '../../designer/view.utils';
-import { ProjectDto } from '../dtos/project.dto';
-import { WorkspaceDesignerDto } from '../../designer/dtos/workspace-designer.dto';
-import { DesignerWorkspaceUtils } from '../../designer/designer-workspace.utils';
-import { UserProjectAssignment } from '../../user/entities/user-project-assignment.entity';
-import { DesignerPermissionToken } from '../../designer/enums/designer-permission-token.enum';
-import { ProjectPermissionToken } from '../enums/project-permission-token.enum';
-import { REQUEST } from '@nestjs/core';
-import { RequestKeys } from '../../../enums/request-keys.enum';
+import { Inject, Injectable, InternalServerErrorException, NotFoundException } from "@nestjs/common";
+import { ProjectDataService } from "../data/project-data.service";
+import { CreateProjectDto } from "../dtos/create-project.dto";
+import { Project } from "../entities/project.entity";
+import { ProjectUtils } from "../project.utils";
+import { User } from "../../user/entities/user.entity";
+import { DesignerWorkspace } from "../../designer/entities/designer-workspace.entity";
+import { View } from "../../designer/entities/view.entity";
+import { ViewType } from "../../designer/enums/view-type.enum";
+import { ViewUtils } from "../../designer/view.utils";
+import { ProjectDto } from "../dtos/project.dto";
+import { WorkspaceDesignerDto } from "../../designer/dtos/workspace-designer.dto";
+import { DesignerWorkspaceUtils } from "../../designer/designer-workspace.utils";
+import { UserProjectAssignment } from "../../user/entities/user-project-assignment.entity";
+import { DesignerPermissionToken } from "../../designer/enums/designer-permission-token.enum";
+import { ProjectPermissionToken } from "../enums/project-permission-token.enum";
+import { REQUEST } from "@nestjs/core";
+import { RequestKeys } from "../../../enums/request-keys.enum";
 import {
   UserProjectAssignmentDataService
-} from '../../user/data/user-project-assignment-data/user-project-assignment-data.service';
+} from "../../user/data/user-project-assignment-data/user-project-assignment-data.service";
 import {
   DesignerWorkspaceDataService
-} from '../../designer/data/designer-workspace-data/designer-workspace-data.service';
-import { ProjectGalleryDto } from '../dtos/project-gallery.dto';
-import { UpdateProjectDto } from '../dtos/update-project.dto';
-import { UpdatedProjectDto } from '../dtos/updated-project.dto';
-import { VisualizerPermissionToken } from '../../visualizer/enums/visualizer-permission-token.enum';
-import { ComponentDataService } from '../../designer/data/component-data/component-data.service';
+} from "../../designer/data/designer-workspace-data/designer-workspace-data.service";
+import { ProjectGalleryDto } from "../dtos/project-gallery.dto";
+import { UpdateProjectDto } from "../dtos/update-project.dto";
+import { UpdatedProjectDto } from "../dtos/updated-project.dto";
+import { VisualizerPermissionToken } from "../../visualizer/enums/visualizer-permission-token.enum";
+import { ComponentDataService } from "../../designer/data/component-data/component-data.service";
 import {
   BlueprintComponentDataService
-} from '../../designer/data/blueprint-component-data/blueprint-component-data.service';
-import { ComponentUtils } from '../../designer/component.utils';
-import { AppUtils } from '../../../app.utils';
-import { ExportProjectDto } from '../dtos/export-project.dto';
-import { ZeusCompilerApplicationApi } from '../../../../gen/thunder-api-client';
-import { ExportedProjectDto } from '../dtos/exported-project.dto';
-import { ExportedProject } from '../entities/exported-project.entity';
-import archiver, { Archiver } from 'archiver';
-import {ExportRainProjectDto} from "../dtos/export-rain-project.dto";
-import {v4 as generateUuid} from 'uuid';
+} from "../../designer/data/blueprint-component-data/blueprint-component-data.service";
+import { ComponentUtils } from "../../designer/component.utils";
+import { AppUtils } from "../../../app.utils";
+import { ExportProjectDto } from "../dtos/export-project.dto";
+import { ZeusCompilerApplicationApi } from "../../../../gen/thunder-api-client";
+import { ExportedProjectDto } from "../dtos/exported-project.dto";
+import { ExportedProject } from "../entities/exported-project.entity";
+import { Archiver } from "archiver";
+import * as archiver from "archiver";
+import { ExportRainProjectDto } from "../dtos/export-rain-project.dto";
+import { v4 as generateUuid } from "uuid";
+import { ExportTarget } from "../enums/export-target.enum";
 
 @Injectable()
 export class ProjectService {
@@ -377,10 +379,13 @@ export class ProjectService {
         projectAssignment.project.uuid,
         projectAssignment.project.exportedProject.exportTarget,
         {
-          exportedFileDtos: projectAssignment.project.exportedProject.exportedFiles.map(exportedFile => ({
-            code: exportedFile.code,
-            filename: exportedFile.filename
-          })),
+          exportedClientDtos: [{
+            exportedFileDtos: projectAssignment.project.exportedProject.exportedFiles.map(exportedFile => ({
+              code: exportedFile.code,
+              filename: exportedFile.filename
+            }))
+          }],
+          exportedServerDtos: [],
           errors: projectAssignment.project.exportedProject.exportedErrors
         })
       );
@@ -392,7 +397,7 @@ export class ProjectService {
       exportRainProjectDto.exportTarget,
       (await this.thunderApplicationApi.translateProject({
         code: exportRainProjectDto.code,
-        exportTarget: exportRainProjectDto.exportTarget
+        exportTarget: ProjectUtils.buildZeusCompilerExportTarget(exportRainProjectDto.exportTarget)
       })).data
     )
 
@@ -416,5 +421,24 @@ export class ProjectService {
     }
 
     return null;
+  }
+
+  async packageRain(exportRainProjectDto: ExportRainProjectDto): Promise<Archiver> {
+    const exportedProject = (await this.thunderApplicationApi.translateProject({
+      code: exportRainProjectDto.code,
+      exportTarget: ProjectUtils.buildZeusCompilerExportTarget(exportRainProjectDto.exportTarget)
+    })).data;
+
+    let archive = archiver('zip');
+    archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.EXPRESS_TYPESCRIPT)
+
+    for (const exportedServerDto of exportedProject.exportedServerDtos) {
+      for (const exportedFileDto of exportedServerDto.exportedFileDtos) {
+        archive.append(exportedFileDto.code, {name: exportedFileDto.filename});
+      }
+    }
+
+    await archive.finalize();
+    return archive;
   }
 }
