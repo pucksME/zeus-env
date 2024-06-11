@@ -31,7 +31,10 @@ route POST test {
         module resultHandler::handles results {
             input urlParameterResult: string;
             input bodyParameterResult: int;
-            output result: responseBodyType;
+            output result: responseBodyType = {result: {
+                urlParameterResult: urlParameterResult,
+                bodyParameterResult: bodyParameterResult
+            }};
         }
 
         module instance connection::endpoint connection {

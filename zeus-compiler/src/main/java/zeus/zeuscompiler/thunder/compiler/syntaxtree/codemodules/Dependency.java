@@ -49,7 +49,7 @@ public class Dependency implements Translatable {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.connectionStatements.stream()
         .map(connectionStatement -> String.format(
-          "res['body'] = %s_%s",
+          "res.send(%s_%s)",
           connectionStatement.getCodeModuleOutputExpression().getCodeModuleId(),
           connectionStatement.getCodeModuleOutputExpression().getOutputId()
         ))
