@@ -20,20 +20,26 @@ public class Server extends Node {
         this.routes = routes;
     }
 
+    public String translateConfiguration(int depth, ExportTarget exportTarget) {
+        return switch (exportTarget) {
+            case REACT_TYPESCRIPT -> String.format(
+              CompilerUtils.buildLinesFormat(new String[]{
+                "export const name = \"%s\";",
+                "export const address = \"%s\";",
+                "export const port = \"%s\";",
+              }, depth),
+              this.name,
+              this.address,
+              this.port
+            );
+        };
+    }
+
     @Override
     public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
         return switch (exportTarget) {
             case REACT_TYPESCRIPT -> String.format(
-              CompilerUtils.buildLinesFormat(new String[]{
-                "import {app} from './index';",
-                "export const name = \"%s\";",
-                "export const address = \"%s\";",
-                "export const port = \"%s\";",
-                "%s"
-              }, depth),
-              this.name,
-              this.address,
-              this.port,
+              CompilerUtils.buildLinesFormat(new String[]{"import {app} from './index';", "%s"}, depth),
               this.routes.stream()
                 .map(route -> route.translate(symbolTable, depth, exportTarget))
                 .collect(Collectors.joining("\n"))

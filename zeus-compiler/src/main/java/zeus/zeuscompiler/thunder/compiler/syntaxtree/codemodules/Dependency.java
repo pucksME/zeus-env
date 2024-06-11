@@ -61,7 +61,7 @@ public class Dependency implements Translatable {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> clientCodeModule.getOutputs().stream()
         .map(output -> String.format(
-          "const request_%s = req['%s'] as %s",
+          "const request_%s = req['%s'] as unknown as %s",
           output.getId(),
           (output.getId().equals("url") ? "params" : "body"),
           output.type.translate(symbolTable, depth, exportTarget)

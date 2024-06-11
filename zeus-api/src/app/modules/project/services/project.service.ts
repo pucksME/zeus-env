@@ -430,11 +430,12 @@ export class ProjectService {
     })).data;
 
     let archive = archiver('zip');
-    archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.EXPRESS_TYPESCRIPT)
 
     for (const exportedServerDto of exportedProject.exportedServerDtos) {
+      const serverArchivePath = `server-${exportedServerDto.name}/`;
+      archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.EXPRESS_TYPESCRIPT, serverArchivePath)
       for (const exportedFileDto of exportedServerDto.exportedFileDtos) {
-        archive.append(exportedFileDto.code, {name: exportedFileDto.filename});
+        archive.append(exportedFileDto.code, {name: serverArchivePath + exportedFileDto.filename});
       }
     }
 

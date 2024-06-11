@@ -393,14 +393,23 @@ export abstract class ProjectUtils {
     }
   }
 
-  static buildExportProjectFrameworkFiles(archiver: Archiver, frameworkPath: string, filePaths: string[]): Archiver {
+  static buildExportProjectFrameworkFiles(
+    archiver: Archiver,
+    frameworkPath: string,
+    filePaths: string[],
+    archivePath: string = ''
+  ): Archiver {
     for (const filePath of filePaths) {
-      archiver.file(frameworkPath + filePath, {name: filePath});
+      archiver.file(frameworkPath + filePath, {name: archivePath + filePath});
     }
     return archiver;
   }
 
-  static buildExportProjectFramework(archiver: Archiver, exportTarget: ExportTarget) {
+  static buildExportProjectFramework(
+    archiver: Archiver,
+    exportTarget: ExportTarget,
+    archivePath: string = ''
+  ): Archiver {
     switch (exportTarget) {
       case ExportTarget.REACT_TYPESCRIPT:
         return ProjectUtils.buildExportProjectFrameworkFiles(
@@ -417,7 +426,8 @@ export abstract class ProjectUtils {
             'tsconfig.json',
             'tsconfig.node.json',
             'vite.config.ts'
-          ]
+          ],
+          archivePath
         );
       case ExportTarget.EXPRESS_TYPESCRIPT:
         return ProjectUtils.buildExportProjectFrameworkFiles(
@@ -425,8 +435,10 @@ export abstract class ProjectUtils {
           './frameworks/framework-express-typescript/',
           [
             'index.ts',
-            'package.json'
-          ]
+            'package.json',
+            'tsconfig.json'
+          ],
+          archivePath
         )
     }
   }
