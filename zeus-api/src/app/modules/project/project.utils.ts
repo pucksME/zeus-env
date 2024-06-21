@@ -1,9 +1,9 @@
-import {Project} from './entities/project.entity';
-import {ProjectDto} from './dtos/project.dto';
-import {ProjectGalleryDto} from './dtos/project-gallery.dto';
-import {ViewUtils} from '../designer/view.utils';
-import {AppUtils} from '../../app.utils';
-import {View} from '../designer/entities/view.entity';
+import { Project } from "./entities/project.entity";
+import { ProjectDto } from "./dtos/project.dto";
+import { ProjectGalleryDto } from "./dtos/project-gallery.dto";
+import { ViewUtils } from "../designer/view.utils";
+import { AppUtils } from "../../app.utils";
+import { View } from "../designer/entities/view.entity";
 import {
   ExportBlueprintComponentDto,
   ExportBlueprintComponentReferenceDto,
@@ -21,28 +21,30 @@ import {
   ExportShapeMutationDto,
   ExportShapePropertyDto,
   ExportShapePropertyDtoKeyEnum,
-  ExportViewDto, TranslateProjectDtoExportTargetEnum
+  ExportViewDto,
+  TranslateProjectDtoExportTargetEnum
 } from "../../../gen/thunder-api-client";
-import {ExportTarget} from './enums/export-target.enum';
-import {BlueprintComponent} from '../designer/entities/blueprint-component.entity';
-import {Shape} from '../designer/entities/shape.entity';
-import {ShapeType} from '../designer/enums/shape-type.enum';
+import { ExportTarget } from "./enums/export-target.enum";
+import { BlueprintComponent } from "../designer/entities/blueprint-component.entity";
+import { Shape } from "../designer/entities/shape.entity";
+import { ShapeType } from "../designer/enums/shape-type.enum";
 import {
   FontFamily,
   FontStyle,
   TextAlign,
   TextDecoration,
   TextTransform
-} from '../designer/interfaces/shape-properties/text-properties.interface';
-import {Component} from '../designer/entities/component.entity';
-import {ComponentMutation} from '../designer/entities/component-mutation.entity';
-import {ShapeMutation} from '../designer/entities/shape-mutation.entity';
-import {VisualizerWorkspace} from '../visualizer/entities/visualizer-workspace.entity';
-import {CodeModuleUtils} from '../visualizer/code-module.utils';
-import {ExportedProjectDto} from './dtos/exported-project.dto';
-import {ExportedFileDto} from './dtos/exported-file.dto';
-import {Error} from './interfaces/error.interface';
-import {Archiver} from 'archiver';
+} from "../designer/interfaces/shape-properties/text-properties.interface";
+import { Component } from "../designer/entities/component.entity";
+import { ComponentMutation } from "../designer/entities/component-mutation.entity";
+import { ShapeMutation } from "../designer/entities/shape-mutation.entity";
+import { VisualizerWorkspace } from "../visualizer/entities/visualizer-workspace.entity";
+import { CodeModuleUtils } from "../visualizer/code-module.utils";
+import { ExportedProjectDto } from "./dtos/exported-project.dto";
+import { ExportedFileDto } from "./dtos/exported-file.dto";
+import { Error } from "./interfaces/error.interface";
+import { Archiver } from "archiver";
+import { Monitor } from "./enums/monitor.enum";
 
 export abstract class ProjectUtils {
   static buildProjectDto(projectEntity: Project): ProjectDto {
@@ -447,6 +449,20 @@ export abstract class ProjectUtils {
     switch (exportTarget) {
       case ExportTarget.REACT_TYPESCRIPT:
         return 'src/';
+    }
+  }
+
+  static buildExportProjectMonitor(archiver: Archiver, monitor: Monitor, archivePath: string = '') {
+    switch (monitor) {
+      case Monitor.BOOTS:
+        return ProjectUtils.buildExportProjectFrameworkFiles(
+          archiver,
+          './monitors/boots/',
+          [
+            'boots.py'
+          ],
+          archivePath
+        )
     }
   }
 }

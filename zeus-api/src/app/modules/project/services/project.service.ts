@@ -36,11 +36,12 @@ import { ExportProjectDto } from "../dtos/export-project.dto";
 import { ZeusCompilerApplicationApi } from "../../../../gen/thunder-api-client";
 import { ExportedProjectDto } from "../dtos/exported-project.dto";
 import { ExportedProject } from "../entities/exported-project.entity";
-import { Archiver } from "archiver";
 import * as archiver from "archiver";
+import { Archiver } from "archiver";
 import { ExportRainProjectDto } from "../dtos/export-rain-project.dto";
 import { v4 as generateUuid } from "uuid";
 import { ExportTarget } from "../enums/export-target.enum";
+import { Monitor } from "../enums/monitor.enum";
 
 @Injectable()
 export class ProjectService {
@@ -438,6 +439,8 @@ export class ProjectService {
         archive.append(exportedFileDto.code, {name: serverArchivePath + exportedFileDto.filename});
       }
     }
+
+    archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.BOOTS, 'monitors/boots/');
 
     await archive.finalize();
     return archive;
