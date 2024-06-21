@@ -66,7 +66,7 @@ public class Route extends Node {
             case REACT_TYPESCRIPT -> String.format(
               CompilerUtils.buildLinesFormat(
                 new String[]{
-                  "app.%s('/%s%s', function(req, res) {",
+                  "app.%s('/%s%s', %sfunction(req, res) {",
                   CompilerUtils.buildLinePadding(depth + 1) + "%s",
                   "});"
                 },
@@ -75,6 +75,7 @@ public class Route extends Node {
               this.translateRequestMethod(exportTarget),
               this.id,
               "/" + parameters,
+              "bootsMonitorAdapter, ",
               this.codeModules.translate(symbolTable, depth, exportTarget)
             );
         };

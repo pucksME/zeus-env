@@ -39,7 +39,11 @@ public class Server extends Node {
     public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
         return switch (exportTarget) {
             case REACT_TYPESCRIPT -> String.format(
-              CompilerUtils.buildLinesFormat(new String[]{"import {app} from './index';", "%s"}, depth),
+              CompilerUtils.buildLinesFormat(new String[]{
+                "import {app} from './index';",
+                "import {bootsMonitorAdapter} from './adapters/boots-monitor.adapter'",
+                "%s"
+              }, depth),
               this.routes.stream()
                 .map(route -> route.translate(symbolTable, depth, exportTarget))
                 .collect(Collectors.joining("\n"))

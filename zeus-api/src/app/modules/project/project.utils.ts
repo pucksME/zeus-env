@@ -465,4 +465,18 @@ export abstract class ProjectUtils {
         )
     }
   }
+
+  static buildExportProjectMonitorAdapter(archiver: Archiver, monitor: Monitor, archivePath: string = '') {
+    switch (monitor) {
+      case Monitor.BOOTS:
+        return ProjectUtils.buildExportProjectFrameworkFiles(
+          archiver,
+          './frameworks/framework-express-typescript/monitor-adapters/',
+          [
+            'boots-monitor.adapter.ts'
+          ],
+          archivePath
+        )
+    }
+  }
 }
