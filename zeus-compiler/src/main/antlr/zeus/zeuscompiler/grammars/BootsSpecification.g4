@@ -1,5 +1,10 @@
 grammar BootsSpecification ;
 
-specification : SPECIFICATION ;
+specification : class+ ;
+class : KEYWORD_CLASS CLASS '{' GENERATOR '}' ;
 
-SPECIFICATION : [A-Za-z0-9]+ ;
+KEYWORD_CLASS : 'class' ;
+CLASS : [A-Za-z0-9]+ ;
+GENERATOR : '`' .+? '`' ;
+
+WHITESPACE : [ \r\t\n]+ -> skip ;
