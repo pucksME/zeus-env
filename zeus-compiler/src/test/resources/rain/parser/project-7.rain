@@ -1,0 +1,17 @@
+[project project7]
+
+[server main1@localhost:1]
+route GET test1 {
+  boots specification {` `}
+  code modules {` `}
+}
+
+route POST test2 {
+  boots specification {` `}
+  code modules {` `}
+}
+
+[server main2@localhost:2]
+route POST test {
+  code modules {` `}
+}

@@ -333,7 +333,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       null,
       (ctx.codeModules() == null)
         ? null
-        : RainUtils.extractCodeModuleCode(ctx.codeModules().CODE_MODULES_CODE().getText()),
+        : RainUtils.extractCodeModuleCode(ctx.codeModules().CODE().getText()),
       ctx.element().stream().map(elementContext -> (Element) visit(elementContext)).toList()
     );
   }
@@ -379,7 +379,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     }
 
     ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.SERVER);
-    String code = ctx.codeModules().CODE_MODULES_CODE().getText();
+    String code = ctx.codeModules().CODE().getText();
     Optional<CodeModules> codeModulesOptional = thunderAnalyzer.analyze(code.substring(1, code.length() - 2));
     addCompilerErrors(thunderAnalyzer.getErrors(), ctx.codeModules().start.getLine() - 1);
     // TODO: this should not work for multiple servers

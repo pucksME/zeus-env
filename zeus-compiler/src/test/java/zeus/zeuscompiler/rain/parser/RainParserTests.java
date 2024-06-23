@@ -59,4 +59,10 @@ public class RainParserTests {
     runAnalyzer("project-6.rain");
     assertThat(rainAnalyzer.hasErrors()).isFalse();
   }
+
+  @Test()
+  void test7() throws IOException {
+    runAnalyzer("project-7.rain");
+    assertThat(rainAnalyzer.hasErrors()).isFalse();
+  }
 }

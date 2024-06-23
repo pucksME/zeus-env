@@ -7,7 +7,7 @@ positionY : POSITION_Y '=' NEGATIVE? NUMBER_PX ';' ;
 positionSorting : POSITION_SORTING '=' NUMBER ';' ;
 position : POSITION BLOCK_START positionX positionY positionSorting BLOCK_END ;
 
-codeModules : CODE_MODULES BLOCK_START CODE_MODULES_CODE BLOCK_END ;
+codeModules : CODE_MODULES BLOCK_START CODE BLOCK_END ;
 
 blueprintComponents : SECTION_BLUEPRINT_COMPONENTS blueprintComponent+ ;
 blueprintElement : shape | blueprintComponent ;
@@ -113,7 +113,9 @@ shape : shapeRectangle | shapeCircle | shapeText;
 
 componentElement: (component | componentReference) ;
 view : '[' VIEW ROOT? ID propertyHeight propertyWidth ']' componentElement*;
-route : ROUTE (ROUTE_GET | ROUTE_POST | ROUTE_UPDATE | ROUTE_DELETE) ID BLOCK_START codeModules BLOCK_END ;
+
+bootsSpecification : BOOTS_SPECIFICATION BLOCK_START CODE BLOCK_END ;
+route : ROUTE (ROUTE_GET | ROUTE_POST | ROUTE_UPDATE | ROUTE_DELETE) ID BLOCK_START bootsSpecification? codeModules BLOCK_END ;
 server : '[' SERVER name=ID '@' (hostname=ID | ipAddress=SERVER_IP) (':' NUMBER)? ']' route+ ;
 
 BLOCK_START : '{' ;
@@ -205,8 +207,10 @@ VIEW : 'view' ;
 ROOT : 'root' ;
 REFERENCES : 'references' ;
 COMPONENT : 'component' ;
+
 CODE_MODULES : 'code modules' ;
-CODE_MODULES_CODE : '`' .+? '`';
+BOOTS_SPECIFICATION : 'boots specification' ;
+CODE : '`' .+? '`';
 
 SERVER : 'server' ;
 ROUTE : 'route' ;
