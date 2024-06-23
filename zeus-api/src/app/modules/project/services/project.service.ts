@@ -348,12 +348,7 @@ export class ProjectService {
       );
     }
 
-    if (project.exportedProject.exportedErrors.length !== 0) {
-      archive.append(
-        project.exportedProject.exportedErrors.map(ProjectUtils.translateError).join('\n'),
-        {name: 'errors.txt'}
-      );
-    }
+    archive = ProjectUtils.buildExportProjectErrors(archive, project.exportedProject.exportedErrors);
 
     await archive.finalize();
     return archive;
@@ -440,7 +435,9 @@ export class ProjectService {
       }
       archive = ProjectUtils.buildExportProjectMonitorAdapter(archive, Monitor.BOOTS, serverArchivePath + 'adapters/')
     }
+
     archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.BOOTS, 'monitors/boots/');
+    archive = ProjectUtils.buildExportProjectErrors(archive, exportedProject.errors)
 
     await archive.finalize();
     return archive;

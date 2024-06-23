@@ -5,6 +5,7 @@ import { ViewUtils } from "../designer/view.utils";
 import { AppUtils } from "../../app.utils";
 import { View } from "../designer/entities/view.entity";
 import {
+  ErrorDto,
   ExportBlueprintComponentDto,
   ExportBlueprintComponentReferenceDto,
   ExportCodeDto,
@@ -382,7 +383,7 @@ export abstract class ProjectUtils {
     };
   }
 
-  static translateError(error: Error): string {
+  static translateError(error: Error | ErrorDto): string {
     return error.message;
   }
 
@@ -478,5 +479,14 @@ export abstract class ProjectUtils {
           archivePath
         )
     }
+  }
+
+  static buildExportProjectErrors(archiver: Archiver, errors: (Error | ErrorDto)[]): Archiver {
+    if (errors.length === 0) {
+      return archiver;
+    }
+
+    archiver.append(errors.map(ProjectUtils.translateError).join('\n'), {name: 'errors.txt'});
+    return archiver;
   }
 }
