@@ -434,6 +434,9 @@ export class ProjectService {
         archive.append(exportedFileDto.code, {name: serverArchivePath + exportedFileDto.filename});
       }
       archive = ProjectUtils.buildExportProjectMonitorAdapter(archive, Monitor.BOOTS, serverArchivePath + 'adapters/')
+      for (const bootsGeneratorFile of exportedServerDto.exportedBootsMonitorFilesDto) {
+        archive.append(bootsGeneratorFile.code, {name: `${serverArchivePath}boots-generators/${bootsGeneratorFile.filename}`})
+      }
     }
 
     archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.BOOTS, 'monitors/boots/');

@@ -122,7 +122,14 @@ public class Project extends Node {
         List.of(
           new ExportedFileDto(server.translateConfiguration(0, exportTarget), "configuration.ts"),
           new ExportedFileDto(server.translate(symbolTable, 0, exportTarget), "routes.ts")
-        )
+        ),
+        server.translateBootsSpecifications().entrySet().stream()
+          .flatMap(bootsSpecificationTranslations -> bootsSpecificationTranslations.getValue().entrySet().stream()
+            .map(bootsSpecificationTranslation -> new ExportedFileDto(
+              bootsSpecificationTranslation.getValue(),
+              String.format("%s-%s.py", bootsSpecificationTranslations.getKey(), bootsSpecificationTranslation.getKey())
+            )))
+          .toList()
       ))
       .toList();
   }

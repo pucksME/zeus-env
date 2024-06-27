@@ -5,6 +5,7 @@ import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,16 @@ public class Server extends Node {
         this.address = address;
         this.port = port;
         this.routes = routes;
+    }
+
+    public HashMap<String, HashMap<String, String>> translateBootsSpecifications() {
+        HashMap<String, HashMap<String, String>> bootsSpecificationTranslations = new HashMap<>();
+
+        for (Route route : this.routes) {
+            bootsSpecificationTranslations.put(route.id, route.translateBootsSpecification());
+        }
+
+        return bootsSpecificationTranslations;
     }
 
     public String translateConfiguration(int depth, ExportTarget exportTarget) {

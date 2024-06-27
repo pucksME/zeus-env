@@ -13,6 +13,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.IdType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,10 @@ public class Route extends Node {
         this.routeMethod = routeMethod;
         this.codeModules = codeModules;
         this.bootsSpecification = bootsSpecification;
+    }
+
+    public HashMap<String, String> translateBootsSpecification() {
+        return this.bootsSpecification.translate();
     }
 
     private String translateRequestMethod(ExportTarget exportTarget) {
