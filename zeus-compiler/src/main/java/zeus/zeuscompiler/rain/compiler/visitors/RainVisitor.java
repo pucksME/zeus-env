@@ -2,6 +2,8 @@ package zeus.zeuscompiler.rain.compiler.visitors;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.bootsspecification.compiler.BootsSpecificationAnalyzer;
+import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.grammars.RainParser;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.*;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.*;
@@ -386,12 +388,21 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     this.symbolTable.setCodeModules(thunderAnalyzer.getSymbolTable().getCodeModules());
     this.symbolTable.getPublicTypes().putAll(thunderAnalyzer.getSymbolTable().getPublicTypes());
 
+    Optional<BootsSpecification> bootsSpecificationOptional = Optional.empty();
+    if (ctx.bootsSpecification() != null) {
+      BootsSpecificationAnalyzer bootsSpecificationAnalyzer = new BootsSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
+      String bootsSpecificationCode = ctx.bootsSpecification().CODE().getText();
+      bootsSpecificationOptional = bootsSpecificationAnalyzer.analyze(bootsSpecificationCode.substring(1, bootsSpecificationCode.length() - 2));
+      addCompilerErrors(bootsSpecificationAnalyzer.getErrors(), ctx.bootsSpecification().start.getLine() - 1);
+    }
+
     return new Route(
-            ctx.getStart().getLine(),
-            ctx.getStart().getCharPositionInLine(),
-            ctx.ID().getText(),
-            routeMethod,
-            codeModulesOptional.orElse(null)
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      ctx.ID().getText(),
+      routeMethod,
+      codeModulesOptional.orElse(null),
+      bootsSpecificationOptional.orElse(null)
     );
   }
 }

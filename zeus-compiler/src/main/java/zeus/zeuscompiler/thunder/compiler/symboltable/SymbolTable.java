@@ -23,6 +23,7 @@ public class SymbolTable {
   Map<CodeModule, Map<String, List<VariableInformation>>> variables;
   CodeModules codeModules;
   CodeModule currentCodeModule;
+  List<String> bootsSpecificationClasses;
 
   public SymbolTable() {
     this.blueprintComponents = new HashMap<>();
@@ -30,6 +31,7 @@ public class SymbolTable {
     this.publicTypes = new HashMap<>();
     this.types = new HashMap<>();
     this.variables = new HashMap<>();
+    this.bootsSpecificationClasses = new ArrayList<>();
   }
 
   public void setCurrentComponent(Element currentComponent) {
@@ -95,6 +97,10 @@ public class SymbolTable {
     }
 
     variables.get(id).add(variableInformation);
+  }
+
+  public void addBootsSpecificationClass(String id) {
+    this.bootsSpecificationClasses.add(id);
   }
 
   public Optional<VariableInformation> getVariable(CodeModule codeModule, String id) {
@@ -167,5 +173,9 @@ public class SymbolTable {
 
   public Map<String, List<TypeInformation>> getPublicTypes() {
     return publicTypes;
+  }
+
+  public List<String> getBootsSpecificationClasses() {
+    return bootsSpecificationClasses;
   }
 }

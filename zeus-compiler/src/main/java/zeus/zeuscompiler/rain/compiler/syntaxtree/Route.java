@@ -1,6 +1,7 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.symboltable.TypeInformation;
@@ -19,12 +20,21 @@ public class Route extends Node {
     String id;
     RouteMethod routeMethod;
     CodeModules codeModules;
+    BootsSpecification bootsSpecification;
 
-    public Route(int line, int linePosition, String id, RouteMethod routeMethod, CodeModules codeModules) {
+    public Route(
+      int line,
+      int linePosition,
+      String id,
+      RouteMethod routeMethod,
+      CodeModules codeModules,
+      BootsSpecification bootsSpecification
+    ) {
         super(line, linePosition, "");
         this.id = id;
         this.routeMethod = routeMethod;
         this.codeModules = codeModules;
+        this.bootsSpecification = bootsSpecification;
     }
 
     private String translateRequestMethod(ExportTarget exportTarget) {
