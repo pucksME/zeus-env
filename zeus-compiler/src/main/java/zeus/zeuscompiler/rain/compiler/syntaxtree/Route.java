@@ -90,7 +90,7 @@ public class Route extends Node {
               this.translateRequestMethod(exportTarget),
               this.id,
               "/" + parameters,
-              "bootsMonitorAdapter, ",
+              String.format("(req, res, next) => bootsMonitorAdapter('%s', req, res, next), ", this.id),
               this.codeModules.translate(symbolTable, depth, exportTarget)
             );
         };

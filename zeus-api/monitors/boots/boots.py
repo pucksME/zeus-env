@@ -1,8 +1,13 @@
 import argparse
 
 
-def parse_arguments() -> tuple[str, str]:
+def parse_arguments() -> tuple[str, str, str]:
     argument_parser = argparse.ArgumentParser()
+
+    argument_parser.add_argument(
+        '--route',
+        help='The route (for context)'
+    )
     argument_parser.add_argument(
         '--request-parameters',
         help="The request's url parameters",
@@ -16,11 +21,12 @@ def parse_arguments() -> tuple[str, str]:
     )
 
     arguments = argument_parser.parse_args()
-    return arguments.request_parameters, arguments.request_payload
+    return arguments.route, arguments.request_parameters, arguments.request_payload
 
 
 def main():
-    request_parameters, request_payload = parse_arguments()
+    route, request_parameters, request_payload = parse_arguments()
+    print('route', route, sep='\n')
     print('request parameters', request_parameters, sep='\n')
     print('request payload', request_payload, sep='\n')
 
