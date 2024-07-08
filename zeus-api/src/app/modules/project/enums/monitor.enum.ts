@@ -1,3 +1,4 @@
 export enum Monitor {
-  BOOTS
+  BOOTS,
+  UMBRELLA
 }

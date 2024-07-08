@@ -39,7 +39,7 @@ public class Route extends Node {
     }
 
     public HashMap<String, String> translateBootsSpecification() {
-        return this.bootsSpecification.translate();
+        return (this.bootsSpecification != null) ? this.bootsSpecification.translate() : new HashMap<>();
     }
 
     private String translateRequestMethod(ExportTarget exportTarget) {

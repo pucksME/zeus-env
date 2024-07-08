@@ -440,6 +440,7 @@ export class ProjectService {
     }
 
     archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.BOOTS, 'monitors/boots/');
+    archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.UMBRELLA, 'monitors/umbrella/');
     archive = ProjectUtils.buildExportProjectErrors(archive, exportedProject.errors)
 
     await archive.finalize();

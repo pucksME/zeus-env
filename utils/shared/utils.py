@@ -52,6 +52,7 @@ def parse_arguments(arguments: set[Argument]) -> dict[Argument, str]: #tuple[str
 
 def build_payload(rain_code: str, export_target: str) -> str:
     rain_code = rain_code.replace('\n', '\\n')
+    rain_code = rain_code.replace('"', '\\"')
     return '{{"code": "{rain_file}", "exportTarget": "{export_target}"}}'.format(
         rain_file=rain_code,
         export_target=export_target

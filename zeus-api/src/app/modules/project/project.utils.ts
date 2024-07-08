@@ -46,6 +46,7 @@ import { ExportedFileDto } from "./dtos/exported-file.dto";
 import { Error } from "./interfaces/error.interface";
 import { Archiver } from "archiver";
 import { Monitor } from "./enums/monitor.enum";
+import {exec} from "child_process";
 
 export abstract class ProjectUtils {
   static buildProjectDto(projectEntity: Project): ProjectDto {
@@ -464,6 +465,26 @@ export abstract class ProjectUtils {
           ],
           archivePath
         )
+      case Monitor.UMBRELLA:
+        const umbrellaPath = './monitors/umbrella/'
+        exec([
+          umbrellaPath + 'gradlew',
+          '-p', umbrellaPath,
+          'clean'
+        ].join(' '));
+
+        exec([
+          umbrellaPath + 'gradlew',
+          '-p', umbrellaPath,
+          'build'
+        ].join(' '));
+
+        return ProjectUtils.buildExportProjectFrameworkFiles(
+          archiver,
+          './monitors/umbrella/build/libs/',
+          ['umbrella-1.0-SNAPSHOT.jar'],
+          archivePath
+        );
     }
   }
 

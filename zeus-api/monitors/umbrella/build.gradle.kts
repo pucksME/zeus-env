@@ -14,6 +14,12 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter")
 }
 
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "zeus.Main"
+    }
+}
+
 tasks.test {
     useJUnitPlatform()
 }
