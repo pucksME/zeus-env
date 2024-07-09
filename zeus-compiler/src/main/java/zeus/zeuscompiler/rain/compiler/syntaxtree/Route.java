@@ -13,9 +13,11 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.IdType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class Route extends Node {
     String id;
@@ -51,6 +53,22 @@ public class Route extends Node {
                 case UPDATE -> "update";
             };
         };
+    }
+
+    private String translateMonitorAdapters() {
+        List<String> translatedAdapters = new ArrayList<>();
+
+        if (this.bootsSpecification != null) {
+            translatedAdapters.add(String.format("(req, res, next) => bootsMonitorAdapter('%s', req, res, next)", this.id));
+        }
+
+        translatedAdapters.add(String.format("(req, res, next) => umbrellaMonitorAdapter('%s', req, res, next)", this.id));
+
+        if (translatedAdapters.isEmpty()) {
+            return "";
+        }
+
+        return String.format("[%s]", String.join(", ", translatedAdapters)) + ", ";
     }
 
     @Override
@@ -90,7 +108,7 @@ public class Route extends Node {
               this.translateRequestMethod(exportTarget),
               this.id,
               "/" + parameters,
-              String.format("(req, res, next) => bootsMonitorAdapter('%s', req, res, next), ", this.id),
+              this.translateMonitorAdapters(),
               this.codeModules.translate(symbolTable, depth, exportTarget)
             );
         };

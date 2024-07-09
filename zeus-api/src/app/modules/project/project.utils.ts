@@ -494,11 +494,16 @@ export abstract class ProjectUtils {
         return ProjectUtils.buildExportProjectFrameworkFiles(
           archiver,
           './frameworks/framework-express-typescript/monitor-adapters/',
-          [
-            'boots-monitor.adapter.ts'
-          ],
+          ['boots-monitor.adapter.ts'],
           archivePath
-        )
+        );
+      case Monitor.UMBRELLA:
+        return ProjectUtils.buildExportProjectFrameworkFiles(
+          archiver,
+          './frameworks/framework-express-typescript/monitor-adapters/',
+          ['umbrella-monitor.adapter.ts'],
+          archivePath
+        );
     }
   }
 

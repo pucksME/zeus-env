@@ -53,6 +53,7 @@ public class Server extends Node {
               CompilerUtils.buildLinesFormat(new String[]{
                 "import {app} from './index';",
                 "import {bootsMonitorAdapter} from './adapters/boots-monitor.adapter'",
+                "import {umbrellaMonitorAdapter} from './adapters/umbrella-monitor.adapter'",
                 "%s"
               }, depth),
               this.routes.stream()
