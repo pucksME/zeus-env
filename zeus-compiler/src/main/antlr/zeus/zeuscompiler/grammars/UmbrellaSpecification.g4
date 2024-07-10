@@ -1,6 +1,9 @@
 grammar UmbrellaSpecification ;
 
-specification : formula EOF ;
+specification : (formulaAssignment | contextAssignment | actionAssignment)+ EOF ;
+formulaAssignment: ID OPERATOR_ACCESS FORMULA OPERATOR_ASSIGNMENT formula ;
+contextAssignment : ID OPERATOR_ACCESS CONTEXT OPERATOR_ASSIGNMENT (CONTEXT_GLOBAL | CONTEXT_IP) ;
+actionAssignment : ID OPERATOR_ACCESS ACTION OPERATOR_ASSIGNMENT (ACTION_ALLOW | ACTION_BLOCK | ACTION_LOG) ;
 
 literal : LITERAL_BOOLEAN
         | LITERAL_INT
@@ -34,6 +37,18 @@ formula : ID                                                                    
         | formula OPERATOR_SINCE formula                                                # TemporalSinceFormula
         ;
 
+FORMULA : 'formula' ;
+
+CONTEXT : 'context' ;
+CONTEXT_IP : 'IP' ;
+CONTEXT_GLOBAL: 'global' ;
+
+ACTION : 'action' ;
+ACTION_BLOCK : 'block' ;
+ACTION_ALLOW : 'allow' ;
+ACTION_LOG : 'log' ;
+
+OPERATOR_ASSIGNMENT : '=' ;
 OPERATOR_ACCESS : '.' ;
 OPERATOR_EQUAL : '==' ;
 OPERATOR_NOT_EQUAL : '!=' ;
