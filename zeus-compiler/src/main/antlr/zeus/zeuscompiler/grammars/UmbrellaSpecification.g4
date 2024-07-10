@@ -1,6 +1,6 @@
 grammar UmbrellaSpecification ;
 
-specification : (formulaAssignment | contextAssignment | actionAssignment)+ EOF ;
+specifications : (formulaAssignment | contextAssignment | actionAssignment)+ EOF ;
 formulaAssignment: ID OPERATOR_ACCESS FORMULA OPERATOR_ASSIGNMENT formula ;
 contextAssignment : ID OPERATOR_ACCESS CONTEXT OPERATOR_ASSIGNMENT (CONTEXT_GLOBAL | CONTEXT_IP) ;
 actionAssignment : ID OPERATOR_ACCESS ACTION OPERATOR_ASSIGNMENT (ACTION_ALLOW | ACTION_BLOCK | ACTION_LOG) ;
