@@ -115,7 +115,14 @@ componentElement: (component | componentReference) ;
 view : '[' VIEW ROOT? ID propertyHeight propertyWidth ']' componentElement*;
 
 bootsSpecification : BOOTS_SPECIFICATION BLOCK_START CODE BLOCK_END ;
-route : ROUTE (ROUTE_GET | ROUTE_POST | ROUTE_UPDATE | ROUTE_DELETE) ID BLOCK_START bootsSpecification? codeModules BLOCK_END ;
+umbrellaSpecification : UMBRELLA_SPECIFICATION BLOCK_START CODE BLOCK_END ;
+
+route : ROUTE (
+                ROUTE_GET
+              | ROUTE_POST
+              | ROUTE_UPDATE
+              | ROUTE_DELETE
+              ) ID BLOCK_START bootsSpecification? umbrellaSpecification? codeModules BLOCK_END ;
 server : '[' SERVER name=ID '@' (hostname=ID | ipAddress=SERVER_IP) (':' NUMBER)? ']' route+ ;
 
 BLOCK_START : '{' ;
@@ -210,6 +217,7 @@ COMPONENT : 'component' ;
 
 CODE_MODULES : 'code modules' ;
 BOOTS_SPECIFICATION : 'boots specification' ;
+UMBRELLA_SPECIFICATION : 'umbrella specification' ;
 CODE : '`' .+? '`';
 
 SERVER : 'server' ;

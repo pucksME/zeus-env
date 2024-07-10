@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
-import zeus.zeuscompiler.rain.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 
 import java.util.List;
@@ -19,7 +19,6 @@ public class UmbrellaSpecification extends Node {
 
   @Override
   public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
-
   }
 
   @Override

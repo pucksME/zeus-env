@@ -17,7 +17,7 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
   }
 
   @Override
-  public Object visitSpecifications(UmbrellaSpecificationParser.SpecificationsContext ctx) {
+  public UmbrellaSpecifications visitSpecifications(UmbrellaSpecificationParser.SpecificationsContext ctx) {
     this.umbrellaSpecifications = new UmbrellaSpecifications(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),

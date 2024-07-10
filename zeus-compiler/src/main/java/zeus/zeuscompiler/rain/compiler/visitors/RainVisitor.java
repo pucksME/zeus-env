@@ -17,6 +17,8 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.umbrellaspecification.compiler.UmbrellaSpecificationAnalyzer;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecifications;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -396,13 +398,22 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       addCompilerErrors(bootsSpecificationAnalyzer.getErrors(), ctx.bootsSpecification().start.getLine() - 1);
     }
 
+    Optional<UmbrellaSpecifications> umbrellaSpecificationsOptional = Optional.empty();
+    if (ctx.umbrellaSpecification() != null) {
+      UmbrellaSpecificationAnalyzer umbrellaSpecificationAnalyzer = new UmbrellaSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
+      String umbrellaSpecificationCode = ctx.umbrellaSpecification().CODE().getText();
+      umbrellaSpecificationsOptional = umbrellaSpecificationAnalyzer.analyze(umbrellaSpecificationCode.substring(1, umbrellaSpecificationCode.length() - 2));
+      this.addCompilerErrors(umbrellaSpecificationAnalyzer.getErrors(), ctx.umbrellaSpecification().getStart().getLine() - 1);
+    }
+
     return new Route(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       ctx.ID().getText(),
       routeMethod,
       codeModulesOptional.orElse(null),
-      bootsSpecificationOptional.orElse(null)
+      bootsSpecificationOptional.orElse(null),
+      umbrellaSpecificationsOptional.orElse(null)
     );
   }
 }

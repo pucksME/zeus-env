@@ -11,6 +11,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Output;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RequestCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.IdType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecifications;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class Route extends Node {
     RouteMethod routeMethod;
     CodeModules codeModules;
     BootsSpecification bootsSpecification;
+    UmbrellaSpecifications umbrellaSpecifications;
 
     public Route(
       int line,
@@ -31,13 +33,15 @@ public class Route extends Node {
       String id,
       RouteMethod routeMethod,
       CodeModules codeModules,
-      BootsSpecification bootsSpecification
+      BootsSpecification bootsSpecification,
+      UmbrellaSpecifications umbrellaSpecifications
     ) {
         super(line, linePosition, "");
         this.id = id;
         this.routeMethod = routeMethod;
         this.codeModules = codeModules;
         this.bootsSpecification = bootsSpecification;
+        this.umbrellaSpecifications = umbrellaSpecifications;
     }
 
     public HashMap<String, String> translateBootsSpecification() {

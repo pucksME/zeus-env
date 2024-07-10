@@ -50,6 +50,7 @@ public class BootsSpecificationAnalyzer extends Analyzer<BootsSpecification> {
   public Optional<BootsSpecification> analyze(String code) {
     return this.analyze(CharStreams.fromString(code));
   }
+
   @Override
   public Optional<BootsSpecification> analyze(CharStream code) {
     reset();
