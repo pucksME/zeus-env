@@ -1,4 +1,6 @@
-package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
+package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.unary;
+
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Formula;
 
 public abstract class UnaryFormula extends Formula {
   Formula formula;

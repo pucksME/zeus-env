@@ -13,9 +13,9 @@ literal : LITERAL_BOOLEAN
 
 formula : ID                                                                            # IdentifierFormula
         | literal                                                                       # LiteralFormula
+        // unary formulas
         | '(' formula ')'                                                               # ParenthesisFormula
         | formula OPERATOR_ACCESS ID                                                    # AccessFormula
-        // unary formulas
         | OPERATOR_NOT formula                                                          # LogicalNotFormula
         | (OPERATOR_YEASTERDAY | OPERATOR_ONCE | OPERATOR_HISTORICALLY) formula         # TemporalUnaryFormula
         // binary formulas
@@ -26,15 +26,15 @@ formula : ID                                                                    
           | OPERATOR_LESS_THAN
           | OPERATOR_GREATER_EQUAL_THAN
           | OPERATOR_LESS_EQUAL_THAN
-          ) formula                                                                     # CompareFormula
+          ) formula                                                                     # CompareBinaryFormula
         | formula (
             OPERATOR_ADD
           | OPERATOR_SUBTRACT
           | OPERATOR_MULTIPLY
           | OPERATOR_DIVIDE
-          ) formula                                                                     # ArithmeticFormula
+          ) formula                                                                     # ArithmeticBinaryFormula
         | formula (OPERATOR_AND | OPERATOR_OR | OPERATOR_IMPLICATION) formula           # LogicalBinaryFormula
-        | formula OPERATOR_SINCE formula                                                # TemporalSinceFormula
+        | formula OPERATOR_SINCE formula                                                # TemporalBinaryFormula
         ;
 
 FORMULA : 'formula' ;

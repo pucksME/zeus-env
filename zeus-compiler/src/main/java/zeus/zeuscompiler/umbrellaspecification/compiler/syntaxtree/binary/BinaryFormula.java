@@ -1,4 +1,6 @@
-package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
+package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.binary;
+
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Formula;
 
 public abstract class BinaryFormula extends Formula {
   Formula leftFormula;
