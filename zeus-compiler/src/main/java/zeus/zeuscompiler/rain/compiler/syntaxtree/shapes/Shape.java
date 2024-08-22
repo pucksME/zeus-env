@@ -8,7 +8,7 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.IncompatibleShapePropertyException;
 import zeus.zeuscompiler.rain.dtos.ExportShapeDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
@@ -62,7 +62,7 @@ public abstract class Shape extends Element {
   }
 
   @Override
-  public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     if (symbolTable.addCurrentComponentShapeName(this)) {
       compilerErrors.add(new CompilerError(
         this.getLine(),
@@ -74,7 +74,7 @@ public abstract class Shape extends Element {
     this.checkShapeProperties(compilerErrors);
   }
 
-  String translateStyle(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  String translateStyle(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
         String linePadding = CompilerUtils.buildLinePadding(depth + 1);
@@ -98,7 +98,7 @@ public abstract class Shape extends Element {
   }
 
   @Override
-  public String translateReference(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return "";
   }
 

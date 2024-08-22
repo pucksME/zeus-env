@@ -2,7 +2,7 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.Translatable;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 
 import java.util.List;
 
@@ -15,5 +15,5 @@ public abstract class Node implements Translatable {
     this.linePosition = linePosition;
   }
 
-  public abstract void check(SymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
 }

@@ -1,14 +1,11 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree.shapes;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
 import zeus.zeuscompiler.rain.dtos.ExportShapeDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
-
-import java.util.List;
 
 public class Rectangle extends Shape {
   public Rectangle(
@@ -24,7 +21,7 @@ public class Rectangle extends Shape {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(

@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.Translatable;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.Convertable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.Node;
 import zeus.zeuscompiler.CompilerError;
@@ -18,9 +18,9 @@ public abstract class Type extends Node implements Convertable<TypeDto>, Transla
     super(line, linePosition);
   }
 
-  public abstract void checkType(SymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
 
-  public abstract boolean compatible(SymbolTable symbolTable, List<CompilerError> compilerErrors, Type type);
+  public abstract boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type);
 
   @Override
   public TypeDto toDto() {

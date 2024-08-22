@@ -1,6 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port;
 
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleCodeModuleException;
@@ -20,7 +20,7 @@ public abstract class CodeModulePortExpression extends Expression {
     this.codeModuleId = codeModuleId;
   }
 
-  public Optional<ClientCodeModule> getCodeModule(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<ClientCodeModule> getCodeModule(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     Optional<CodeModule> codeModuleOptional = symbolTable.getCodeModules().getCodeModule(this.codeModuleId);
     if (codeModuleOptional.isEmpty()) {
       compilerErrors.add(new CompilerError(

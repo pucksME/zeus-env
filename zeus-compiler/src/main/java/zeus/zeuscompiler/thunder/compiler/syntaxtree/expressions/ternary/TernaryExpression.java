@@ -1,6 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.ternary;
 
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
@@ -34,7 +34,7 @@ public abstract class TernaryExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     Optional<Type> conditionTypeOptional = this.firstExpression.evaluateType(symbolTable, compilerErrors);
 
     if (conditionTypeOptional.isEmpty()) {
@@ -57,7 +57,7 @@ public abstract class TernaryExpression extends Expression {
   }
 
   @Override
-  public Optional<Type> evaluateType(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     Optional<Type> thenTypeOptional = this.secondExpression.evaluateType(symbolTable, compilerErrors);
 
     if (thenTypeOptional.isEmpty()) {

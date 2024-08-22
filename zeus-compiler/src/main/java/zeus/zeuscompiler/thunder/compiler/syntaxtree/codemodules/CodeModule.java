@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.Translatable;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.Convertable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.TypeCheckableNode;
 import zeus.zeuscompiler.CompilerError;
@@ -21,7 +21,7 @@ public abstract class CodeModule extends TypeCheckableNode implements Convertabl
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     for (BodyComponent bodyComponent : this.body.bodyComponents) {
       bodyComponent.checkTypes(symbolTable, compilerErrors);
     }

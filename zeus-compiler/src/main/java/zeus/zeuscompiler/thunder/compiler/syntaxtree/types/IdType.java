@@ -1,8 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.symboltable.TypeInformation;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownTypeException;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -19,7 +19,7 @@ public class IdType extends Type {
   }
 
   @Override
-  public void checkType(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     if (!symbolTable.containsType(symbolTable.getCurrentCodeModule(), this.id)) {
       compilerErrors.add(new CompilerError(
         this.getLine(),
@@ -31,7 +31,7 @@ public class IdType extends Type {
   }
 
   @Override
-  public boolean compatible(SymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
+  public boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
     Optional<TypeInformation> thisTypeInformationOptional = symbolTable.getType(
       symbolTable.getCurrentCodeModule(),
       this.id
@@ -72,7 +72,7 @@ public class IdType extends Type {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.id;
     };

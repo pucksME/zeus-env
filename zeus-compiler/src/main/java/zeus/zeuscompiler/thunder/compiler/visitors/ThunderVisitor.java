@@ -4,8 +4,8 @@ import org.antlr.v4.runtime.Token;
 import zeus.zeuscompiler.grammars.ThunderBaseVisitor;
 import zeus.zeuscompiler.grammars.ThunderParser;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.symboltable.VariableType;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.VariableType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.UnknownLiteralException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.*;
@@ -23,10 +23,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ThunderVisitor extends ThunderBaseVisitor<Object> {
-  SymbolTable symbolTable;
+  ClientSymbolTable symbolTable;
   ThunderAnalyzerMode thunderAnalyzerMode;
 
-  public ThunderVisitor(SymbolTable symbolTable, ThunderAnalyzerMode thunderAnalyzerMode) {
+  public ThunderVisitor(ClientSymbolTable symbolTable, ThunderAnalyzerMode thunderAnalyzerMode) {
     this.symbolTable = symbolTable;
     this.thunderAnalyzerMode = thunderAnalyzerMode;
   }

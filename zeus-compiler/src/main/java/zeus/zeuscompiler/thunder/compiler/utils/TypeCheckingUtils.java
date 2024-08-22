@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.utils;
 
 import zeus.zeuscompiler.CompilerError;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary.BinaryExpression;
@@ -14,7 +14,7 @@ import java.util.Optional;
 
 public abstract class TypeCheckingUtils {
   public static Optional<Type> evaluateTypeNumericExpression(
-    SymbolTable symbolTable,
+    ClientSymbolTable symbolTable,
     List<CompilerError> compilerErrors,
     BinaryExpression binaryExpression
   ) {
@@ -75,7 +75,7 @@ public abstract class TypeCheckingUtils {
   }
 
   public static Optional<Type> evaluateTypeLogicExpression(
-    SymbolTable symbolTable,
+    ClientSymbolTable symbolTable,
     List<CompilerError> compilerErrors,
     BinaryExpression binaryExpression
   ) {
@@ -120,7 +120,7 @@ public abstract class TypeCheckingUtils {
   }
 
   public static Optional<Type> evaluateTypeCompareExpression(
-    SymbolTable symbolTable,
+    ClientSymbolTable symbolTable,
     List<CompilerError> compilerErrors,
     BinaryExpression binaryExpression
   ) {

@@ -4,7 +4,7 @@ import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
 import zeus.zeuscompiler.rain.dtos.*;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
@@ -51,7 +51,7 @@ public class Project extends Node {
   }
 
   @Override
-  public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     for (Element element : this.elements) {
       if (symbolTable.addBlueprintComponent((BlueprintComponent) element)) {
         compilerErrors.add(new CompilerError(
@@ -104,7 +104,7 @@ public class Project extends Node {
     };
   }
 
-  public List<ExportedClientDto> translateClients(SymbolTable symbolTable, ExportTarget exportTarget) {
+  public List<ExportedClientDto> translateClients(ClientSymbolTable symbolTable, ExportTarget exportTarget) {
     String appFileName = switch (exportTarget) {
       case REACT_TYPESCRIPT -> "app.tsx";
     };
@@ -115,7 +115,7 @@ public class Project extends Node {
     )));
   }
 
-  public List<ExportedServerDto> translateServers(SymbolTable symbolTable, ExportTarget exportTarget) {
+  public List<ExportedServerDto> translateServers(ClientSymbolTable symbolTable, ExportTarget exportTarget) {
     return this.servers.stream()
       .map(server -> new ExportedServerDto(
         server.name,
@@ -135,7 +135,7 @@ public class Project extends Node {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(new String[]{"%s", "%s", "%s", "%s"}, depth),

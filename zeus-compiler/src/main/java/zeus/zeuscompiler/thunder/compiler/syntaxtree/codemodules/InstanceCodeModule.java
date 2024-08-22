@@ -1,8 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleOutputExpression;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.ConnectionStatement;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleType;
@@ -64,7 +63,7 @@ public class InstanceCodeModule extends CodeModule {
     return dependency;
   }
 
-  List<Dependency> buildDependencies(SymbolTable symbolTable) {
+  List<Dependency> buildDependencies(ClientSymbolTable symbolTable) {
     Set<Dependency> dependencies = new HashSet<>();
     Set<String> rootCodeModules = symbolTable.getCodeModules().getCodeModules().stream()
       .filter(
@@ -81,7 +80,7 @@ public class InstanceCodeModule extends CodeModule {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     List<Dependency> dependencies = this.buildDependencies(symbolTable);
     return dependencies.stream().map(
       dependency -> dependency.translate(symbolTable, depth, exportTarget)

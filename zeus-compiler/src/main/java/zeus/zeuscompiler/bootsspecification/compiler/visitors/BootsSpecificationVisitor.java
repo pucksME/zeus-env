@@ -5,15 +5,15 @@ import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecificati
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.ClassGenerator;
 import zeus.zeuscompiler.grammars.BootsSpecificationBaseVisitor;
 import zeus.zeuscompiler.grammars.BootsSpecificationParser;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 
 import java.util.List;
 
 public class BootsSpecificationVisitor extends BootsSpecificationBaseVisitor<Object> {
-  SymbolTable symbolTable;
+  ClientSymbolTable symbolTable;
   List<CompilerError> compilerErrors;
 
-  public BootsSpecificationVisitor(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public BootsSpecificationVisitor(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     this.symbolTable = symbolTable;
     this.compilerErrors = compilerErrors;
   }

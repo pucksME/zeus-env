@@ -3,7 +3,7 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree.mutations;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.dtos.ExportComponentMutationDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 public class ComponentMutation extends Mutation {
@@ -15,7 +15,7 @@ public class ComponentMutation extends Mutation {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     String translatedPosition = this.position.translate(symbolTable, depth + 2, exportTarget);
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> (!translatedPosition.isEmpty())

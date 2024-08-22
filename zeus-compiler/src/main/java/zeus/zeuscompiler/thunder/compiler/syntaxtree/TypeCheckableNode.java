@@ -1,6 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree;
 
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.CompilerError;
 
 import java.util.List;
@@ -14,5 +14,5 @@ public abstract class TypeCheckableNode extends Node {
     super(line, linePosition);
   }
 
-  public abstract void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
 }

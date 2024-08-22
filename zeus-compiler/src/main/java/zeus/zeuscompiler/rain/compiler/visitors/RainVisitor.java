@@ -1,6 +1,5 @@
 package zeus.zeuscompiler.rain.compiler.visitors;
 
-import org.antlr.v4.runtime.tree.ParseTree;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.BootsSpecificationAnalyzer;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
@@ -10,12 +9,11 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.*;
 import zeus.zeuscompiler.rain.compiler.utils.RainUtils;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.grammars.RainBaseVisitor;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.umbrellaspecification.compiler.UmbrellaSpecificationAnalyzer;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecifications;
@@ -24,11 +22,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class RainVisitor extends RainBaseVisitor<Object> {
-  SymbolTable symbolTable;
+  ClientSymbolTable symbolTable;
   List<CompilerError> compilerErrors;
   ShapeProperties currentShapeProperties;
 
-  public RainVisitor(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public RainVisitor(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     this.symbolTable = symbolTable;
     this.compilerErrors = compilerErrors;
     this.currentShapeProperties = null;

@@ -2,7 +2,7 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.Translatable;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.Convertable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.TypeCheckableNode;
 import zeus.zeuscompiler.CompilerError;
@@ -47,7 +47,7 @@ public class CodeModules extends TypeCheckableNode implements Convertable<List<C
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     for (CodeModule codeModule : this.getCodeModules()) {
       symbolTable.setCurrentCodeModule(codeModule);
       codeModule.checkTypes(symbolTable, compilerErrors);
@@ -60,7 +60,7 @@ public class CodeModules extends TypeCheckableNode implements Convertable<List<C
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     ArrayList<String> codeModulesCode = new ArrayList<>(symbolTable.getPublicTypes().entrySet().stream().map(
       publicType -> String.format(
         "type %s = %s;",

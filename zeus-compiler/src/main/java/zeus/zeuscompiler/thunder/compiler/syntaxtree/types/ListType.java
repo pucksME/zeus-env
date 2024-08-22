@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.CompilerError;
 
 import java.util.List;
@@ -23,12 +23,12 @@ public class ListType extends Type {
   }
 
   @Override
-  public void checkType(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     this.type.checkType(symbolTable, compilerErrors);
   }
 
   @Override
-  public boolean compatible(SymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
+  public boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
     if (type instanceof ListType && ((ListType) type).type instanceof IdType) {
       return ((ListType) type).type.compatible(symbolTable, compilerErrors, this.type);
     }
@@ -48,7 +48,7 @@ public class ListType extends Type {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.type.translate(symbolTable, depth, exportTarget) + "[]";
     };

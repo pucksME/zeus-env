@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
@@ -20,17 +20,17 @@ public class LiteralExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     this.evaluateType(symbolTable, compilerErrors);
   }
 
   @Override
-  public Optional<Type> evaluateType(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     return Optional.of(new PrimitiveType(this.type));
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> switch (this.type) {
         case STRING -> String.format("'%s'", this.value);

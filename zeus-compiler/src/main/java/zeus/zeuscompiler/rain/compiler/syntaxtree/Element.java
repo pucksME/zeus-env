@@ -6,7 +6,7 @@ import zeus.zeuscompiler.rain.dtos.ExportBlueprintComponentDto;
 import zeus.zeuscompiler.rain.dtos.ExportComponentDto;
 import zeus.zeuscompiler.rain.dtos.ExportShapeDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 
 public abstract class Element extends Node {
   Position position;
@@ -16,7 +16,7 @@ public abstract class Element extends Node {
     this.position = position;
   }
 
-  public abstract String translateReference(SymbolTable symbolTable, int depth, ExportTarget exportTarget);
+  public abstract String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget);
 
   public static Element fromDto(Object dto, boolean blueprint) {
     if (dto instanceof ExportBlueprintComponentDto) {

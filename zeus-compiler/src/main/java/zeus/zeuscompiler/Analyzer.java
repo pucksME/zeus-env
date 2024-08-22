@@ -3,7 +3,7 @@ package zeus.zeuscompiler;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.util.ArrayList;
@@ -12,12 +12,12 @@ import java.util.Optional;
 
 public abstract class Analyzer<T> {
   CompilerPhase compilerPhase;
-  SymbolTable symbolTable;
+  ClientSymbolTable symbolTable;
   List<CompilerError> compilerErrors;
 
   public Analyzer(CompilerPhase compilerPhase) {
     this.compilerPhase = compilerPhase;
-    this.symbolTable = new SymbolTable();
+    this.symbolTable = new ClientSymbolTable();
     this.compilerErrors = new ArrayList<>();
   }
 
@@ -29,7 +29,7 @@ public abstract class Analyzer<T> {
 
   public void reset() {
     this.compilerErrors.clear();
-    this.symbolTable = new SymbolTable();
+    this.symbolTable = new ClientSymbolTable();
   }
 
   public boolean hasErrors() {
@@ -40,7 +40,7 @@ public abstract class Analyzer<T> {
     return compilerPhase;
   }
 
-  public SymbolTable getSymbolTable() {
+  public ClientSymbolTable getSymbolTable() {
     return symbolTable;
   }
 

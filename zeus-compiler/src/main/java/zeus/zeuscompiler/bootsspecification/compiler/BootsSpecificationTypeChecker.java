@@ -4,18 +4,18 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.bootsspecification.compiler.visitors.BootsSpecificationVisitor;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 
 import java.util.List;
 
 public class BootsSpecificationTypeChecker {
   ParseTree parseTree;
-  SymbolTable symbolTable;
+  ClientSymbolTable symbolTable;
   List<CompilerError> compilerErrors;
 
   public BootsSpecificationTypeChecker(
     ParseTree parseTree,
-    SymbolTable symbolTable,
+    ClientSymbolTable symbolTable,
     List<CompilerError> compilerErrors
   ) {
     this.parseTree = parseTree;

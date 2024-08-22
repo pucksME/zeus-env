@@ -8,11 +8,10 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.Shape;
 import zeus.zeuscompiler.rain.dtos.ExportBlueprintComponentDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -28,7 +27,7 @@ public class BlueprintComponent extends Element {
   }
 
   @Override
-  public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     if (symbolTable.addCurrentComponentName(this)) {
       compilerErrors.add(new CompilerError(
         this.getLine(),
@@ -44,7 +43,7 @@ public class BlueprintComponent extends Element {
   }
 
   @Override
-  public String translateReference(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(
@@ -88,7 +87,7 @@ public class BlueprintComponent extends Element {
     };
   }
 
-  String translateStyle(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  String translateStyle(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(new String[]{"%s,", "%s"}, 2),
@@ -103,7 +102,7 @@ public class BlueprintComponent extends Element {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     String translatedComponents = this.elements.stream()
       .filter(element -> !(element instanceof Shape))
       .map(element -> element.translate(symbolTable, depth + 1, exportTarget))

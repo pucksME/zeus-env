@@ -1,10 +1,5 @@
-package zeus.zeuscompiler.thunder.compiler.symboltable;
+package zeus.zeuscompiler.symboltable;
 
-import zeus.zeuscompiler.rain.compiler.syntaxtree.BlueprintComponent;
-import zeus.zeuscompiler.rain.compiler.syntaxtree.Component;
-import zeus.zeuscompiler.rain.compiler.syntaxtree.Element;
-import zeus.zeuscompiler.rain.compiler.syntaxtree.View;
-import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.Shape;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
@@ -12,58 +7,17 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 
 import java.util.*;
 
-public class SymbolTable {
-  Element currentComponent;
-  Set<String> currentComponentNames;
-  Set<String> currentComponentShapeNames;
-  Map<String, BlueprintComponent> blueprintComponents;
-  Map<String, View> views;
+public abstract class SymbolTable {
   Map<String, List<TypeInformation>> publicTypes;
   Map<CodeModule, Map<String, List<TypeInformation>>> types;
   Map<CodeModule, Map<String, List<VariableInformation>>> variables;
   CodeModules codeModules;
   CodeModule currentCodeModule;
-  List<String> bootsSpecificationClasses;
 
   public SymbolTable() {
-    this.blueprintComponents = new HashMap<>();
-    this.views = new HashMap<>();
     this.publicTypes = new HashMap<>();
     this.types = new HashMap<>();
     this.variables = new HashMap<>();
-    this.bootsSpecificationClasses = new ArrayList<>();
-  }
-
-  public void setCurrentComponent(Element currentComponent) {
-    assert currentComponent instanceof BlueprintComponent || currentComponent instanceof Component;
-    this.currentComponent = currentComponent;
-    this.currentComponentNames = new HashSet<>();
-    this.currentComponentShapeNames = new HashSet<>();
-  }
-
-  public boolean addCurrentComponentName(Element component) {
-    assert component instanceof BlueprintComponent || component instanceof Component;
-    return !this.currentComponentNames.add(component.getName());
-  }
-
-  public boolean addCurrentComponentShapeName(Shape shape) {
-    return !this.currentComponentShapeNames.add(shape.getName());
-  }
-
-  public boolean addBlueprintComponent(BlueprintComponent blueprintComponent) {
-    boolean exists = this.blueprintComponents.containsKey(blueprintComponent.getName());
-    this.blueprintComponents.put(blueprintComponent.getName(), blueprintComponent);
-    return exists;
-  }
-
-  public boolean containsBlueprintComponent(String id) {
-    return this.blueprintComponents.containsKey(id);
-  }
-
-  public boolean addView(View view) {
-    boolean exists = this.views.containsKey(view.getName());
-    this.views.put(view.getName(), view);
-    return exists;
   }
 
   private void addType(String id, TypeInformation typeInformation) {
@@ -97,10 +51,6 @@ public class SymbolTable {
     }
 
     variables.get(id).add(variableInformation);
-  }
-
-  public void addBootsSpecificationClass(String id) {
-    this.bootsSpecificationClasses.add(id);
   }
 
   public Optional<VariableInformation> getVariable(CodeModule codeModule, String id) {
@@ -173,9 +123,5 @@ public class SymbolTable {
 
   public Map<String, List<TypeInformation>> getPublicTypes() {
     return publicTypes;
-  }
-
-  public List<String> getBootsSpecificationClasses() {
-    return bootsSpecificationClasses;
   }
 }

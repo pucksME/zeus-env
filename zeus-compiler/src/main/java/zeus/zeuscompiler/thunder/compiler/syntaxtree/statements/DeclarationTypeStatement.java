@@ -1,11 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.CompilerError;
-import zeus.zeuscompiler.thunder.compiler.symboltable.TypeInformation;
-import zeus.zeuscompiler.thunder.compiler.symboltable.TypeVisibility;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
+import zeus.zeuscompiler.symboltable.TypeInformation;
+import zeus.zeuscompiler.symboltable.TypeVisibility;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,11 +20,11 @@ public class DeclarationTypeStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     Optional<TypeInformation> typeInformationOptional = symbolTable.getType(symbolTable.getCurrentCodeModule(), this.id);
     assert typeInformationOptional.isPresent();
     TypeInformation typeInformation = typeInformationOptional.get();

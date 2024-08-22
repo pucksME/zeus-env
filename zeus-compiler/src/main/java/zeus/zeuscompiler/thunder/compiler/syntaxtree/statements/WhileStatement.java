@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Body;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
@@ -28,7 +28,7 @@ public class WhileStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     Optional<Type> conditionTypeOptional = this.conditionExpression.evaluateType(symbolTable, compilerErrors);
 
     if (conditionTypeOptional.isEmpty()) {
@@ -52,7 +52,7 @@ public class WhileStatement extends Statement {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(

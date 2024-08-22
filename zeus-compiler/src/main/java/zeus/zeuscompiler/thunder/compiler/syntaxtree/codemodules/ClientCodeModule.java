@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationTypeStatement;
 import zeus.zeuscompiler.thunder.dtos.ClientCodeModuleDto;
@@ -38,7 +38,7 @@ public class ClientCodeModule extends CodeModule {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     for (Input input : this.head.inputs.values()) {
       input.checkTypes(symbolTable, compilerErrors);
     }
@@ -66,7 +66,7 @@ public class ClientCodeModule extends CodeModule {
     );
   }
 
-  String translateOutputDeclarations(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  String translateOutputDeclarations(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     Collection<Output> outputs = this.getOutputs();
     if (outputs.size() == 0) {
       return "";
@@ -94,7 +94,7 @@ public class ClientCodeModule extends CodeModule {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     if (this.hasEmptyTranslation() || this instanceof RequestCodeModule || this instanceof ResponseCodeModule) {
       return "";
     }

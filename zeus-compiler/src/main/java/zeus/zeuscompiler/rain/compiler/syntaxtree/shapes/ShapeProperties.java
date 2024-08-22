@@ -3,7 +3,7 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree.shapes;
 import zeus.zeuscompiler.Translatable;
 import zeus.zeuscompiler.rain.dtos.ExportShapePropertyDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.Arrays;
@@ -103,7 +103,7 @@ public class ShapeProperties implements Translatable {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> (this.properties.size() != 0)
         ? CompilerUtils.buildLinePadding(depth) + this.properties.entrySet().stream()

@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree.positions;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 public class SortedPosition extends Position {
@@ -12,7 +12,7 @@ public class SortedPosition extends Position {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s,%s: %s",

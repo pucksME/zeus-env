@@ -2,7 +2,7 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.Translatable;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleOutputExpression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.ConnectionStatement;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -57,7 +57,7 @@ public class Dependency implements Translatable {
     };
   }
 
-  String translateRequestAccess(SymbolTable symbolTable, ClientCodeModule clientCodeModule, int depth, ExportTarget exportTarget) {
+  String translateRequestAccess(ClientSymbolTable symbolTable, ClientCodeModule clientCodeModule, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> clientCodeModule.getOutputs().stream()
         .map(output -> String.format(
@@ -108,7 +108,7 @@ public class Dependency implements Translatable {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     List<String> translations = new ArrayList<>(this.parents.stream().map(
       dependency -> dependency.translate(symbolTable, depth, exportTarget)
     ).toList());

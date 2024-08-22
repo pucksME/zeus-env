@@ -3,8 +3,8 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.symboltable.TypeInformation;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Output;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class Route extends Node {
     String id;
@@ -76,7 +75,7 @@ public class Route extends Node {
     }
 
     @Override
-    public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+    public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
         Optional<CodeModule> codeModuleOptional = this.codeModules.getCodeModule("request");
         String parameters = "";
         if (codeModuleOptional.isPresent() && codeModuleOptional.get() instanceof RequestCodeModule) {
@@ -119,6 +118,6 @@ public class Route extends Node {
     }
 
     @Override
-    public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+    public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     }
 }

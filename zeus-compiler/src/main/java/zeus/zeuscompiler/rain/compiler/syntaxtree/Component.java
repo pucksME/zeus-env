@@ -11,7 +11,7 @@ import zeus.zeuscompiler.rain.dtos.ExportComponentMutationDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -41,7 +41,7 @@ public class Component extends Element {
   }
 
   @Override
-  public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     if (this.blueprintComponentReference != null) {
       this.blueprintComponentReference.check(symbolTable, compilerErrors);
     }
@@ -67,7 +67,7 @@ public class Component extends Element {
   }
 
   @Override
-  public String translateReference(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> (this.blueprintComponentReference != null)
         ? this.blueprintComponentReference.translate(symbolTable, depth, exportTarget)
@@ -84,7 +84,7 @@ public class Component extends Element {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     String translatedComponents = this.elements.stream()
       .filter(element -> !(element instanceof Shape))
       .map(element -> element.translate(symbolTable, depth + 1, exportTarget))

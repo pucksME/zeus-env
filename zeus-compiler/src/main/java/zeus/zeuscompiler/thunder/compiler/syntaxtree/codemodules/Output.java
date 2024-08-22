@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.Convertable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationVariableStatement;
@@ -21,7 +21,7 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     DeclarationVariableStatement declarationVariableStatement = new DeclarationVariableStatement(
       this.getLine(),
       this.getLinePosition(),
@@ -38,7 +38,7 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
     return new PortDto(this.id, this.getType().toDto());
   }
 
-  public String translateDeclaration(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateDeclaration(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return new DeclarationVariableStatement(
       -1,
       -1,
@@ -48,7 +48,7 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
     ).translate(symbolTable, depth, exportTarget);
   }
 
-  public String translateReturnType(SymbolTable symbolTable, int depth, ExportTarget exportTarget, String codeModuleId) {
+  public String translateReturnType(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget, String codeModuleId) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s_%s: %s",
@@ -60,7 +60,7 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return "";
   }
 }

@@ -1,9 +1,9 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.symboltable.VariableInformation;
-import zeus.zeuscompiler.thunder.compiler.symboltable.VariableType;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.VariableInformation;
+import zeus.zeuscompiler.symboltable.VariableType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.InvalidAssignmentException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownVariableException;
@@ -26,7 +26,7 @@ public class AssignmentStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     Optional<Type> assignTypeOptional = this.assignExpression.evaluateType(symbolTable, compilerErrors);
 
     if (assignTypeOptional.isEmpty()) {
@@ -74,7 +74,7 @@ public class AssignmentStatement extends Statement {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s = %s;",

@@ -2,7 +2,7 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 
 import java.util.List;
 
@@ -12,12 +12,12 @@ public class LiteralFormula extends Formula {
   }
 
   @Override
-  public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
 
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return "";
   }
 }

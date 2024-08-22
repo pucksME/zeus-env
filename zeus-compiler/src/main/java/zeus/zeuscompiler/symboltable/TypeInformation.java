@@ -1,4 +1,4 @@
-package zeus.zeuscompiler.thunder.compiler.symboltable;
+package zeus.zeuscompiler.symboltable;
 
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 

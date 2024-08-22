@@ -1,4 +1,4 @@
-package zeus.zeuscompiler.thunder.compiler.symboltable;
+package zeus.zeuscompiler.symboltable;
 
 public enum VariableType {
   VARIABLE,

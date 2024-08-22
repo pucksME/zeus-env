@@ -1,16 +1,9 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Input;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Output;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownCodeModuleException;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownCodeModulePortException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.*;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -34,7 +27,7 @@ public class ConnectionStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     Optional<Type> codeModuleInputTypeOptional = this.codeModuleInputExpression.evaluateType(
       symbolTable,
       compilerErrors
@@ -68,7 +61,7 @@ public class ConnectionStatement extends Statement {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> "";
     };

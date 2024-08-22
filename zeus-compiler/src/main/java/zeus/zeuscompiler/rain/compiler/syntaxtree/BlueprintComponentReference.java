@@ -7,7 +7,7 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ComponentMutation;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ShapeMutation;
 import zeus.zeuscompiler.rain.dtos.ExportBlueprintComponentReferenceDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
@@ -29,7 +29,7 @@ public class BlueprintComponentReference implements Translatable {
     this.shapeMutations = shapeMutations;
   }
 
-  public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     if (!symbolTable.containsBlueprintComponent(blueprintComponentName)) {
       compilerErrors.add(new CompilerError(
         0,
@@ -41,7 +41,7 @@ public class BlueprintComponentReference implements Translatable {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     List<String> translatedMutations = Stream
       .concat(this.componentMutations.stream(), this.shapeMutations.stream())
       .map(mutation -> mutation.translate(symbolTable, depth + 2, exportTarget))

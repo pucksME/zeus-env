@@ -6,7 +6,7 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.ShapeProperties;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.ShapeProperty;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.rain.dtos.ExportViewDto;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.List;
@@ -39,7 +39,7 @@ public class View extends Node {
   }
 
   @Override
-  public void check(SymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
     for (Element element : this.elements) {
       symbolTable.setCurrentComponent(element);
       element.check(symbolTable, compilerErrors);
@@ -47,7 +47,7 @@ public class View extends Node {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
         List<String> translatedElements = this.elements.stream()

@@ -2,7 +2,7 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree.positions;
 
 import zeus.zeuscompiler.Translatable;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
@@ -18,7 +18,7 @@ public class Position implements Translatable {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     List<String> coordinates = new ArrayList<>();
 
     if (this.x != null) {

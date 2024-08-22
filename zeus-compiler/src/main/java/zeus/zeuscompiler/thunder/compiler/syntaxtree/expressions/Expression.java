@@ -1,6 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
@@ -13,5 +13,5 @@ public abstract class Expression extends BodyComponent {
     super(line, linePosition);
   }
 
-  public abstract Optional<Type> evaluateType(SymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
 }

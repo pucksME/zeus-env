@@ -1,8 +1,8 @@
 package zeus.zeuscompiler;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 
 public interface Translatable {
-  String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget);
+  String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget);
 }

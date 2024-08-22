@@ -5,7 +5,7 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.ShapeProperties;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.ShapeProperty;
 import zeus.zeuscompiler.rain.dtos.ExportShapeMutationDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.thunder.compiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 public class ShapeMutation extends Mutation {
@@ -19,7 +19,7 @@ public class ShapeMutation extends Mutation {
   }
 
   @Override
-  public String translate(SymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
         String translatedPosition = this.position.translate(symbolTable, depth + 2, exportTarget);
