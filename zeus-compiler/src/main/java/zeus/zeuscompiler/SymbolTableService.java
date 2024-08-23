@@ -6,7 +6,7 @@ import zeus.zeuscompiler.symboltable.SymbolTable;
 import java.util.Map;
 import java.util.Optional;
 
-public class SymbolTableService {
+public class SymbolTableService implements Service {
   private Map<String, SymbolTable> symbolTables;
   private SymbolTable currentSymbolTable;
 
