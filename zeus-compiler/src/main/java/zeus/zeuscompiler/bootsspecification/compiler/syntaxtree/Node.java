@@ -14,5 +14,5 @@ public abstract class Node {
     this.linePosition = linePosition;
   }
 
-  public abstract void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract void check();
 }

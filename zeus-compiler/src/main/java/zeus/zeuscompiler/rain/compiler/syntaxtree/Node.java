@@ -17,7 +17,7 @@ public abstract class Node implements Translatable {
     this.name = name;
   }
 
-  public abstract void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract void check();
 
   public int getLine() {
     return line;

@@ -8,6 +8,8 @@ import zeus.zeuscompiler.Analyzer;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.grammars.BootsSpecificationLexer;
 import zeus.zeuscompiler.grammars.BootsSpecificationParser;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.errorlisteners.ThunderLexerErrorListener;
 import zeus.zeuscompiler.thunder.compiler.errorlisteners.ThunderParserErrorListener;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -23,7 +25,7 @@ public class BootsSpecificationAnalyzer extends Analyzer<BootsSpecification> {
   public CommonTokenStream runLexer(CharStream code) {
     BootsSpecificationLexer bootsSpecificationLexer = new BootsSpecificationLexer(code);
     bootsSpecificationLexer.removeErrorListeners();
-    bootsSpecificationLexer.addErrorListener(new ThunderLexerErrorListener(this.getErrors()));
+    bootsSpecificationLexer.addErrorListener(new ThunderLexerErrorListener());
     CommonTokenStream tokens = new CommonTokenStream(bootsSpecificationLexer);
     tokens.fill();
     return tokens;
@@ -33,16 +35,12 @@ public class BootsSpecificationAnalyzer extends Analyzer<BootsSpecification> {
   public ParseTree runParser(CommonTokenStream tokens) {
     BootsSpecificationParser bootsSpecificationParser = new BootsSpecificationParser(tokens);
     bootsSpecificationParser.removeErrorListeners();
-    bootsSpecificationParser.addErrorListener(new ThunderParserErrorListener(this.getErrors()));
+    bootsSpecificationParser.addErrorListener(new ThunderParserErrorListener());
     return bootsSpecificationParser.specification();
   }
 
   public BootsSpecification runTypeChecker(ParseTree parseTree) {
-    BootsSpecificationTypeChecker bootsSpecificationTypeChecker = new BootsSpecificationTypeChecker(
-      parseTree,
-      this.getSymbolTable(),
-      this.getErrors()
-    );
+    BootsSpecificationTypeChecker bootsSpecificationTypeChecker = new BootsSpecificationTypeChecker(parseTree);
 
     return bootsSpecificationTypeChecker.checkTypes();
   }
@@ -53,7 +51,7 @@ public class BootsSpecificationAnalyzer extends Analyzer<BootsSpecification> {
 
   @Override
   public Optional<BootsSpecification> analyze(CharStream code) {
-    reset();
+    ServiceProvider.resetServices();
     CommonTokenStream tokens;
 
     switch (this.getCompilerPhase()) {
@@ -70,7 +68,7 @@ public class BootsSpecificationAnalyzer extends Analyzer<BootsSpecification> {
         tokens = runLexer(code);
         ParseTree parseTree = runParser(tokens);
 
-        if (this.hasErrors()) {
+        if (ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
           return Optional.empty();
         }
 

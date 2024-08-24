@@ -1,8 +1,5 @@
 package zeus.zeuscompiler.bootsspecification.compiler.syntaxtree;
 
-import zeus.zeuscompiler.CompilerError;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-
 import java.util.HashMap;
 import java.util.List;
 
@@ -23,9 +20,9 @@ public class BootsSpecification extends Node {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check() {
     for (ClassGenerator classGenerator : classGenerators) {
-      classGenerator.check(symbolTable, compilerErrors);
+      classGenerator.check();
     }
   }
 }

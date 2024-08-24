@@ -1,10 +1,12 @@
-package zeus.zeuscompiler;
+package zeus.zeuscompiler.services;
+
+import zeus.zeuscompiler.CompilerError;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class CompilerErrorService implements Service {
-  private List<CompilerError> compilerErrors;
+  private final List<CompilerError> compilerErrors;
 
   public CompilerErrorService() {
     this.compilerErrors = new ArrayList<>();
@@ -12,5 +14,14 @@ public class CompilerErrorService implements Service {
 
   public void addError(CompilerError compilerError) {
     this.compilerErrors.add(compilerError);
+  }
+
+  public boolean hasErrors() {
+    return !this.compilerErrors.isEmpty();
+  }
+
+  @Override
+  public void reset() {
+    this.compilerErrors.clear();
   }
 }

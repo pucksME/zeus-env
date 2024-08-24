@@ -1,6 +1,8 @@
-package zeus.zeuscompiler;
+package zeus.zeuscompiler.providers;
 
-import java.util.Optional;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.Service;
+import zeus.zeuscompiler.services.SymbolTableService;
 
 public class ServiceProvider {
   private static ServiceProvider serviceProvider;
@@ -24,15 +26,20 @@ public class ServiceProvider {
     ServiceProvider.compilerErrorService = compilerErrorService;
   }
 
-  public static <T extends Service> Optional<T> provide(Class<T> serviceClass) {
+  public static <T extends Service> T provide(Class<T> serviceClass) {
     if (serviceClass == SymbolTableService.class) {
-      return Optional.of((T) ServiceProvider.symbolTableService);
+      return (T) ServiceProvider.symbolTableService;
     }
 
     if (serviceClass == CompilerErrorService.class) {
-      return Optional.of((T) ServiceProvider.compilerErrorService);
+      return (T) ServiceProvider.compilerErrorService;
     }
 
     throw new ServiceUnavailableException();
+  }
+
+  public static void resetServices() {
+    ServiceProvider.symbolTableService.reset();
+    ServiceProvider.compilerErrorService.reset();
   }
 }

@@ -20,7 +20,7 @@ public class RainAnalyzer extends Analyzer<Project> {
   }
 
   void analyzeSemantic(Project project) {
-    project.check(this.getSymbolTable(), this.getErrors());
+    project.check(this.getErrors());
   }
 
 
@@ -43,7 +43,7 @@ public class RainAnalyzer extends Analyzer<Project> {
   }
 
   public Project runTypeChecker(ParseTree parseTree) {
-    RainTypeChecker rainTypeChecker = new RainTypeChecker(parseTree, this.getSymbolTable(), this.getErrors());
+    RainTypeChecker rainTypeChecker = new RainTypeChecker(parseTree, this.getErrors());
     return rainTypeChecker.checkTypes();
   }
 

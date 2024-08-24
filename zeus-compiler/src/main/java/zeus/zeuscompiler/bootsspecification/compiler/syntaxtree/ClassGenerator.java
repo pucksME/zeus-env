@@ -2,7 +2,11 @@ package zeus.zeuscompiler.bootsspecification.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousClassException;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.ServerSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.util.Arrays;
@@ -45,9 +49,13 @@ public class ClassGenerator extends Node {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    if (symbolTable.getBootsSpecificationClasses().stream().filter(bootsSpecificationClass -> bootsSpecificationClass.equals(this.id)).count() > 1) {
-      compilerErrors.add(new CompilerError(
+  public void check() {
+    if (ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerSymbolTable.class).getBootsSpecificationClasses().stream()
+      .filter(bootsSpecificationClass -> bootsSpecificationClass.equals(this.id))
+      .count() > 1) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.line,
         this.linePosition,
         new AmbiguousClassException(this.id),

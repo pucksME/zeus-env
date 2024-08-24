@@ -1,9 +1,12 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
 import zeus.zeuscompiler.rain.dtos.*;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -33,7 +36,7 @@ public class Project extends Node {
     this.servers = servers;
   }
 
-  private void checkServers(List<CompilerError> compilerErrors) {
+  private void checkServers() {
     Set<String> serverNames = new HashSet<>();
 
     for (Server server : this.servers) {
@@ -41,7 +44,7 @@ public class Project extends Node {
         continue;
       }
 
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         server.line,
         server.linePosition,
         new AmbiguousElementException(server.name, AmbiguousElementType.SERVER),
@@ -51,10 +54,14 @@ public class Project extends Node {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check() {
+    ClientSymbolTable clientSymbolTable = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ClientSymbolTable.class);
+
     for (Element element : this.elements) {
-      if (symbolTable.addBlueprintComponent((BlueprintComponent) element)) {
-        compilerErrors.add(new CompilerError(
+      if (clientSymbolTable.addBlueprintComponent((BlueprintComponent) element)) {
+        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
           this.getLine(),
           this.getLinePosition(),
           new AmbiguousElementException(element.name, AmbiguousElementType.BLUEPRINT_COMPONENT),
@@ -62,13 +69,13 @@ public class Project extends Node {
         ));
       }
 
-      symbolTable.setCurrentComponent(element);
-      element.check(symbolTable, compilerErrors);
+      clientSymbolTable.setCurrentComponent(element);
+      element.check();
     }
 
     for (View view : this.views) {
-      if (symbolTable.addView(view)) {
-        compilerErrors.add(new CompilerError(
+      if (clientSymbolTable.addView(view)) {
+        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
           this.getLine(),
           this.getLinePosition(),
           new AmbiguousElementException(view.name, AmbiguousElementType.VIEW),
@@ -76,10 +83,10 @@ public class Project extends Node {
         ));
       }
 
-      view.check(symbolTable, compilerErrors);
+      view.check();
     }
 
-    this.checkServers(compilerErrors);
+    this.checkServers();
   }
 
   public String translateViews(String appFileName, ExportTarget exportTarget) {

@@ -9,12 +9,14 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.RainAnalyzer;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.Project;
 import zeus.zeuscompiler.rain.dtos.ExportProjectDto;
-import zeus.zeuscompiler.rain.dtos.ExportedFileDto;
 import zeus.zeuscompiler.rain.dtos.ExportedProjectDto;
 import zeus.zeuscompiler.rain.dtos.TranslateProjectDto;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -107,6 +109,10 @@ public class ZeusCompilerApplication {
   })
   @PostMapping("/translateProject")
   ExportedProjectDto translateProject(@RequestBody TranslateProjectDto translateProjectDto) {
+    ServiceProvider.initialize();
+    ServiceProvider.register(new CompilerErrorService());
+    ServiceProvider.register(new SymbolTableService());
+
     RainAnalyzer rainAnalyzer = new RainAnalyzer(CompilerPhase.TYPE_CHECKER);
     Optional<Project> projectOptional = rainAnalyzer.analyze(CharStreams.fromString(translateProjectDto.code()));
 
