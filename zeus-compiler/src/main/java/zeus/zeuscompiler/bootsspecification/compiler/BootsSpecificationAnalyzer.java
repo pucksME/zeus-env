@@ -51,7 +51,6 @@ public class BootsSpecificationAnalyzer extends Analyzer<BootsSpecification> {
 
   @Override
   public Optional<BootsSpecification> analyze(CharStream code) {
-    ServiceProvider.resetServices();
     CommonTokenStream tokens;
 
     switch (this.getCompilerPhase()) {

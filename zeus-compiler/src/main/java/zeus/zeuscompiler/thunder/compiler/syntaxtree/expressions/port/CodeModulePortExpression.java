@@ -1,6 +1,9 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port;
 
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleCodeModuleException;
@@ -9,7 +12,6 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
 import java.util.Optional;
 
 public abstract class CodeModulePortExpression extends Expression {
@@ -20,10 +22,13 @@ public abstract class CodeModulePortExpression extends Expression {
     this.codeModuleId = codeModuleId;
   }
 
-  public Optional<ClientCodeModule> getCodeModule(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<CodeModule> codeModuleOptional = symbolTable.getCodeModules().getCodeModule(this.codeModuleId);
+  public Optional<ClientCodeModule> getCodeModule() {
+    Optional<CodeModule> codeModuleOptional = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).getCodeModules().getCodeModule(this.codeModuleId);
+
     if (codeModuleOptional.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnknownCodeModuleException(),
@@ -34,7 +39,7 @@ public abstract class CodeModulePortExpression extends Expression {
 
     CodeModule codeModule = codeModuleOptional.get();
     if (!(codeModule instanceof ClientCodeModule)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleCodeModuleException(),

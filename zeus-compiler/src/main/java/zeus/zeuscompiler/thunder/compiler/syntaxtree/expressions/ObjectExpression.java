@@ -21,16 +21,16 @@ public class ObjectExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<Type> evaluateType() {
     Map<String, Type> propertyTypes = new HashMap<>();
 
     for (ObjectItem property : this.properties) {
-      Optional<Type> propertyTypeOptional = property.expression.evaluateType(symbolTable, compilerErrors);
+      Optional<Type> propertyTypeOptional = property.expression.evaluateType();
 
       if (propertyTypeOptional.isEmpty()) {
         return Optional.empty();
@@ -43,14 +43,14 @@ public class ObjectExpression extends Expression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "{%s}",
         this.properties.stream().map(objectItem -> String.format(
           "%s: %s",
           objectItem.id,
-          objectItem.expression.translate(symbolTable, depth, exportTarget)
+          objectItem.expression.translate(depth, exportTarget)
         )).collect(Collectors.joining(", "))
       );
     };

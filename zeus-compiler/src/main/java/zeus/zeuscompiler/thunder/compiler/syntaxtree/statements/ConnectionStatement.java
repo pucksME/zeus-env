@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.*;
@@ -27,31 +29,21 @@ public class ConnectionStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> codeModuleInputTypeOptional = this.codeModuleInputExpression.evaluateType(
-      symbolTable,
-      compilerErrors
-    );
+  public void checkTypes() {
+    Optional<Type> codeModuleInputTypeOptional = this.codeModuleInputExpression.evaluateType();
 
     if (codeModuleInputTypeOptional.isEmpty()) {
       return;
     }
 
-    Optional<Type> codeModuleOutputTypeOptional = this.codeModuleOutputExpression.evaluateType(
-      symbolTable,
-      compilerErrors
-    );
+    Optional<Type> codeModuleOutputTypeOptional = this.codeModuleOutputExpression.evaluateType();
 
     if (codeModuleOutputTypeOptional.isEmpty()) {
       return;
     }
 
-    if (!codeModuleInputTypeOptional.get().compatible(
-      symbolTable,
-      compilerErrors,
-      codeModuleOutputTypeOptional.get()
-    )) {
-      compilerErrors.add(new CompilerError(
+    if (!codeModuleInputTypeOptional.get().compatible(codeModuleOutputTypeOptional.get())) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleTypeException(),
@@ -61,7 +53,7 @@ public class ConnectionStatement extends Statement {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> "";
     };

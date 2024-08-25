@@ -1,7 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Output;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownCodeModulePortException;
@@ -9,7 +10,6 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
 import java.util.Optional;
 
 public class CodeModuleOutputExpression extends CodeModulePortExpression {
@@ -21,13 +21,13 @@ public class CodeModuleOutputExpression extends CodeModulePortExpression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<ClientCodeModule> codeModuleOptional = this.getCodeModule(symbolTable, compilerErrors);
+  public Optional<Type> evaluateType() {
+    Optional<ClientCodeModule> codeModuleOptional = this.getCodeModule();
 
     if (codeModuleOptional.isEmpty()) {
       return Optional.empty();
@@ -35,7 +35,7 @@ public class CodeModuleOutputExpression extends CodeModulePortExpression {
 
     Optional<Output> outputOptional = codeModuleOptional.get().getOutput(this.outputId);
     if (outputOptional.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnknownCodeModulePortException(),
@@ -48,7 +48,7 @@ public class CodeModuleOutputExpression extends CodeModulePortExpression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format("%s_%s", this.codeModuleId, this.outputId);
     };

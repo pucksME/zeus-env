@@ -16,7 +16,7 @@ public abstract class Element extends Node {
     this.position = position;
   }
 
-  public abstract String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget);
+  public abstract String translateReference(int depth, ExportTarget exportTarget);
 
   public static Element fromDto(Object dto, boolean blueprint) {
     if (dto instanceof ExportBlueprintComponentDto) {

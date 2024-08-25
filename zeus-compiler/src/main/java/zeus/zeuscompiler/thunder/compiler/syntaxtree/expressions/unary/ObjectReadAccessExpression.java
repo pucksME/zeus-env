@@ -1,7 +1,11 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownObjectPropertyException;
@@ -31,13 +35,13 @@ public class ObjectReadAccessExpression extends UnaryExpression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> expressionTypeOptional = this.expression.evaluateType(symbolTable, compilerErrors);
+  public Optional<Type> evaluateType() {
+    Optional<Type> expressionTypeOptional = this.expression.evaluateType();
 
     if (expressionTypeOptional.isEmpty()) {
       return Optional.empty();
@@ -46,13 +50,17 @@ public class ObjectReadAccessExpression extends UnaryExpression {
     Type expressionType = expressionTypeOptional.get();
 
     if (expressionType instanceof IdType) {
-      Optional<TypeInformation> typeInformationOptional = symbolTable.getType(
-        symbolTable.getCurrentCodeModule(),
-        ((IdType) expressionType).getId()
+      Optional<TypeInformation> typeInformationOptional = ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(SymbolTable.class).getType(
+          ServiceProvider
+            .provide(SymbolTableService.class).getContextSymbolTableProvider()
+            .provide(SymbolTable.class).getCurrentCodeModule(),
+          ((IdType) expressionType).getId()
       );
 
       if (typeInformationOptional.isEmpty()) {
-        compilerErrors.add(new CompilerError(
+        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
           this.expression.getLine(),
           this.expression.getLinePosition(),
           new UnknownTypeException(),
@@ -65,7 +73,7 @@ public class ObjectReadAccessExpression extends UnaryExpression {
     }
 
     if (!(expressionType instanceof ObjectType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleTypeException(),
@@ -77,7 +85,7 @@ public class ObjectReadAccessExpression extends UnaryExpression {
     Optional<Type> propertyTypeOptional = ((ObjectType) expressionType).getPropertyType(this.propertyId);
 
     if (propertyTypeOptional.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnknownObjectPropertyException(),
@@ -90,11 +98,11 @@ public class ObjectReadAccessExpression extends UnaryExpression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s.%s",
-        this.expression.translate(symbolTable, depth, exportTarget),
+        this.expression.translate(depth, exportTarget),
         this.propertyId
       );
     };

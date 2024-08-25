@@ -60,7 +60,7 @@ public class ZeusCompilerApplication {
         thunderAnalyzer.analyze(
           ThunderUtils.buildCharStream(Collections.singletonList(createCodeModuleDto))
         ).orElse(new CodeModules(Collections.singletonList(new ClientCodeModule()), new ArrayList<>())),
-        thunderAnalyzer.getErrors()
+        ServiceProvider.provide(CompilerErrorService.class).getErrors()
       );
     }).toList();
   }
@@ -85,12 +85,12 @@ public class ZeusCompilerApplication {
       return new ExportedProjectDto(
         new ArrayList<>(),
         new ArrayList<>(),
-        rainAnalyzer.getErrors().stream().map(CompilerError::toDto).toList()
+        ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
 
     return new ExportedProjectDto(
-      projectOptional.get().translateClients(rainAnalyzer.getSymbolTable(), exportProjectDto.exportTarget()),
+      projectOptional.get().translateClients(exportProjectDto.exportTarget()),
       new ArrayList<>(),
       new ArrayList<>()
     );
@@ -116,17 +116,17 @@ public class ZeusCompilerApplication {
     RainAnalyzer rainAnalyzer = new RainAnalyzer(CompilerPhase.TYPE_CHECKER);
     Optional<Project> projectOptional = rainAnalyzer.analyze(CharStreams.fromString(translateProjectDto.code()));
 
-    if (projectOptional.isEmpty() || rainAnalyzer.hasErrors()) {
+    if (projectOptional.isEmpty() || ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
       return new ExportedProjectDto(
         new ArrayList<>(),
         new ArrayList<>(),
-        rainAnalyzer.getErrors().stream().map(CompilerError::toDto).toList()
+        ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
 
     return new ExportedProjectDto(
       new ArrayList<>(),
-      projectOptional.get().translateServers(rainAnalyzer.getSymbolTable(), translateProjectDto.exportTarget()),
+      projectOptional.get().translateServers(translateProjectDto.exportTarget()),
       new ArrayList<>()
     );
   }

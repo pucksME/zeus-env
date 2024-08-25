@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.MapType;
@@ -21,21 +23,21 @@ public class MapExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<Type> evaluateType() {
     MapType mapType = null;
     for (MapItem mapItem : this.expressions) {
-      Optional<Type> keyTypeOptional = mapItem.key.evaluateType(symbolTable, compilerErrors);
+      Optional<Type> keyTypeOptional = mapItem.key.evaluateType();
 
       if (keyTypeOptional.isEmpty()) {
         return Optional.empty();
       }
 
-      Optional<Type> valueTypeOptional = mapItem.value.evaluateType(symbolTable, compilerErrors);
+      Optional<Type> valueTypeOptional = mapItem.value.evaluateType();
 
       if (valueTypeOptional.isEmpty()) {
         return Optional.empty();
@@ -44,7 +46,7 @@ public class MapExpression extends Expression {
       MapType currentMapType = new MapType(keyTypeOptional.get(), valueTypeOptional.get());
 
       if (mapType != null && !currentMapType.equals(mapType)) {
-        compilerErrors.add(new CompilerError(
+        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
           mapItem.key.getLine(),
           mapItem.key.getLinePosition(),
           new IncompatibleTypeException(),
@@ -60,14 +62,14 @@ public class MapExpression extends Expression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "new Map([%s])",
         this.expressions.stream().map(mapItem -> String.format(
           "[%s, %s]",
-          mapItem.key.translate(symbolTable, depth, exportTarget),
-          mapItem.value.translate(symbolTable, depth, exportTarget)
+          mapItem.key.translate(depth, exportTarget),
+          mapItem.value.translate(depth, exportTarget)
         )).collect(Collectors.joining(", "))
       );
     };

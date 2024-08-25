@@ -1,8 +1,11 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.Translatable;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.Convertable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.TypeCheckableNode;
 import zeus.zeuscompiler.CompilerError;
@@ -47,10 +50,12 @@ public class CodeModules extends TypeCheckableNode implements Convertable<List<C
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     for (CodeModule codeModule : this.getCodeModules()) {
-      symbolTable.setCurrentCodeModule(codeModule);
-      codeModule.checkTypes(symbolTable, compilerErrors);
+      ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(SymbolTable.class).setCurrentCodeModule(codeModule);
+      codeModule.checkTypes();
     }
   }
 
@@ -60,18 +65,22 @@ public class CodeModules extends TypeCheckableNode implements Convertable<List<C
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
-    ArrayList<String> codeModulesCode = new ArrayList<>(symbolTable.getPublicTypes().entrySet().stream().map(
-      publicType -> String.format(
-        "type %s = %s;",
-        publicType.getKey(),
-        publicType.getValue().get(0).getType().translate(symbolTable, depth, exportTarget)
-      )
+  public String translate(int depth, ExportTarget exportTarget) {
+    ArrayList<String> codeModulesCode = new ArrayList<>(ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).getPublicTypes().entrySet().stream().map(
+        publicType -> String.format(
+          "type %s = %s;",
+          publicType.getKey(),
+          publicType.getValue().get(0).getType().translate(depth, exportTarget)
+        )
     ).toList());
 
     for (CodeModule codeModule : this.getCodeModules()) {
-      symbolTable.setCurrentCodeModule(codeModule);
-      codeModulesCode.add(codeModule.translate(symbolTable, depth, exportTarget));
+      ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(SymbolTable.class).setCurrentCodeModule(codeModule);
+      codeModulesCode.add(codeModule.translate(depth, exportTarget));
     }
 
     return String.join("\n" + CompilerUtils.buildLinePadding(depth + 1), codeModulesCode);

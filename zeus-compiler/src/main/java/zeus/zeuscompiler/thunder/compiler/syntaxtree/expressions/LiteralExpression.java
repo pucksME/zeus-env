@@ -20,17 +20,17 @@ public class LiteralExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<Type> evaluateType() {
     return Optional.of(new PrimitiveType(this.type));
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> switch (this.type) {
         case STRING -> String.format("'%s'", this.value);

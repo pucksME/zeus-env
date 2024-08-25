@@ -1,6 +1,7 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree.shapes;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.Element;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
@@ -8,6 +9,8 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.IncompatibleShapePropertyException;
 import zeus.zeuscompiler.rain.dtos.ExportShapeDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -50,9 +53,9 @@ public abstract class Shape extends Element {
     ));
   }
 
-  public void checkShapeProperties(List<CompilerError> compilerErrors) {
+  public void checkShapeProperties() {
     if (!this.compatibleShapeProperties.containsAll(this.shapeProperties.properties.keySet())) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleShapePropertyException(),
@@ -62,27 +65,29 @@ public abstract class Shape extends Element {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    if (symbolTable.addCurrentComponentShapeName(this)) {
-      compilerErrors.add(new CompilerError(
+  public void check() {
+    if (ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ClientSymbolTable.class).addCurrentComponentShapeName(this)) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new AmbiguousElementException(this.getName(), AmbiguousElementType.SHAPE),
         CompilerPhase.TYPE_CHECKER
       ));
     }
-    this.checkShapeProperties(compilerErrors);
+    this.checkShapeProperties();
   }
 
-  String translateStyle(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  String translateStyle(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
         String linePadding = CompilerUtils.buildLinePadding(depth + 1);
         yield String.format(
           "%s%s%s",
-          linePadding + this.getPosition().translate(symbolTable, depth + 1, exportTarget),
-          (this.shapeProperties.properties.size() != 0)
-            ? String.format(",\n%s", this.shapeProperties.translate(symbolTable, depth + 1, exportTarget))
+          linePadding + this.getPosition().translate(depth + 1, exportTarget),
+          (!this.shapeProperties.properties.isEmpty())
+            ? String.format(",\n%s", this.shapeProperties.translate(depth + 1, exportTarget))
             : "",
           (this.blueprint)
             ? String.format(
@@ -98,7 +103,7 @@ public abstract class Shape extends Element {
   }
 
   @Override
-  public String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateReference(int depth, ExportTarget exportTarget) {
     return "";
   }
 

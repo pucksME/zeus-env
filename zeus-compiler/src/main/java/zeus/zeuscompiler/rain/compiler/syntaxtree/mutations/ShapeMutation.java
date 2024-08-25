@@ -19,15 +19,15 @@ public class ShapeMutation extends Mutation {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
-        String translatedPosition = this.position.translate(symbolTable, depth + 2, exportTarget);
+        String translatedPosition = this.position.translate(depth + 2, exportTarget);
         String translatedMutationStyle = String.format(
           "%s%s%s",
           (!translatedPosition.isEmpty()) ? String.format("%s", translatedPosition) : "",
           (!translatedPosition.isEmpty()) ? ",\n" : "",
-          this.shapeProperties.translate(symbolTable, depth + 2, exportTarget)
+          this.shapeProperties.translate(depth + 2, exportTarget)
         );
 
         String text = this.shapeProperties.getProperties().get(ShapeProperty.TEXT);

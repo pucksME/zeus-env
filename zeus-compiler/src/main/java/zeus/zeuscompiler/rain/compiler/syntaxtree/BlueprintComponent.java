@@ -1,6 +1,7 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
@@ -8,6 +9,8 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.Shape;
 import zeus.zeuscompiler.rain.dtos.ExportBlueprintComponentDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -27,9 +30,11 @@ public class BlueprintComponent extends Element {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    if (symbolTable.addCurrentComponentName(this)) {
-      compilerErrors.add(new CompilerError(
+  public void check() {
+    if (ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ClientSymbolTable.class).addCurrentComponentName(this)) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new AmbiguousElementException(this.getName(), AmbiguousElementType.BLUEPRINT_COMPONENT),
@@ -38,12 +43,12 @@ public class BlueprintComponent extends Element {
     }
 
     for (Element element : this.elements) {
-      element.check(symbolTable, compilerErrors);
+      element.check();
     }
   }
 
   @Override
-  public String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateReference(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(
@@ -87,11 +92,11 @@ public class BlueprintComponent extends Element {
     };
   }
 
-  String translateStyle(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  String translateStyle(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(new String[]{"%s,", "%s"}, 2),
-        this.position.translate(symbolTable, depth + 2, exportTarget),
+        this.position.translate(depth + 2, exportTarget),
         CompilerUtils.buildLinePadding(depth) + String.format(
           "...((properties.mutations && properties.mutations.%s) ? properties.mutations.%s.style : undefined)",
           this.getName(),
@@ -102,10 +107,10 @@ public class BlueprintComponent extends Element {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     String translatedComponents = this.elements.stream()
       .filter(element -> !(element instanceof Shape))
-      .map(element -> element.translate(symbolTable, depth + 1, exportTarget))
+      .map(element -> element.translate(depth + 1, exportTarget))
       .collect(Collectors.joining("\n"));
 
     return switch (exportTarget) {
@@ -126,11 +131,11 @@ public class BlueprintComponent extends Element {
         this.name,
         this.translateProperties(exportTarget),
         (!translatedComponents.isEmpty()) ? translatedComponents + "\n" : "",
-        this.translateStyle(symbolTable, depth, exportTarget),
+        this.translateStyle(depth, exportTarget),
         this.elements.stream().map(
           element -> (element instanceof Shape)
-            ? element.translate(symbolTable, depth + 1, exportTarget)
-            : element.translateReference(symbolTable, depth + 1, exportTarget)
+            ? element.translate(depth + 1, exportTarget)
+            : element.translateReference(depth + 1, exportTarget)
         ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2)))
       );
     };

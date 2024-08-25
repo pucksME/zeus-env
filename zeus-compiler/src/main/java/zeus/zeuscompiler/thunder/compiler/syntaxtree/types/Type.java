@@ -18,9 +18,9 @@ public abstract class Type extends Node implements Convertable<TypeDto>, Transla
     super(line, linePosition);
   }
 
-  public abstract void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract void checkType();
 
-  public abstract boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type);
+  public abstract boolean compatible(Type type);
 
   @Override
   public TypeDto toDto() {

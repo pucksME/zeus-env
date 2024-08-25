@@ -37,11 +37,11 @@ public class PrimitiveType extends Type {
   }
 
   @Override
-  public void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkType() {
   }
 
   @Override
-  public boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
+  public boolean compatible(Type type) {
     if (!(type instanceof PrimitiveType)) {
       return false;
     }
@@ -60,7 +60,7 @@ public class PrimitiveType extends Type {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> switch (this.type) {
         case STRING -> "string";

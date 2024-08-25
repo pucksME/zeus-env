@@ -1,8 +1,11 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.Translatable;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleOutputExpression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.ConnectionStatement;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -57,14 +60,14 @@ public class Dependency implements Translatable {
     };
   }
 
-  String translateRequestAccess(ClientSymbolTable symbolTable, ClientCodeModule clientCodeModule, int depth, ExportTarget exportTarget) {
+  String translateRequestAccess(ClientCodeModule clientCodeModule, int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> clientCodeModule.getOutputs().stream()
         .map(output -> String.format(
           "const request_%s = req['%s'] as unknown as %s",
           output.getId(),
           (output.getId().equals("url") ? "params" : "body"),
-          output.type.translate(symbolTable, depth, exportTarget)
+          output.type.translate(depth, exportTarget)
         ))
         .collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 1)));
     };
@@ -108,12 +111,15 @@ public class Dependency implements Translatable {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     List<String> translations = new ArrayList<>(this.parents.stream().map(
-      dependency -> dependency.translate(symbolTable, depth, exportTarget)
+      dependency -> dependency.translate(depth, exportTarget)
     ).toList());
 
-    Optional<CodeModule> codeModuleOptional = symbolTable.getCodeModules().getCodeModule(this.codeModuleName);
+    Optional<CodeModule> codeModuleOptional = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).getCodeModules().getCodeModule(this.codeModuleName);
+
     assert codeModuleOptional.isPresent();
     ClientCodeModule clientCodeModule = (ClientCodeModule) codeModuleOptional.get();
 
@@ -123,7 +129,7 @@ public class Dependency implements Translatable {
 
     if (!this.translated) {
       if (clientCodeModule instanceof RequestCodeModule) {
-        translations.add(this.translateRequestAccess(symbolTable, clientCodeModule, depth, exportTarget));
+        translations.add(this.translateRequestAccess(clientCodeModule, depth, exportTarget));
       } else if (clientCodeModule instanceof ResponseCodeModule) {
         translations.add(this.translateResponseAccess(depth, exportTarget));
       } else {

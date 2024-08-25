@@ -103,9 +103,9 @@ public class ShapeProperties implements Translatable {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
-      case REACT_TYPESCRIPT -> (this.properties.size() != 0)
+      case REACT_TYPESCRIPT -> (!this.properties.isEmpty())
         ? CompilerUtils.buildLinePadding(depth) + this.properties.entrySet().stream()
           .map(property -> this.translateShapeProperty(property.getKey(), property.getValue(), exportTarget))
           .filter(translatedProperty -> !translatedProperty.isEmpty())

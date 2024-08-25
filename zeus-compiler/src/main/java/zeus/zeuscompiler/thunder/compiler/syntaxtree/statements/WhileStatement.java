@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Body;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
@@ -28,8 +30,8 @@ public class WhileStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> conditionTypeOptional = this.conditionExpression.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    Optional<Type> conditionTypeOptional = this.conditionExpression.evaluateType();
 
     if (conditionTypeOptional.isEmpty()) {
       return;
@@ -38,7 +40,7 @@ public class WhileStatement extends Statement {
     Type conditionType = conditionTypeOptional.get();
 
     if (!(conditionType instanceof PrimitiveType) || ((PrimitiveType) conditionType).getType() != LiteralType.BOOLEAN) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.conditionExpression.getLine(),
         this.conditionExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -47,12 +49,12 @@ public class WhileStatement extends Statement {
     }
 
     for (BodyComponent bodyComponent : this.body.getBodyComponents()) {
-      bodyComponent.checkTypes(symbolTable, compilerErrors);
+      bodyComponent.checkTypes();
     }
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(
@@ -63,9 +65,9 @@ public class WhileStatement extends Statement {
           },
           0
         ),
-        this.conditionExpression.translate(symbolTable, depth, exportTarget),
+        this.conditionExpression.translate(depth, exportTarget),
         this.body.getBodyComponents().stream().map(
-          bodyComponent -> bodyComponent.translate(symbolTable, depth + 1, exportTarget)
+          bodyComponent -> bodyComponent.translate(depth + 1, exportTarget)
         ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2)))
       );
     };

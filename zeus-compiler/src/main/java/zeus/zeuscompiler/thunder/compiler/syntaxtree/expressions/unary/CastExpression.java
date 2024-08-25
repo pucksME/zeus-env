@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
@@ -27,20 +29,20 @@ public class CastExpression extends UnaryExpression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> expressionTypeOptional = this.expression.evaluateType(symbolTable, compilerErrors);
+  public Optional<Type> evaluateType() {
+    Optional<Type> expressionTypeOptional = this.expression.evaluateType();
 
     if (expressionTypeOptional.isEmpty()) {
       return Optional.empty();
     }
 
-    if (!expressionTypeOptional.get().compatible(symbolTable, compilerErrors, this.type)) {
-      compilerErrors.add(new CompilerError(
+    if (!expressionTypeOptional.get().compatible(this.type)) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleTypeException(),
@@ -53,12 +55,12 @@ public class CastExpression extends UnaryExpression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s as %s",
-        this.expression.translate(symbolTable, depth, exportTarget),
-        this.type.translate(symbolTable, depth, exportTarget)
+        this.expression.translate(depth, exportTarget),
+        this.type.translate(depth, exportTarget)
       );
     };
   }

@@ -18,7 +18,7 @@ public class Position implements Translatable {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     List<String> coordinates = new ArrayList<>();
 
     if (this.x != null) {
@@ -34,7 +34,7 @@ public class Position implements Translatable {
     }
 
     return switch (exportTarget) {
-      case REACT_TYPESCRIPT -> (coordinates.size() != 0)
+      case REACT_TYPESCRIPT -> (!coordinates.isEmpty())
         ? String.format("position: 'absolute',%s", String.join(",", coordinates))
         : "";
     };

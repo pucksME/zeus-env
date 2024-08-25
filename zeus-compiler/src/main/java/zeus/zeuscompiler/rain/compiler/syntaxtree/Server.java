@@ -1,8 +1,6 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.HashMap;
@@ -47,7 +45,7 @@ public class Server extends Node {
     }
 
     @Override
-    public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+    public String translate(int depth, ExportTarget exportTarget) {
         return switch (exportTarget) {
             case REACT_TYPESCRIPT -> String.format(
               CompilerUtils.buildLinesFormat(new String[]{
@@ -57,16 +55,16 @@ public class Server extends Node {
                 "%s"
               }, depth),
               this.routes.stream()
-                .map(route -> route.translate(symbolTable, depth, exportTarget))
+                .map(route -> route.translate(depth, exportTarget))
                 .collect(Collectors.joining("\n"))
             );
         };
     }
 
     @Override
-    public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+    public void check() {
         for (Route route : this.routes) {
-            route.check(symbolTable, compilerErrors);
+            route.check();
         }
     }
 }

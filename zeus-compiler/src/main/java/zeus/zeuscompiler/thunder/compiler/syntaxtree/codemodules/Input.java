@@ -15,17 +15,17 @@ public class Input extends HeadComponent implements Convertable<PortDto> {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.type.checkType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.type.checkType();
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s: %s",
         this.getId(),
-        this.getType().translate(symbolTable, depth, exportTarget)
+        this.getType().translate(depth, exportTarget)
       );
     };
   }

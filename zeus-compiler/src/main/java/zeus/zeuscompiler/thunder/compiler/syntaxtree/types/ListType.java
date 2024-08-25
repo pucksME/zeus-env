@@ -23,14 +23,14 @@ public class ListType extends Type {
   }
 
   @Override
-  public void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.type.checkType(symbolTable, compilerErrors);
+  public void checkType() {
+    this.type.checkType();
   }
 
   @Override
-  public boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
+  public boolean compatible(Type type) {
     if (type instanceof ListType && ((ListType) type).type instanceof IdType) {
-      return ((ListType) type).type.compatible(symbolTable, compilerErrors, this.type);
+      return ((ListType) type).type.compatible(this.type);
     }
 
     return this.equals(type);
@@ -48,9 +48,9 @@ public class ListType extends Type {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
-      case REACT_TYPESCRIPT -> this.type.translate(symbolTable, depth, exportTarget) + "[]";
+      case REACT_TYPESCRIPT -> this.type.translate(depth, exportTarget) + "[]";
     };
   }
 

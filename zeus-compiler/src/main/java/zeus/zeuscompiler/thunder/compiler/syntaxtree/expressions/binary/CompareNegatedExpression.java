@@ -22,22 +22,22 @@ public class CompareNegatedExpression extends BinaryExpression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    return TypeCheckingUtils.evaluateTypeCompareExpression(symbolTable, compilerErrors, this);
+  public Optional<Type> evaluateType() {
+    return TypeCheckingUtils.evaluateTypeCompareExpression(this);
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s !== %s",
-        this.leftExpression.translate(symbolTable, depth, exportTarget),
-        this.rightExpression.translate(symbolTable, depth, exportTarget)
+        this.leftExpression.translate(depth, exportTarget),
+        this.rightExpression.translate(depth, exportTarget)
       );
     };
   }

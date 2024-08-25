@@ -7,6 +7,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import zeus.zeuscompiler.Analyzer;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationLexer;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.errorlisteners.ThunderLexerErrorListener;
 import zeus.zeuscompiler.thunder.compiler.errorlisteners.ThunderParserErrorListener;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -23,7 +25,7 @@ public class UmbrellaSpecificationAnalyzer extends Analyzer<UmbrellaSpecificatio
   public CommonTokenStream runLexer(CharStream code) {
     UmbrellaSpecificationLexer umbrellaSpecificationLexer = new UmbrellaSpecificationLexer(code);
     umbrellaSpecificationLexer.removeErrorListeners();
-    umbrellaSpecificationLexer.addErrorListener(new ThunderLexerErrorListener(this.getErrors()));
+    umbrellaSpecificationLexer.addErrorListener(new ThunderLexerErrorListener());
     CommonTokenStream tokens = new CommonTokenStream(umbrellaSpecificationLexer);
     tokens.fill();
     return tokens;
@@ -33,16 +35,12 @@ public class UmbrellaSpecificationAnalyzer extends Analyzer<UmbrellaSpecificatio
   public ParseTree runParser(CommonTokenStream tokens) {
     UmbrellaSpecificationParser umbrellaSpecificationParser = new UmbrellaSpecificationParser(tokens);
     umbrellaSpecificationParser.removeErrorListeners();
-    umbrellaSpecificationParser.addErrorListener(new ThunderParserErrorListener(this.getErrors()));
+    umbrellaSpecificationParser.addErrorListener(new ThunderParserErrorListener());
     return umbrellaSpecificationParser.specifications();
   }
 
   public UmbrellaSpecifications runTypeChecker(ParseTree parseTree) {
-    UmbrellaSpecificationTypeChecker umbrellaSpecificationTypeChecker = new UmbrellaSpecificationTypeChecker(
-      parseTree,
-      this.getSymbolTable(),
-      this.getErrors()
-    );
+    UmbrellaSpecificationTypeChecker umbrellaSpecificationTypeChecker = new UmbrellaSpecificationTypeChecker(parseTree);
 
     return umbrellaSpecificationTypeChecker.checkTypes();
   }
@@ -53,7 +51,6 @@ public class UmbrellaSpecificationAnalyzer extends Analyzer<UmbrellaSpecificatio
 
   @Override
   public Optional<UmbrellaSpecifications> analyze(CharStream code) {
-    reset();
     CommonTokenStream tokens;
 
     switch (this.getCompilerPhase()) {
@@ -70,7 +67,7 @@ public class UmbrellaSpecificationAnalyzer extends Analyzer<UmbrellaSpecificatio
         tokens = this.runLexer(code);
         ParseTree parseTree = this.runParser(tokens);
 
-        if (this.hasErrors()) {
+        if (ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
           return Optional.empty();
         }
 

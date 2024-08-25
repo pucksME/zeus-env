@@ -1,11 +1,8 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.unary;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Formula;
 
-import java.util.List;
 
 public class LogicalNotFormula extends UnaryFormula {
   public LogicalNotFormula(int line, int linePosition, Formula formula) {
@@ -13,11 +10,11 @@ public class LogicalNotFormula extends UnaryFormula {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check() {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return "";
   }
 }

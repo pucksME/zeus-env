@@ -13,14 +13,8 @@ public class UmbrellaSpecificationTypeChecker {
   ClientSymbolTable symbolTable;
   List<CompilerError> compilerErrors;
 
-  public UmbrellaSpecificationTypeChecker(
-    ParseTree parseTree,
-    ClientSymbolTable symbolTable,
-    List<CompilerError> compilerErrors
-  ) {
+  public UmbrellaSpecificationTypeChecker(ParseTree parseTree) {
     this.parseTree = parseTree;
-    this.symbolTable = symbolTable;
-    this.compilerErrors = compilerErrors;
   }
 
   public UmbrellaSpecifications checkTypes() {
@@ -28,7 +22,7 @@ public class UmbrellaSpecificationTypeChecker {
     UmbrellaSpecifications umbrellaSpecifications = (UmbrellaSpecifications) umbrellaSpecificationVisitor.visit(
       parseTree
     );
-    umbrellaSpecifications.check(symbolTable, this.compilerErrors);
+    umbrellaSpecifications.check();
     return umbrellaSpecifications;
   }
 }

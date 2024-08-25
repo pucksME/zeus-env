@@ -15,8 +15,8 @@ public class ComponentMutation extends Mutation {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
-    String translatedPosition = this.position.translate(symbolTable, depth + 2, exportTarget);
+  public String translate(int depth, ExportTarget exportTarget) {
+    String translatedPosition = this.position.translate(depth + 2, exportTarget);
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> (!translatedPosition.isEmpty())
         ? String.format(

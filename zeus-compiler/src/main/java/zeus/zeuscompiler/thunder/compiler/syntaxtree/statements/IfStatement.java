@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Body;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
@@ -31,8 +33,8 @@ public class IfStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> conditionTypeOptional = this.conditionExpression.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    Optional<Type> conditionTypeOptional = this.conditionExpression.evaluateType();
 
     if (conditionTypeOptional.isEmpty()) {
       return;
@@ -41,7 +43,7 @@ public class IfStatement extends Statement {
     Type conditionType = conditionTypeOptional.get();
 
     if (!(conditionType instanceof PrimitiveType) || ((PrimitiveType) conditionType).getType() != LiteralType.BOOLEAN) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.conditionExpression.getLine(),
         this.conditionExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -50,7 +52,7 @@ public class IfStatement extends Statement {
     }
 
     for (BodyComponent bodyComponent : this.thenBody.getBodyComponents()) {
-      bodyComponent.checkTypes(symbolTable, compilerErrors);
+      bodyComponent.checkTypes();
     }
 
     if (this.elseBody == null) {
@@ -58,12 +60,12 @@ public class IfStatement extends Statement {
     }
 
     for (BodyComponent bodyComponent : this.elseBody.getBodyComponents()) {
-      bodyComponent.checkTypes(symbolTable, compilerErrors);
+      bodyComponent.checkTypes();
     }
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(
@@ -74,9 +76,9 @@ public class IfStatement extends Statement {
           },
           0
         ),
-        this.conditionExpression.translate(symbolTable, depth, exportTarget),
+        this.conditionExpression.translate(depth, exportTarget),
         this.thenBody.getBodyComponents().stream().map(
-          bodyComponent -> bodyComponent.translate(symbolTable, depth + 1, exportTarget)
+          bodyComponent -> bodyComponent.translate(depth + 1, exportTarget)
         ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2))),
         (this.elseBody != null)
           ? String.format(
@@ -89,7 +91,7 @@ public class IfStatement extends Statement {
               0
             ),
             this.elseBody.getBodyComponents().stream().map(
-              bodyComponent -> bodyComponent.translate(symbolTable, depth + 1, exportTarget)
+              bodyComponent -> bodyComponent.translate(depth + 1, exportTarget)
             ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2)))
           )
           : ""

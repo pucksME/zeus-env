@@ -1,7 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownObjectPropertyException;
@@ -35,8 +38,8 @@ public class AccessWriteObjectStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> objectTypeOptional = this.objectExpression.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    Optional<Type> objectTypeOptional = this.objectExpression.evaluateType();
 
     if (objectTypeOptional.isEmpty()) {
       return;
@@ -45,13 +48,17 @@ public class AccessWriteObjectStatement extends Statement {
     Type objectType = objectTypeOptional.get();
 
     if (objectType instanceof IdType) {
-      Optional<TypeInformation> typeInformationOptional = symbolTable.getType(
-        symbolTable.getCurrentCodeModule(),
-        ((IdType) objectType).getId()
+      Optional<TypeInformation> typeInformationOptional = ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(SymbolTable.class).getType(
+          ServiceProvider
+            .provide(SymbolTableService.class).getContextSymbolTableProvider()
+            .provide(SymbolTable.class).getCurrentCodeModule(),
+          ((IdType) objectType).getId()
       );
 
       if (typeInformationOptional.isEmpty()) {
-        compilerErrors.add(new CompilerError(
+        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
           this.objectExpression.getLine(),
           this.objectExpression.getLinePosition(),
           new UnknownTypeException(),
@@ -65,7 +72,7 @@ public class AccessWriteObjectStatement extends Statement {
     }
 
     if (!(objectType instanceof ObjectType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.objectExpression.getLine(),
         this.objectExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -77,7 +84,7 @@ public class AccessWriteObjectStatement extends Statement {
     Optional<Type> propertyTypeOptional = ((ObjectType) objectType).getPropertyType(this.propertyId);
 
     if (propertyTypeOptional.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnknownObjectPropertyException(),
@@ -86,14 +93,14 @@ public class AccessWriteObjectStatement extends Statement {
       return;
     }
 
-    Optional<Type> writeExpressionTypeOptional = this.writeExpression.evaluateType(symbolTable, compilerErrors);
+    Optional<Type> writeExpressionTypeOptional = this.writeExpression.evaluateType();
 
     if (writeExpressionTypeOptional.isEmpty()) {
       return;
     }
 
-    if (!propertyTypeOptional.get().compatible(symbolTable, compilerErrors, writeExpressionTypeOptional.get())) {
-      compilerErrors.add(new CompilerError(
+    if (!propertyTypeOptional.get().compatible(writeExpressionTypeOptional.get())) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         writeExpression.getLine(),
         writeExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -103,12 +110,12 @@ public class AccessWriteObjectStatement extends Statement {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s.%s = %s;",
-        this.objectExpression.translate(symbolTable, depth, exportTarget),
-        this.propertyId, this.writeExpression.translate(symbolTable, depth, exportTarget)
+        this.objectExpression.translate(depth, exportTarget),
+        this.propertyId, this.writeExpression.translate(depth, exportTarget)
       );
     };
   }

@@ -14,5 +14,5 @@ public abstract class TypeCheckableNode extends Node {
     super(line, linePosition);
   }
 
-  public abstract void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors);
+  public abstract void checkTypes();
 }

@@ -1,6 +1,7 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
@@ -9,6 +10,8 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.Shape;
 import zeus.zeuscompiler.rain.dtos.ExportComponentDto;
 import zeus.zeuscompiler.rain.dtos.ExportComponentMutationDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
@@ -41,13 +44,15 @@ public class Component extends Element {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check() {
     if (this.blueprintComponentReference != null) {
-      this.blueprintComponentReference.check(symbolTable, compilerErrors);
+      this.blueprintComponentReference.check();
     }
 
-    if (symbolTable.addCurrentComponentName(this)) {
-      compilerErrors.add(new CompilerError(
+    if (ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ClientSymbolTable.class).addCurrentComponentName(this)) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new AmbiguousElementException(this.getName(), AmbiguousElementType.COMPONENT),
@@ -58,19 +63,18 @@ public class Component extends Element {
     if (this.code != null) {
       ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.CLIENT);
       thunderAnalyzer.analyze(this.code);
-      compilerErrors.addAll(thunderAnalyzer.getErrors());
     }
 
     for (Element element : this.elements) {
-      element.check(symbolTable, compilerErrors);
+      element.check();
     }
   }
 
   @Override
-  public String translateReference(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateReference(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> (this.blueprintComponentReference != null)
-        ? this.blueprintComponentReference.translate(symbolTable, depth, exportTarget)
+        ? this.blueprintComponentReference.translate(depth, exportTarget)
         : String.format("<%s/>", this.name);
     };
   }
@@ -79,15 +83,15 @@ public class Component extends Element {
     ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.CLIENT);
     Optional<CodeModules> codeModulesOptional = thunderAnalyzer.analyze(this.code);
 
-    assert !thunderAnalyzer.hasErrors() && codeModulesOptional.isPresent();
-    return codeModulesOptional.get().translate(thunderAnalyzer.getSymbolTable(), dept, exportTarget);
+    assert !ServiceProvider.provide(CompilerErrorService.class).hasErrors() && codeModulesOptional.isPresent();
+    return codeModulesOptional.get().translate(dept, exportTarget);
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     String translatedComponents = this.elements.stream()
       .filter(element -> !(element instanceof Shape))
-      .map(element -> element.translate(symbolTable, depth + 1, exportTarget))
+      .map(element -> element.translate(depth + 1, exportTarget))
       .collect(Collectors.joining("\n"));
 
     return switch (exportTarget) {
@@ -109,11 +113,11 @@ public class Component extends Element {
           this.name,
           (!translatedComponents.isEmpty()) ? translatedComponents + "\n" : "",
           (this.code != null) ? this.translateCode(depth, exportTarget) : "",
-          this.position.translate(symbolTable, depth + 2, exportTarget),
+          this.position.translate(depth + 2, exportTarget),
           this.elements.stream().map(
             element -> (element instanceof Shape)
-              ? element.translate(symbolTable, depth + 1, exportTarget)
-              : element.translateReference(symbolTable, depth + 1, exportTarget)
+              ? element.translate(depth + 1, exportTarget)
+              : element.translateReference(depth + 1, exportTarget)
           ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2)))
         )
         : "";

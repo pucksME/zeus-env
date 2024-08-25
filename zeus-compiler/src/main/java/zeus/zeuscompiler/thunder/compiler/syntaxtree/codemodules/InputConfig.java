@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.InvalidConfigException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
@@ -20,9 +22,9 @@ public class InputConfig extends Config {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     if (!(this.type instanceof PrimitiveType) || declarationExpression != null) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new InvalidConfigException(),
@@ -31,7 +33,7 @@ public class InputConfig extends Config {
       return;
     }
 
-    this.type.checkType(symbolTable, compilerErrors);
+    this.type.checkType();
   }
 
   @Override
@@ -40,7 +42,7 @@ public class InputConfig extends Config {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return "";
   }
 }

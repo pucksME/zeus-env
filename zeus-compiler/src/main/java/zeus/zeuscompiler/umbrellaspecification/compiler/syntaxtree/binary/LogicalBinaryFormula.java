@@ -13,12 +13,12 @@ public class LogicalBinaryFormula extends BinaryFormula {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check() {
 
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return "";
   }
 }

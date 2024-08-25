@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.ternary;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
@@ -34,8 +36,8 @@ public abstract class TernaryExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> conditionTypeOptional = this.firstExpression.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    Optional<Type> conditionTypeOptional = this.firstExpression.evaluateType();
 
     if (conditionTypeOptional.isEmpty()) {
       return;
@@ -44,7 +46,7 @@ public abstract class TernaryExpression extends Expression {
     Type conditionType = conditionTypeOptional.get();
 
     if (!(conditionType instanceof PrimitiveType) || ((PrimitiveType) conditionType).getType() != LiteralType.BOOLEAN) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.firstExpression.getLine(),
         this.firstExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -53,18 +55,18 @@ public abstract class TernaryExpression extends Expression {
       return;
     }
 
-    this.evaluateType(symbolTable, compilerErrors);
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> thenTypeOptional = this.secondExpression.evaluateType(symbolTable, compilerErrors);
+  public Optional<Type> evaluateType() {
+    Optional<Type> thenTypeOptional = this.secondExpression.evaluateType();
 
     if (thenTypeOptional.isEmpty()) {
       return Optional.empty();
     }
 
-    Optional<Type> elseTypeOptional = this.thirdExpression.evaluateType(symbolTable, compilerErrors);
+    Optional<Type> elseTypeOptional = this.thirdExpression.evaluateType();
 
     if (elseTypeOptional.isEmpty()) {
       return Optional.empty();
@@ -74,7 +76,7 @@ public abstract class TernaryExpression extends Expression {
     Type elseType = elseTypeOptional.get();
 
     if (!thenType.equals(elseType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.thirdExpression.getLine(),
         this.thirdExpression.getLinePosition(),
         new IncompatibleTypeException(),

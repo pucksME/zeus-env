@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.CodeModuleComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
@@ -17,9 +19,9 @@ public class RequestCodeModule extends ClientCodeModule {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     if (!this.head.inputs.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnsupportedCodeModuleComponentsException(this.getId(), CodeModuleComponent.INPUT),
@@ -28,7 +30,7 @@ public class RequestCodeModule extends ClientCodeModule {
     }
 
     if (!this.head.configs.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnsupportedCodeModuleComponentsException(this.getId(), CodeModuleComponent.CONFIG),
@@ -37,7 +39,7 @@ public class RequestCodeModule extends ClientCodeModule {
     }
 
     if (!this.body.getBodyComponents().isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnsupportedCodeModuleComponentsException(this.getId(), CodeModuleComponent.BODY),
@@ -50,7 +52,7 @@ public class RequestCodeModule extends ClientCodeModule {
     if (urlOutput != null &&
       !(urlOutput.getType() instanceof ObjectType) &&
       !(urlOutput.getType() instanceof IdType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         urlOutput.getLine(),
         urlOutput.getLinePosition(),
         new IncompatibleTypeException(),
@@ -63,7 +65,7 @@ public class RequestCodeModule extends ClientCodeModule {
     if (bodyOutput != null &&
       !(bodyOutput.getType() instanceof ObjectType) &&
       !(bodyOutput.getType() instanceof IdType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         bodyOutput.getLine(),
         bodyOutput.getLinePosition(),
         new IncompatibleTypeException(),
@@ -71,6 +73,6 @@ public class RequestCodeModule extends ClientCodeModule {
       ));
     }
 
-    super.checkTypes(symbolTable, compilerErrors);
+    super.checkTypes();
   }
 }

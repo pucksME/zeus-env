@@ -14,22 +14,15 @@ public class ThunderTypeChecker {
   List<CompilerError> compilerErrors;
   ThunderAnalyzerMode thunderAnalyzerMode;
 
-  public ThunderTypeChecker(
-          ParseTree parseTree,
-          ClientSymbolTable symbolTable,
-          List<CompilerError> compilerErrors,
-          ThunderAnalyzerMode thunderAnalyzerMode
-  ) {
+  public ThunderTypeChecker(ParseTree parseTree, ThunderAnalyzerMode thunderAnalyzerMode) {
     this.parseTree = parseTree;
-    this.symbolTable = symbolTable;
-    this.compilerErrors = compilerErrors;
     this.thunderAnalyzerMode = thunderAnalyzerMode;
   }
 
   public CodeModules checkTypes() {
     ThunderVisitor thunderVisitor = new ThunderVisitor(this.symbolTable, this.thunderAnalyzerMode);
     CodeModules codeModules = (CodeModules) thunderVisitor.visit(this.parseTree);
-    codeModules.checkTypes(this.symbolTable, this.compilerErrors);
+    codeModules.checkTypes();
     return codeModules;
   }
 }

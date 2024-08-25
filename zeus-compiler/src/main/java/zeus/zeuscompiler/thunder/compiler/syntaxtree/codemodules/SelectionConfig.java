@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.InvalidConfigException;
@@ -29,9 +31,9 @@ public class SelectionConfig extends Config {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     if (this.declarationExpression == null) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new MissingDeclarationException(),
@@ -40,14 +42,14 @@ public class SelectionConfig extends Config {
       return;
     }
 
-    Optional<Type> declarationTypeOptional = this.declarationExpression.evaluateType(symbolTable, compilerErrors);
+    Optional<Type> declarationTypeOptional = this.declarationExpression.evaluateType();
 
     if (declarationTypeOptional.isEmpty()) {
       return;
     }
 
-    if (!declarationTypeOptional.get().compatible(symbolTable, compilerErrors, this.type)) {
-      compilerErrors.add(new CompilerError(
+    if (!declarationTypeOptional.get().compatible(this.type)) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.declarationExpression.getLine(),
         this.declarationExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -65,7 +67,7 @@ public class SelectionConfig extends Config {
       return;
     }
 
-    compilerErrors.add(new CompilerError(
+    ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
       this.getLine(),
       this.getLinePosition(),
       new InvalidConfigException(),
@@ -87,7 +89,7 @@ public class SelectionConfig extends Config {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return "";
   }
 }

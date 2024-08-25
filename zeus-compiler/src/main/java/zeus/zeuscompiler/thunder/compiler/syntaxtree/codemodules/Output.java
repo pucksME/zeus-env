@@ -21,7 +21,7 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     DeclarationVariableStatement declarationVariableStatement = new DeclarationVariableStatement(
       this.getLine(),
       this.getLinePosition(),
@@ -30,7 +30,7 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
       this.declarationExpression
     );
 
-    declarationVariableStatement.checkTypes(symbolTable, compilerErrors);
+    declarationVariableStatement.checkTypes();
   }
 
   @Override
@@ -38,29 +38,29 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
     return new PortDto(this.id, this.getType().toDto());
   }
 
-  public String translateDeclaration(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translateDeclaration(int depth, ExportTarget exportTarget) {
     return new DeclarationVariableStatement(
       -1,
       -1,
       this.getId(),
       this.getType(),
       this.declarationExpression
-    ).translate(symbolTable, depth, exportTarget);
+    ).translate(depth, exportTarget);
   }
 
-  public String translateReturnType(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget, String codeModuleId) {
+  public String translateReturnType(int depth, ExportTarget exportTarget, String codeModuleId) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s_%s: %s",
         codeModuleId,
         this.id,
-        this.type.translate(symbolTable, depth, exportTarget)
+        this.type.translate(depth, exportTarget)
       );
     };
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return "";
   }
 }

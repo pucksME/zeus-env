@@ -2,11 +2,14 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.Translatable;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.UnknownBlueprintComponentException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ComponentMutation;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ShapeMutation;
 import zeus.zeuscompiler.rain.dtos.ExportBlueprintComponentReferenceDto;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -29,9 +32,11 @@ public class BlueprintComponentReference implements Translatable {
     this.shapeMutations = shapeMutations;
   }
 
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    if (!symbolTable.containsBlueprintComponent(blueprintComponentName)) {
-      compilerErrors.add(new CompilerError(
+  public void check() {
+    if (!ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ClientSymbolTable.class).containsBlueprintComponent(blueprintComponentName)) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         0,
         0,
         new UnknownBlueprintComponentException(this.blueprintComponentName),
@@ -41,10 +46,10 @@ public class BlueprintComponentReference implements Translatable {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     List<String> translatedMutations = Stream
       .concat(this.componentMutations.stream(), this.shapeMutations.stream())
-      .map(mutation -> mutation.translate(symbolTable, depth + 2, exportTarget))
+      .map(mutation -> mutation.translate(depth + 2, exportTarget))
       .filter(translatedMutation -> !translatedMutation.isEmpty())
       .toList();
 
@@ -52,7 +57,7 @@ public class BlueprintComponentReference implements Translatable {
       case REACT_TYPESCRIPT -> String.format(
         "<%s%s/>",
         this.blueprintComponentName,
-        (translatedMutations.size() != 0)
+        (!translatedMutations.isEmpty())
           ? " mutations={{\n" + String.format(
             CompilerUtils.buildLinesFormat(
               new String[]{

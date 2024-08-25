@@ -38,20 +38,20 @@ public class ClientCodeModule extends CodeModule {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     for (Input input : this.head.inputs.values()) {
-      input.checkTypes(symbolTable, compilerErrors);
+      input.checkTypes();
     }
 
     for (Output output : this.head.outputs.values()) {
-      output.checkTypes(symbolTable, compilerErrors);
+      output.checkTypes();
     }
 
     for (Config config : this.head.configs.values()) {
-      config.checkTypes(symbolTable, compilerErrors);
+      config.checkTypes();
     }
 
-    super.checkTypes(symbolTable, compilerErrors);
+    super.checkTypes();
   }
 
   @Override
@@ -66,20 +66,20 @@ public class ClientCodeModule extends CodeModule {
     );
   }
 
-  String translateOutputDeclarations(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  String translateOutputDeclarations(int depth, ExportTarget exportTarget) {
     Collection<Output> outputs = this.getOutputs();
-    if (outputs.size() == 0) {
+    if (outputs.isEmpty()) {
       return "";
     }
     return outputs.stream().map(
-      output -> output.translateDeclaration(symbolTable, depth, exportTarget)
+      output -> output.translateDeclaration(depth, exportTarget)
     ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2)));
   }
 
   String translateReturn(ExportTarget exportTarget) {
     Collection<Output> outputs = this.getOutputs();
 
-    if (outputs.size() == 0) {
+    if (outputs.isEmpty()) {
       return "";
     }
 
@@ -94,7 +94,7 @@ public class ClientCodeModule extends CodeModule {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     if (this.hasEmptyTranslation() || this instanceof RequestCodeModule || this instanceof ResponseCodeModule) {
       return "";
     }
@@ -112,22 +112,22 @@ public class ClientCodeModule extends CodeModule {
         ),
         this.getId(),
         this.getInputs().stream().map(
-          input -> input.translate(symbolTable, depth, exportTarget)
+          input -> input.translate(depth, exportTarget)
         ).collect(Collectors.joining(", ")),
-        (outputs.size() != 0)
+        (!outputs.isEmpty())
           ? String.format(
             "{%s}",
             outputs.stream().map(
-              output -> output.translateReturnType(symbolTable, depth, exportTarget, this.getId())
+              output -> output.translateReturnType(depth, exportTarget, this.getId())
             ).collect(Collectors.joining(", "))
           )
           : "void",
         String.join(
           "\n" + CompilerUtils.buildLinePadding(depth + 2),
           List.of(
-            this.translateOutputDeclarations(symbolTable, depth, exportTarget),
+            this.translateOutputDeclarations(depth, exportTarget),
             this.body.getBodyComponents().stream().map(
-              bodyComponent -> bodyComponent.translate(symbolTable, depth + 1, exportTarget)
+              bodyComponent -> bodyComponent.translate(depth + 1, exportTarget)
             ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2))),
             this.translateReturn(exportTarget)
           )

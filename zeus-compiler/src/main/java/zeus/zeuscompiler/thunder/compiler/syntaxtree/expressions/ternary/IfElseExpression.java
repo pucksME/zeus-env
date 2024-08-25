@@ -17,13 +17,13 @@ public class IfElseExpression extends TernaryExpression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "(%s) ? %s : %s",
-        this.firstExpression.translate(symbolTable, depth, exportTarget),
-        this.secondExpression.translate(symbolTable, depth, exportTarget),
-        this.thirdExpression.translate(symbolTable, depth, exportTarget)
+        this.firstExpression.translate(depth, exportTarget),
+        this.secondExpression.translate(depth, exportTarget),
+        this.thirdExpression.translate(depth, exportTarget)
       );
     };
   }

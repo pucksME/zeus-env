@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ListType;
@@ -21,15 +23,15 @@ public class ListExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<Type> evaluateType() {
     Type type = null;
     for (Expression expression : this.expressions) {
-      Optional<Type> currentTypeOptional = expression.evaluateType(symbolTable, compilerErrors);
+      Optional<Type> currentTypeOptional = expression.evaluateType();
 
       if (currentTypeOptional.isEmpty()) {
         return Optional.empty();
@@ -38,7 +40,7 @@ public class ListExpression extends Expression {
       Type currentType = currentTypeOptional.get();
 
       if (type != null && !currentType.equals(type)) {
-        compilerErrors.add(new CompilerError(
+        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
           expression.getLine(),
           expression.getLinePosition(),
           new IncompatibleTypeException(),
@@ -58,12 +60,12 @@ public class ListExpression extends Expression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "[%s]",
         this.expressions.stream().map(
-          expression -> expression.translate(symbolTable, depth, exportTarget)
+          expression -> expression.translate(depth, exportTarget)
         ).collect(Collectors.joining(", "))
       );
     };

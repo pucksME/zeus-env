@@ -42,7 +42,7 @@ public class Text extends Shape {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(
@@ -55,7 +55,7 @@ public class Text extends Shape {
           },
           0
         ),
-        this.translateStyle(symbolTable, depth + 1, exportTarget),
+        this.translateStyle(depth + 1, exportTarget),
         (this.blueprint)
           ? String.format(
             CompilerUtils.buildLinesFormat(

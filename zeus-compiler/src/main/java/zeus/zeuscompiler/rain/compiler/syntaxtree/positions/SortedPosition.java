@@ -12,11 +12,11 @@ public class SortedPosition extends Position {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "%s,%s: %s",
-        super.translate(symbolTable, depth, exportTarget),
+        super.translate(depth, exportTarget),
         "\n" + CompilerUtils.buildLinePadding(depth) + "zIndex",
         this.sorting
       );

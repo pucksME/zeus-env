@@ -7,12 +7,15 @@ import java.util.List;
 
 public class CompilerErrorService implements Service {
   private final List<CompilerError> compilerErrors;
+  private int lineOffset;
 
   public CompilerErrorService() {
     this.compilerErrors = new ArrayList<>();
+    this.lineOffset = 0;
   }
 
   public void addError(CompilerError compilerError) {
+    compilerError.setLine(compilerError.getLine() + this.lineOffset);
     this.compilerErrors.add(compilerError);
   }
 
@@ -23,5 +26,17 @@ public class CompilerErrorService implements Service {
   @Override
   public void reset() {
     this.compilerErrors.clear();
+  }
+
+  public void setLineOffset(int lineOffset) {
+    this.lineOffset = lineOffset;
+  }
+
+  public void resetLineOffset() {
+    this.lineOffset = 0;
+  }
+
+  public List<CompilerError> getErrors() {
+    return compilerErrors;
   }
 }

@@ -2,8 +2,11 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
@@ -75,7 +78,7 @@ public class Route extends Node {
     }
 
     @Override
-    public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+    public String translate(int depth, ExportTarget exportTarget) {
         Optional<CodeModule> codeModuleOptional = this.codeModules.getCodeModule("request");
         String parameters = "";
         if (codeModuleOptional.isPresent() && codeModuleOptional.get() instanceof RequestCodeModule) {
@@ -86,10 +89,12 @@ public class Route extends Node {
                 if (output.getType() instanceof ObjectType) {
                     parameters = ((ObjectType) outputOptional.get().getType()).translateToUrlParameters(exportTarget);
                 } else if (output.getType() instanceof IdType) {
-                    Optional<TypeInformation> typeInformationOptional = symbolTable.getType(
-                      codeModuleOptional.get(),
-                      ((IdType) output.getType()).getId()
-                    );
+                    Optional<TypeInformation> typeInformationOptional = ServiceProvider
+                      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+                      .provide(SymbolTable.class).getType(
+                        codeModuleOptional.get(),
+                        ((IdType) output.getType()).getId()
+                      );
 
                     if(typeInformationOptional.isPresent()) {
                         parameters = typeInformationOptional.get().getType().translateToUrlParameters(exportTarget);
@@ -112,12 +117,12 @@ public class Route extends Node {
               this.id,
               "/" + parameters,
               this.translateMonitorAdapters(),
-              this.codeModules.translate(symbolTable, depth, exportTarget)
+              this.codeModules.translate(depth, exportTarget)
             );
         };
     }
 
     @Override
-    public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+    public void check() {
     }
 }

@@ -21,9 +21,9 @@ public abstract class CodeModule extends TypeCheckableNode implements Convertabl
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     for (BodyComponent bodyComponent : this.body.bodyComponents) {
-      bodyComponent.checkTypes(symbolTable, compilerErrors);
+      bodyComponent.checkTypes();
     }
   }
 

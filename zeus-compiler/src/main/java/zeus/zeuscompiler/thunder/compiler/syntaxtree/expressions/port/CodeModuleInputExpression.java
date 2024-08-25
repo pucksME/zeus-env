@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Input;
@@ -21,13 +23,13 @@ public class CodeModuleInputExpression extends CodeModulePortExpression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<ClientCodeModule> codeModuleOptional = this.getCodeModule(symbolTable, compilerErrors);
+  public Optional<Type> evaluateType() {
+    Optional<ClientCodeModule> codeModuleOptional = this.getCodeModule();
 
     if (codeModuleOptional.isEmpty()) {
       return Optional.empty();
@@ -35,7 +37,7 @@ public class CodeModuleInputExpression extends CodeModulePortExpression {
 
     Optional<Input> inputOptional = codeModuleOptional.get().getInput(this.inputId);
     if (inputOptional.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnknownCodeModulePortException(),
@@ -48,7 +50,7 @@ public class CodeModuleInputExpression extends CodeModulePortExpression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.inputId;
     };

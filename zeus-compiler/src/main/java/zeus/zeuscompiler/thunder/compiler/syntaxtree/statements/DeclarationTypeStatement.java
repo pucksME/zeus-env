@@ -1,8 +1,11 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.symboltable.TypeVisibility;
 
@@ -20,18 +23,23 @@ public class DeclarationTypeStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
-    Optional<TypeInformation> typeInformationOptional = symbolTable.getType(symbolTable.getCurrentCodeModule(), this.id);
+  public String translate(int depth, ExportTarget exportTarget) {
+    Optional<TypeInformation> typeInformationOptional = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).getType(ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(SymbolTable.class).getCurrentCodeModule(), this.id);
+
     assert typeInformationOptional.isPresent();
     TypeInformation typeInformation = typeInformationOptional.get();
 
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> (typeInformation.getTypeVisibility() == TypeVisibility.PRIVATE)
-        ? String.format("type %s = %s;", this.id, typeInformation.getType().translate(symbolTable, depth, exportTarget))
+        ? String.format("type %s = %s;", this.id, typeInformation.getType().translate(depth, exportTarget))
         : "";
     };
   }

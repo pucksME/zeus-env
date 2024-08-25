@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
@@ -35,8 +37,8 @@ public class AccessWriteStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> containerTypeOptional = this.containerExpression.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    Optional<Type> containerTypeOptional = this.containerExpression.evaluateType();
 
     if (containerTypeOptional.isEmpty()) {
       return;
@@ -45,7 +47,7 @@ public class AccessWriteStatement extends Statement {
     Type containerType = containerTypeOptional.get();
 
     if (!(containerType instanceof ListType) && !(containerType instanceof MapType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.containerExpression.getLine(),
         this.containerExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -54,7 +56,7 @@ public class AccessWriteStatement extends Statement {
       return;
     }
 
-    Optional<Type> locationTypeOptional = this.locationExpression.evaluateType(symbolTable, compilerErrors);
+    Optional<Type> locationTypeOptional = this.locationExpression.evaluateType();
 
     if (locationTypeOptional.isEmpty()) {
       return;
@@ -64,7 +66,7 @@ public class AccessWriteStatement extends Statement {
 
     if (containerType instanceof ListType &&
       (!(locationType instanceof PrimitiveType) || ((PrimitiveType) locationType).getType() != LiteralType.INT)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.locationExpression.getLine(),
         this.locationExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -74,8 +76,8 @@ public class AccessWriteStatement extends Statement {
     }
 
     if (containerType instanceof MapType &&
-      !locationType.compatible(symbolTable, compilerErrors, ((MapType) containerType).getKeyType())) {
-      compilerErrors.add(new CompilerError(
+      !locationType.compatible(((MapType) containerType).getKeyType())) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.locationExpression.getLine(),
         this.locationExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -84,7 +86,7 @@ public class AccessWriteStatement extends Statement {
       return;
     }
 
-    Optional<Type> writeTypeOptional = this.writeExpression.evaluateType(symbolTable, compilerErrors);
+    Optional<Type> writeTypeOptional = this.writeExpression.evaluateType();
 
     if (writeTypeOptional.isEmpty()) {
       return;
@@ -93,8 +95,8 @@ public class AccessWriteStatement extends Statement {
     Type writeType = writeTypeOptional.get();
 
     if (containerType instanceof ListType &&
-      !writeType.compatible(symbolTable, compilerErrors, ((ListType) containerType).getType())) {
-      compilerErrors.add(new CompilerError(
+      !writeType.compatible(((ListType) containerType).getType())) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.writeExpression.getLine(),
         this.writeExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -104,8 +106,8 @@ public class AccessWriteStatement extends Statement {
     }
 
     if (containerType instanceof MapType &&
-      !writeType.compatible(symbolTable, compilerErrors, ((MapType) containerType).getValueType())) {
-      compilerErrors.add(new CompilerError(
+      !writeType.compatible(((MapType) containerType).getValueType())) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.writeExpression.getLine(),
         this.writeExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -115,25 +117,25 @@ public class AccessWriteStatement extends Statement {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
-        Optional<Type> typeOptional = this.containerExpression.evaluateType(symbolTable, new ArrayList<>());
+        Optional<Type> typeOptional = this.containerExpression.evaluateType();
 
         if (typeOptional.isPresent() && typeOptional.get() instanceof MapType) {
           yield String.format(
             "%s.set(%s, %s)",
-            this.containerExpression.translate(symbolTable, depth, exportTarget),
-            this.locationExpression.translate(symbolTable, depth, exportTarget),
-            this.writeExpression.translate(symbolTable, depth, exportTarget)
+            this.containerExpression.translate(depth, exportTarget),
+            this.locationExpression.translate(depth, exportTarget),
+            this.writeExpression.translate(depth, exportTarget)
           );
         }
 
         yield String.format(
           "%s[%s] = %s;",
-          this.containerExpression.translate(symbolTable, depth, exportTarget),
-          this.locationExpression.translate(symbolTable, depth, exportTarget),
-          this.writeExpression.translate(symbolTable, depth, exportTarget)
+          this.containerExpression.translate(depth, exportTarget),
+          this.locationExpression.translate(depth, exportTarget),
+          this.writeExpression.translate(depth, exportTarget)
         );
       }
     };

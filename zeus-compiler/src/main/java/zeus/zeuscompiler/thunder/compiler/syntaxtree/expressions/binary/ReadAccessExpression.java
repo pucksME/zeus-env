@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
@@ -28,19 +30,19 @@ public class ReadAccessExpression extends BinaryExpression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    Optional<Type> containerExpressionTypeOptional = this.leftExpression.evaluateType(symbolTable, compilerErrors);
+  public Optional<Type> evaluateType() {
+    Optional<Type> containerExpressionTypeOptional = this.leftExpression.evaluateType();
 
     if (containerExpressionTypeOptional.isEmpty()) {
       return Optional.empty();
     }
 
-    Optional<Type> accessExpressionTypeOptional = this.rightExpression.evaluateType(symbolTable, compilerErrors);
+    Optional<Type> accessExpressionTypeOptional = this.rightExpression.evaluateType();
 
     if (accessExpressionTypeOptional.isEmpty()) {
       return Optional.empty();
@@ -50,7 +52,7 @@ public class ReadAccessExpression extends BinaryExpression {
     Type accessExpressionType = accessExpressionTypeOptional.get();
 
     if (!(containerExpressionType instanceof ListType) && !(containerExpressionType instanceof MapType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleTypeException(),
@@ -62,7 +64,7 @@ public class ReadAccessExpression extends BinaryExpression {
     if (containerExpressionType instanceof ListType &&
       (!(accessExpressionType instanceof PrimitiveType) ||
         ((PrimitiveType) accessExpressionType).getType() != LiteralType.INT)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleTypeException(),
@@ -73,7 +75,7 @@ public class ReadAccessExpression extends BinaryExpression {
 
     if (containerExpressionType instanceof MapType &&
       !((MapType) containerExpressionType).getKeyType().equals(accessExpressionType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new IncompatibleTypeException(),
@@ -88,23 +90,23 @@ public class ReadAccessExpression extends BinaryExpression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
-        Optional<Type> typeOptional = this.leftExpression.evaluateType(symbolTable, new ArrayList<>());
+        Optional<Type> typeOptional = this.leftExpression.evaluateType();
 
         if (typeOptional.isPresent() && typeOptional.get() instanceof MapType) {
           yield String.format(
             "%s.get(%s)",
-            this.leftExpression.translate(symbolTable, depth, exportTarget),
-            this.rightExpression.translate(symbolTable, depth, exportTarget)
+            this.leftExpression.translate(depth, exportTarget),
+            this.rightExpression.translate(depth, exportTarget)
           );
         }
 
         yield String.format(
           "%s[%s]",
-          this.leftExpression.translate(symbolTable, depth, exportTarget),
-          this.rightExpression.translate(symbolTable, depth, exportTarget)
+          this.leftExpression.translate(depth, exportTarget),
+          this.rightExpression.translate(depth, exportTarget)
         );
       }
     };

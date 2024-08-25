@@ -111,24 +111,24 @@ public class Project extends Node {
     };
   }
 
-  public List<ExportedClientDto> translateClients(ClientSymbolTable symbolTable, ExportTarget exportTarget) {
+  public List<ExportedClientDto> translateClients(ExportTarget exportTarget) {
     String appFileName = switch (exportTarget) {
       case REACT_TYPESCRIPT -> "app.tsx";
     };
 
     return List.of(new ExportedClientDto(List.of(
-      new ExportedFileDto(this.translate(symbolTable, 0, exportTarget), appFileName),
+      new ExportedFileDto(this.translate(0, exportTarget), appFileName),
       new ExportedFileDto(this.translateViews(appFileName, exportTarget), "views.tsx")
     )));
   }
 
-  public List<ExportedServerDto> translateServers(ClientSymbolTable symbolTable, ExportTarget exportTarget) {
+  public List<ExportedServerDto> translateServers(ExportTarget exportTarget) {
     return this.servers.stream()
       .map(server -> new ExportedServerDto(
         server.name,
         List.of(
           new ExportedFileDto(server.translateConfiguration(0, exportTarget), "configuration.ts"),
-          new ExportedFileDto(server.translate(symbolTable, 0, exportTarget), "routes.ts")
+          new ExportedFileDto(server.translate(0, exportTarget), "routes.ts")
         ),
         server.translateBootsSpecifications().entrySet().stream()
           .flatMap(bootsSpecificationTranslations -> bootsSpecificationTranslations.getValue().entrySet().stream()
@@ -142,17 +142,17 @@ public class Project extends Node {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(new String[]{"%s", "%s", "%s", "%s"}, depth),
         "import React, {CSSProperties} from 'react';",
         "type mutation = {style: CSSProperties, data?: {text?: string}}",
         CompilerUtils.trimLines(this.elements.stream().map(
-          element -> element.translate(symbolTable, depth, exportTarget)
+          element -> element.translate(depth, exportTarget)
         ).collect(Collectors.joining("\n"))),
         this.views.stream().map(
-          view -> view.translate(symbolTable, depth, exportTarget)
+          view -> view.translate(depth, exportTarget)
         ).collect(Collectors.joining("\n"))
       );
     };

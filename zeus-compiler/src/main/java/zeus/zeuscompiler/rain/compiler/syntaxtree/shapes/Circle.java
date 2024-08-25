@@ -20,7 +20,7 @@ public class Circle extends Shape {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(
@@ -32,7 +32,7 @@ public class Circle extends Shape {
           },
           0
         ),
-        this.translateStyle(symbolTable, depth + 1, exportTarget),
+        this.translateStyle(depth + 1, exportTarget),
         CompilerUtils.buildLinePadding(depth + 2) + String.format(
           "borderRadius: %s",
           Float.parseFloat(this.shapeProperties.properties.get(ShapeProperty.WIDTH)) / 2

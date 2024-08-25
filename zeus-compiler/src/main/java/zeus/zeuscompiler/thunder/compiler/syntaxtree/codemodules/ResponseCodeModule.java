@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.CodeModuleComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
@@ -17,9 +19,9 @@ public class ResponseCodeModule extends ClientCodeModule {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     if (!this.head.outputs.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnsupportedCodeModuleComponentsException(this.getId(), CodeModuleComponent.OUTPUT),
@@ -28,7 +30,7 @@ public class ResponseCodeModule extends ClientCodeModule {
     }
 
     if (!this.head.configs.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnsupportedCodeModuleComponentsException(this.getId(), CodeModuleComponent.CONFIG),
@@ -37,7 +39,7 @@ public class ResponseCodeModule extends ClientCodeModule {
     }
 
     if (!this.body.getBodyComponents().isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
         new UnsupportedCodeModuleComponentsException(this.getId(), CodeModuleComponent.BODY),
@@ -50,7 +52,7 @@ public class ResponseCodeModule extends ClientCodeModule {
     if (bodyInput != null &&
       !(bodyInput.getType() instanceof ObjectType) &&
       !(bodyInput.getType() instanceof IdType)) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         bodyInput.getLine(),
         bodyInput.getLinePosition(),
         new IncompatibleTypeException(),
@@ -58,6 +60,6 @@ public class ResponseCodeModule extends ClientCodeModule {
       ));
     }
 
-    super.checkTypes(symbolTable, compilerErrors);
+    super.checkTypes();
   }
 }

@@ -22,16 +22,16 @@ public class MapType extends Type {
   }
 
   @Override
-  public void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.keyType.checkType(symbolTable, compilerErrors);
-    this.valueType.checkType(symbolTable, compilerErrors);
+  public void checkType() {
+    this.keyType.checkType();
+    this.valueType.checkType();
   }
 
   @Override
-  public boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
+  public boolean compatible(Type type) {
     if (type instanceof MapType) {
-      return ((MapType) type).keyType.compatible(symbolTable, compilerErrors, this.keyType) &&
-        ((MapType) type).valueType.compatible(symbolTable, compilerErrors, this.valueType);
+      return ((MapType) type).keyType.compatible(this.keyType) &&
+        ((MapType) type).valueType.compatible(this.valueType);
     }
 
     return this.equals(type);
@@ -45,12 +45,12 @@ public class MapType extends Type {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "Map<%s, %s>",
-        this.keyType.translate(symbolTable, depth, exportTarget),
-        this.valueType.translate(symbolTable, depth, exportTarget)
+        this.keyType.translate(depth, exportTarget),
+        this.valueType.translate(depth, exportTarget)
       );
     };
   }

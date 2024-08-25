@@ -1,6 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
@@ -31,20 +33,20 @@ public class DeclarationVariableStatement extends Statement {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkTypes() {
     if (this.declarationExpression == null) {
-      this.type.checkType(symbolTable, compilerErrors);
+      this.type.checkType();
       return;
     }
 
-    Optional<Type> declarationTypeOptional = this.declarationExpression.evaluateType(symbolTable, compilerErrors);
+    Optional<Type> declarationTypeOptional = this.declarationExpression.evaluateType();
 
     if (declarationTypeOptional.isEmpty()) {
       return;
     }
 
-    if (!declarationTypeOptional.get().compatible(symbolTable, compilerErrors, this.type)) {
-      compilerErrors.add(new CompilerError(
+    if (!declarationTypeOptional.get().compatible(this.type)) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.declarationExpression.getLine(),
         this.declarationExpression.getLinePosition(),
         new IncompatibleTypeException(),
@@ -54,14 +56,14 @@ public class DeclarationVariableStatement extends Statement {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "let %s: %s%s;",
         this.id,
-        this.type.translate(symbolTable, depth, exportTarget),
+        this.type.translate(depth, exportTarget),
         (this.declarationExpression != null)
-          ? String.format(" = %s", this.declarationExpression.translate(symbolTable, depth, exportTarget))
+          ? String.format(" = %s", this.declarationExpression.translate(depth, exportTarget))
           : ""
       );
     };

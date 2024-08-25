@@ -1,7 +1,11 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownVariableException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
@@ -20,23 +24,27 @@ public class IdentifierExpression extends Expression {
   }
 
   @Override
-  public void checkTypes(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.evaluateType(symbolTable, compilerErrors);
+  public void checkTypes() {
+    this.evaluateType();
   }
 
   @Override
-  public Optional<Type> evaluateType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public Optional<Type> evaluateType() {
     int line = this.getLine();
     int linePosition = this.getLinePosition();
-    Optional<VariableInformation> variableInformationOptional = symbolTable.getVariable(
-      symbolTable.getCurrentCodeModule(),
-      this.id,
-      line,
-      linePosition
+    Optional<VariableInformation> variableInformationOptional = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).getVariable(
+        ServiceProvider
+          .provide(SymbolTableService.class).getContextSymbolTableProvider()
+          .provide(SymbolTable.class).getCurrentCodeModule(),
+        this.id,
+        line,
+        linePosition
     );
 
     if (variableInformationOptional.isEmpty()) {
-      compilerErrors.add(new CompilerError(
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         line,
         linePosition,
         new UnknownVariableException(),
@@ -49,7 +57,7 @@ public class IdentifierExpression extends Expression {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.id;
     };

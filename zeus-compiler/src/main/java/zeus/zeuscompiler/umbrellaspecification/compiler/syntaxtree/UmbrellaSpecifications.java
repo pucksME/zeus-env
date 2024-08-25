@@ -1,10 +1,7 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
-import zeus.zeuscompiler.CompilerError;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 
-import java.util.List;
 import java.util.Map;
 
 public class UmbrellaSpecifications extends Node {
@@ -16,12 +13,12 @@ public class UmbrellaSpecifications extends Node {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check() {
 
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return "";
   }
 

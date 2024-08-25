@@ -7,6 +7,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import zeus.zeuscompiler.Analyzer;
 import zeus.zeuscompiler.grammars.ThunderLexer;
 import zeus.zeuscompiler.grammars.ThunderParser;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.errorlisteners.ThunderLexerErrorListener;
 import zeus.zeuscompiler.thunder.compiler.errorlisteners.ThunderParserErrorListener;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
@@ -26,7 +28,7 @@ public class ThunderAnalyzer extends Analyzer<CodeModules> {
   public CommonTokenStream runLexer(CharStream code) {
     ThunderLexer thunderLexer = new ThunderLexer(code);
     thunderLexer.removeErrorListeners();
-    thunderLexer.addErrorListener(new ThunderLexerErrorListener(this.getErrors()));
+    thunderLexer.addErrorListener(new ThunderLexerErrorListener());
     CommonTokenStream tokens = new CommonTokenStream(thunderLexer);
     tokens.fill();
     return tokens;
@@ -36,17 +38,12 @@ public class ThunderAnalyzer extends Analyzer<CodeModules> {
   public ParseTree runParser(CommonTokenStream tokens) {
     ThunderParser thunderParser = new ThunderParser(tokens);
     thunderParser.removeErrorListeners();
-    thunderParser.addErrorListener(new ThunderParserErrorListener(this.getErrors()));
+    thunderParser.addErrorListener(new ThunderParserErrorListener());
     return thunderParser.codeModules();
   }
 
   private CodeModules runTypeChecker(ParseTree parseTree) {
-    ThunderTypeChecker thunderTypeChecker = new ThunderTypeChecker(
-            parseTree,
-            this.getSymbolTable(),
-            this.getErrors(),
-            this.thunderAnalyzerMode
-    );
+    ThunderTypeChecker thunderTypeChecker = new ThunderTypeChecker(parseTree, this.thunderAnalyzerMode);
     return thunderTypeChecker.checkTypes();
   }
 
@@ -56,7 +53,6 @@ public class ThunderAnalyzer extends Analyzer<CodeModules> {
 
   @Override
   public Optional<CodeModules> analyze(CharStream thunderCode) {
-    reset();
     CommonTokenStream tokens;
 
     switch (this.getCompilerPhase()) {
@@ -70,7 +66,7 @@ public class ThunderAnalyzer extends Analyzer<CodeModules> {
       case TYPE_CHECKER:
         tokens = runLexer(thunderCode);
         ParseTree parseTree = runParser(tokens);
-        if (this.hasErrors()) {
+        if (ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
           return Optional.empty();
         }
         return Optional.of(runTypeChecker(parseTree));

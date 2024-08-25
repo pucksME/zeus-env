@@ -22,16 +22,16 @@ public class ObjectType extends Type {
   }
 
   @Override
-  public void checkType(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void checkType() {
     for (Type propertyType : this.propertyTypes.values()) {
-      propertyType.checkType(symbolTable, compilerErrors);
+      propertyType.checkType();
     }
   }
 
   @Override
-  public boolean compatible(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors, Type type) {
+  public boolean compatible(Type type) {
     if (type instanceof IdType) {
-      return type.compatible(symbolTable, compilerErrors, this);
+      return type.compatible(this);
     }
 
     return this.equals(type);
@@ -62,14 +62,14 @@ public class ObjectType extends Type {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         "{%s}",
         this.propertyTypes.entrySet().stream().map(property -> String.format(
           "%s: %s",
           property.getKey(),
-          property.getValue().translate(symbolTable, depth, exportTarget)
+          property.getValue().translate(depth, exportTarget)
         )).collect(Collectors.joining(", "))
       );
     };

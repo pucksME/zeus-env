@@ -1,12 +1,17 @@
 package zeus.zeuscompiler.rain.compiler.visitors;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.BootsSpecificationAnalyzer;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.grammars.RainParser;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.*;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.*;
 import zeus.zeuscompiler.rain.compiler.utils.RainUtils;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.ClientSymbolTableIdentifier;
+import zeus.zeuscompiler.symboltable.ServerSymbolTable;
+import zeus.zeuscompiler.symboltable.ServerSymbolTableIdentifier;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
@@ -22,19 +27,11 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class RainVisitor extends RainBaseVisitor<Object> {
-  ClientSymbolTable symbolTable;
-  List<CompilerError> compilerErrors;
   ShapeProperties currentShapeProperties;
+  String currentServerName;
 
-  public RainVisitor(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
-    this.symbolTable = symbolTable;
-    this.compilerErrors = compilerErrors;
+  public RainVisitor() {
     this.currentShapeProperties = null;
-  }
-
-  private void addCompilerErrors(List<CompilerError> compilerErrors, int lineOffset) {
-    compilerErrors.forEach(compilerError -> compilerError.setLine(compilerError.getLine() + lineOffset));
-    this.compilerErrors.addAll(compilerErrors);
   }
 
   private void resetCurrentShapeProperties() {
@@ -43,6 +40,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
 
   @Override
   public Object visitProject(RainParser.ProjectContext ctx) {
+    ServiceProvider.provide(SymbolTableService.class).initializeContextSymbolTable(new ClientSymbolTableIdentifier());
     return new Project(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
@@ -355,14 +353,19 @@ public class RainVisitor extends RainBaseVisitor<Object> {
 
   @Override
   public Object visitServer(RainParser.ServerContext ctx) {
-    return new Server(
-            ctx.getStart().getLine(),
-            ctx.getStart().getCharPositionInLine(),
-            ctx.name.getText(),
-            (ctx.hostname != null) ? ctx.hostname.getText() : ctx.ipAddress.getText(),
-            Integer.parseInt(ctx.NUMBER().getText()),
-            ctx.route().stream().map(routeContext -> (Route) visit(routeContext)).toList()
+    this.currentServerName = ctx.name.getText();
+
+    Server server = new Server(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      ctx.name.getText(),
+      (ctx.hostname != null) ? ctx.hostname.getText() : ctx.ipAddress.getText(),
+      Integer.parseInt(ctx.NUMBER().getText()),
+      ctx.route().stream().map(routeContext -> (Route) visit(routeContext)).toList()
     );
+
+    this.currentServerName = null;
+    return server;
   }
 
   @Override
@@ -382,18 +385,22 @@ public class RainVisitor extends RainBaseVisitor<Object> {
 
     ThunderAnalyzer thunderAnalyzer = new ThunderAnalyzer(CompilerPhase.TYPE_CHECKER, ThunderAnalyzerMode.SERVER);
     String code = ctx.codeModules().CODE().getText();
+
+    ServiceProvider.provide(CompilerErrorService.class).setLineOffset(ctx.codeModules().start.getLine() - 1);
+    ServiceProvider.provide(SymbolTableService.class).initializeContextSymbolTable(new ServerSymbolTableIdentifier(
+      this.currentServerName,
+      ctx.ID().getText()
+    ));
     Optional<CodeModules> codeModulesOptional = thunderAnalyzer.analyze(code.substring(1, code.length() - 2));
-    addCompilerErrors(thunderAnalyzer.getErrors(), ctx.codeModules().start.getLine() - 1);
-    // TODO: this should not work for multiple servers
-    this.symbolTable.setCodeModules(thunderAnalyzer.getSymbolTable().getCodeModules());
-    this.symbolTable.getPublicTypes().putAll(thunderAnalyzer.getSymbolTable().getPublicTypes());
+    ServiceProvider.provide(CompilerErrorService.class).resetLineOffset();
+
+
 
     Optional<BootsSpecification> bootsSpecificationOptional = Optional.empty();
     if (ctx.bootsSpecification() != null) {
       BootsSpecificationAnalyzer bootsSpecificationAnalyzer = new BootsSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
       String bootsSpecificationCode = ctx.bootsSpecification().CODE().getText();
       bootsSpecificationOptional = bootsSpecificationAnalyzer.analyze(bootsSpecificationCode.substring(1, bootsSpecificationCode.length() - 2));
-      addCompilerErrors(bootsSpecificationAnalyzer.getErrors(), ctx.bootsSpecification().start.getLine() - 1);
     }
 
     Optional<UmbrellaSpecifications> umbrellaSpecificationsOptional = Optional.empty();
@@ -401,8 +408,9 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       UmbrellaSpecificationAnalyzer umbrellaSpecificationAnalyzer = new UmbrellaSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
       String umbrellaSpecificationCode = ctx.umbrellaSpecification().CODE().getText();
       umbrellaSpecificationsOptional = umbrellaSpecificationAnalyzer.analyze(umbrellaSpecificationCode.substring(1, umbrellaSpecificationCode.length() - 2));
-      this.addCompilerErrors(umbrellaSpecificationAnalyzer.getErrors(), ctx.umbrellaSpecification().getStart().getLine() - 1);
     }
+
+    ServiceProvider.provide(SymbolTableService.class).restoreContextSymbolTable(new ClientSymbolTableIdentifier());
 
     return new Route(
       ctx.getStart().getLine(),

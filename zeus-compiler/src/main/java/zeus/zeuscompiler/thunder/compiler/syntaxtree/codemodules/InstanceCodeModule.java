@@ -1,7 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.ConnectionStatement;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleType;
@@ -63,11 +66,13 @@ public class InstanceCodeModule extends CodeModule {
     return dependency;
   }
 
-  List<Dependency> buildDependencies(ClientSymbolTable symbolTable) {
+  List<Dependency> buildDependencies() {
     Set<Dependency> dependencies = new HashSet<>();
-    Set<String> rootCodeModules = symbolTable.getCodeModules().getCodeModules().stream()
+    Set<String> rootCodeModules = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).getCodeModules().getCodeModules().stream()
       .filter(
-        codeModule -> codeModule instanceof ClientCodeModule && ((ClientCodeModule) codeModule).getInputs().size() == 0
+        codeModule -> codeModule instanceof ClientCodeModule && ((ClientCodeModule) codeModule).getInputs().isEmpty()
       )
       .map(CodeModule::getId)
       .collect(Collectors.toSet());
@@ -80,10 +85,10 @@ public class InstanceCodeModule extends CodeModule {
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
-    List<Dependency> dependencies = this.buildDependencies(symbolTable);
+  public String translate(int depth, ExportTarget exportTarget) {
+    List<Dependency> dependencies = this.buildDependencies();
     return dependencies.stream().map(
-      dependency -> dependency.translate(symbolTable, depth, exportTarget)
+      dependency -> dependency.translate(depth, exportTarget)
     ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 1)));
   }
 }

@@ -1,11 +1,13 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.ShapeProperties;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.ShapeProperty;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.rain.dtos.ExportViewDto;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
@@ -39,20 +41,23 @@ public class View extends Node {
   }
 
   @Override
-  public void check(ClientSymbolTable symbolTable, List<CompilerError> compilerErrors) {
+  public void check() {
     for (Element element : this.elements) {
-      symbolTable.setCurrentComponent(element);
-      element.check(symbolTable, compilerErrors);
+      ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(ClientSymbolTable.class).setCurrentComponent(element);
+
+      element.check();
     }
   }
 
   @Override
-  public String translate(ClientSymbolTable symbolTable, int depth, ExportTarget exportTarget) {
+  public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> {
         List<String> translatedElements = this.elements.stream()
           .filter(element -> element instanceof Component && ((Component) element).blueprintComponentReference == null)
-          .map(element -> element.translate(symbolTable, depth + 1, exportTarget))
+          .map(element -> element.translate(depth + 1, exportTarget))
           .toList();
 
         yield CompilerUtils.trimLines(String.format(
@@ -74,9 +79,9 @@ public class View extends Node {
           new ShapeProperties(Map.of(
             ShapeProperty.HEIGHT, String.valueOf(this.height),
             ShapeProperty.WIDTH, String.valueOf(this.width)
-          )).translate(symbolTable, depth + 2, exportTarget),
+          )).translate(depth + 2, exportTarget),
           this.elements.stream().map(
-            element -> element.translateReference(symbolTable, depth + 1, exportTarget)
+            element -> element.translateReference(depth + 1, exportTarget)
           ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2)))
         ));
       }
