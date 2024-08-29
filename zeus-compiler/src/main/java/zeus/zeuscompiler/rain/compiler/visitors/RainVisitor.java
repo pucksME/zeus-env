@@ -10,7 +10,7 @@ import zeus.zeuscompiler.rain.compiler.utils.RainUtils;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTableIdentifier;
-import zeus.zeuscompiler.symboltable.ServerSymbolTableIdentifier;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTableIdentifier;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.grammars.RainBaseVisitor;
@@ -385,7 +385,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
     String code = ctx.codeModules().CODE().getText();
 
     ServiceProvider.provide(CompilerErrorService.class).setLineOffset(ctx.codeModules().start.getLine() - 1);
-    ServiceProvider.provide(SymbolTableService.class).initializeContextSymbolTable(new ServerSymbolTableIdentifier(
+    ServiceProvider.provide(SymbolTableService.class).initializeContextSymbolTable(new ServerRouteSymbolTableIdentifier(
       this.currentServerName,
       ctx.ID().getText()
     ));

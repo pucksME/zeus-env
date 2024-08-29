@@ -1,16 +1,12 @@
 package zeus.zeuscompiler.bootsspecification.compiler.visitors;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.ClassGenerator;
 import zeus.zeuscompiler.grammars.BootsSpecificationBaseVisitor;
 import zeus.zeuscompiler.grammars.BootsSpecificationParser;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.services.SymbolTableService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-import zeus.zeuscompiler.symboltable.ServerSymbolTable;
-
-import java.util.List;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 
 public class BootsSpecificationVisitor extends BootsSpecificationBaseVisitor<Object> {
 
@@ -29,7 +25,7 @@ public class BootsSpecificationVisitor extends BootsSpecificationBaseVisitor<Obj
 
     ServiceProvider
       .provide(SymbolTableService.class).getContextSymbolTableProvider()
-      .provide(ServerSymbolTable.class).addBootsSpecificationClass(ctx.CLASS().getText());
+      .provide(ServerRouteSymbolTable.class).addBootsSpecificationClass(ctx.CLASS().getText());
 
     return new ClassGenerator(
       ctx.getStart().getLine(),

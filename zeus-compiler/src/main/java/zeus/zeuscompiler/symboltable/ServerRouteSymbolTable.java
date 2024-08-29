@@ -3,10 +3,10 @@ package zeus.zeuscompiler.symboltable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServerSymbolTable extends SymbolTable {
+public class ServerRouteSymbolTable extends SymbolTable {
   List<String> bootsSpecificationClasses;
 
-  public ServerSymbolTable() {
+  public ServerRouteSymbolTable() {
     this.bootsSpecificationClasses = new ArrayList<>();
   }
 

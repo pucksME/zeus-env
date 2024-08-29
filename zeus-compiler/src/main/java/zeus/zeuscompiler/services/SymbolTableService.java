@@ -15,8 +15,8 @@ public class SymbolTableService implements Service {
   }
 
   public void initializeContextSymbolTable(SymbolTableIdentifier symbolTableIdentifier) {
-    this.contextSymbolTable = (symbolTableIdentifier instanceof ServerSymbolTableIdentifier)
-      ? new ServerSymbolTable()
+    this.contextSymbolTable = (symbolTableIdentifier instanceof ServerRouteSymbolTableIdentifier)
+      ? new ServerRouteSymbolTable()
       : new ClientSymbolTable();
     this.symbolTables.put(symbolTableIdentifier, this.contextSymbolTable);
   }
@@ -40,6 +40,6 @@ public class SymbolTableService implements Service {
     this.symbolTables.clear();
     this.contextSymbolTable = (this.contextSymbolTable instanceof ClientSymbolTable)
       ? new ClientSymbolTable()
-      : new ServerSymbolTable();
+      : new ServerRouteSymbolTable();
   }
 }
