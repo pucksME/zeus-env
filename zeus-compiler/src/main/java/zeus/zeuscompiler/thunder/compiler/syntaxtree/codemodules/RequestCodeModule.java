@@ -13,7 +13,7 @@ import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.util.List;
 
-public class RequestCodeModule extends ClientCodeModule {
+public class RequestCodeModule extends RoutingCodeModule {
   public RequestCodeModule(int line, int linePosition, String id, String description) {
     super(line, linePosition, id, description);
   }

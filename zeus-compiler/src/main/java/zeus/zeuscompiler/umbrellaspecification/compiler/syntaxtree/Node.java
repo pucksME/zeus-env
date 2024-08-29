@@ -16,4 +16,12 @@ public abstract class Node implements Translatable {
   }
 
   public abstract void check();
+
+  public int getLine() {
+    return line;
+  }
+
+  public int getLinePosition() {
+    return linePosition;
+  }
 }

@@ -1,20 +1,14 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.visitors;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationBaseVisitor;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.*;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.unary.AccessFormula;
 
 import java.util.HashMap;
-import java.util.List;
 
 public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisitor<Object> {
   UmbrellaSpecifications umbrellaSpecifications;
-  List<CompilerError> compilerErrors;
-
-  public UmbrellaSpecificationVisitor(List<CompilerError> compilerErrors) {
-    this.compilerErrors = compilerErrors;
-  }
 
   @Override
   public UmbrellaSpecifications visitSpecifications(UmbrellaSpecificationParser.SpecificationsContext ctx) {
@@ -62,5 +56,23 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       (ctx.ACTION_ALLOW() != null) ? Action.ALLOW : ((ctx.ACTION_BLOCK() != null) ? Action.BLOCK : Action.LOG)
     );
     return null;
+  }
+
+  @Override
+  public Object visitAccessFormula(UmbrellaSpecificationParser.AccessFormulaContext ctx) {
+    return new AccessFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula())
+    );
+  }
+
+  @Override
+  public Object visitIdentifierFormula(UmbrellaSpecificationParser.IdentifierFormulaContext ctx) {
+    return new IdentifierFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      ctx.ID().getText()
+    );
   }
 }
