@@ -25,7 +25,7 @@ public class SymbolTableService implements Service {
     return new SymbolTableProvider(this.contextSymbolTable);
   }
 
-  public void restoreContextSymbolTable(SymbolTableIdentifier symbolTableIdentifier) {
+  public void setContextSymbolTable(SymbolTableIdentifier symbolTableIdentifier) {
     SymbolTable symbolTable = this.symbolTables.get(symbolTableIdentifier);
 
     if (symbolTable == null) {

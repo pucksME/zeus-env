@@ -10,6 +10,10 @@ public class SymbolTableProvider {
   }
 
   public <T extends SymbolTable> T provide(Class<T> symbolTableClass) {
+    if (symbolTableClass == SymbolTable.class) {
+      return (T) symbolTable;
+    }
+
     if (symbolTableClass != this.symbolTable.getClass()) {
       throw new SymbolTableUnavailableException();
     }

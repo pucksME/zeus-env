@@ -1,6 +1,10 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.ClientSymbolTableIdentifier;
+import zeus.zeuscompiler.symboltable.ServerSymbolTableIdentifier;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.HashMap;
@@ -55,7 +59,12 @@ public class Server extends Node {
                 "%s"
               }, depth),
               this.routes.stream()
-                .map(route -> route.translate(depth, exportTarget))
+                .map(route -> {
+                    ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ServerSymbolTableIdentifier(this.name, route.id));
+                    String translation = route.translate(depth, exportTarget);
+                    ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ClientSymbolTableIdentifier());
+                    return translation;
+                })
                 .collect(Collectors.joining("\n"))
             );
         };

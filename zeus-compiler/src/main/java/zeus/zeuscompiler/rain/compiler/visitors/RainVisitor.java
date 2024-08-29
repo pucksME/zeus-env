@@ -10,11 +10,9 @@ import zeus.zeuscompiler.rain.compiler.utils.RainUtils;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTableIdentifier;
-import zeus.zeuscompiler.symboltable.ServerSymbolTable;
 import zeus.zeuscompiler.symboltable.ServerSymbolTableIdentifier;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.grammars.RainBaseVisitor;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.Position;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.positions.SortedPosition;
@@ -410,7 +408,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       umbrellaSpecificationsOptional = umbrellaSpecificationAnalyzer.analyze(umbrellaSpecificationCode.substring(1, umbrellaSpecificationCode.length() - 2));
     }
 
-    ServiceProvider.provide(SymbolTableService.class).restoreContextSymbolTable(new ClientSymbolTableIdentifier());
+    ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ClientSymbolTableIdentifier());
 
     return new Route(
       ctx.getStart().getLine(),

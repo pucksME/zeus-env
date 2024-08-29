@@ -3,8 +3,10 @@ package zeus.zeuscompiler.thunder.compiler.visitors;
 import org.antlr.v4.runtime.Token;
 import zeus.zeuscompiler.grammars.ThunderBaseVisitor;
 import zeus.zeuscompiler.grammars.ThunderParser;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.symboltable.VariableType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.UnknownLiteralException;
@@ -23,11 +25,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ThunderVisitor extends ThunderBaseVisitor<Object> {
-  ClientSymbolTable symbolTable;
   ThunderAnalyzerMode thunderAnalyzerMode;
 
-  public ThunderVisitor(ClientSymbolTable symbolTable, ThunderAnalyzerMode thunderAnalyzerMode) {
-    this.symbolTable = symbolTable;
+  public ThunderVisitor(ThunderAnalyzerMode thunderAnalyzerMode) {
     this.thunderAnalyzerMode = thunderAnalyzerMode;
   }
 
@@ -41,7 +41,11 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
         instanceCodeModuleContext -> (InstanceCodeModule) visit(instanceCodeModuleContext)
       ).collect(Collectors.toList())
     );
-    this.symbolTable.setCodeModules(codeModules);
+
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).setCodeModules(codeModules);
+
     return codeModules;
   }
 
@@ -70,7 +74,10 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       );
     };
 
-    this.symbolTable.setCurrentCodeModule(clientCodeModule);
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).setCurrentCodeModule(clientCodeModule);
+
     clientCodeModule.setHead((Head) visit(ctx.head()));
     clientCodeModule.setBody((Body) visit(ctx.body()));
 
@@ -95,7 +102,9 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       (Type) visit(ctx.type())
     );
 
-    this.symbolTable.addVariable(
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).addVariable(
       input.getId(),
       input.getType(),
       VariableType.INPUT,
@@ -116,7 +125,9 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       (ctx.declaration().OPERATOR_ASSIGNMENT() != null) ? (Expression) visit(ctx.declaration().expression()) : null
     );
 
-    this.symbolTable.addVariable(
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).addVariable(
       output.getId(),
       output.getType(),
       VariableType.OUTPUT,
@@ -141,7 +152,9 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       ? new InputConfig(line, linePosition, id, type, expression)
       : new SelectionConfig(line, linePosition, id, type, expression);
 
-    this.symbolTable.addVariable(
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).addVariable(
       config.getId(),
       config.getType(),
       VariableType.CONFIG,
@@ -158,9 +171,13 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
     ObjectType objectType = (ObjectType) visit(ctx.typeObject());
 
     if (ctx.KEYWORD_PUBLIC() != null) {
-      this.symbolTable.addPublicType(typeId, objectType);
+      ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(SymbolTable.class).addPublicType(typeId, objectType);
     } else {
-      this.symbolTable.addPrivateType(typeId, objectType);
+      ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(SymbolTable.class).addPrivateType(typeId, objectType);
     }
 
     Token startToken = (ctx.KEYWORD_PUBLIC() != null)
@@ -262,7 +279,9 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
     int variableLinePosition = ctx.KEYWORD_DECLARATION().getSymbol().getCharPositionInLine();
     Type type = (Type) visit(ctx.declaration().type());
 
-    this.symbolTable.addVariable(variableId, type, VariableType.VARIABLE, variableLine, variableLinePosition);
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).addVariable(variableId, type, VariableType.VARIABLE, variableLine, variableLinePosition);
 
     return new DeclarationVariableStatement(
       variableLine,
@@ -703,7 +722,10 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       ctx.DESCRIPTION().getText()
     );
 
-    this.symbolTable.setCurrentCodeModule(instanceCodeModule);
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).setCurrentCodeModule(instanceCodeModule);
+
     instanceCodeModule.setBody((ctx.instanceBody() != null)
       ? (Body) visit(ctx.instanceBody())
       : new Body(new ArrayList<>()));
