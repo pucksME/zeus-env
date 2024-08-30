@@ -19,7 +19,7 @@ formula : ID                                                                    
         | OPERATOR_NOT formula                                                          # LogicalNotFormula
         | (OPERATOR_YEASTERDAY | OPERATOR_ONCE | OPERATOR_HISTORICALLY) formula         # TemporalUnaryFormula
         // binary formulas
-        | formula (
+        | formula operator=(
             OPERATOR_EQUAL
           | OPERATOR_NOT_EQUAL
           | OPERATOR_GREATER_THAN

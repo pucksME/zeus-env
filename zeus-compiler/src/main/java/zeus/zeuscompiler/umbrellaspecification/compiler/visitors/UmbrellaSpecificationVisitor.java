@@ -3,6 +3,8 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.visitors;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationBaseVisitor;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.*;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.binary.CompareBinaryFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.binary.CompareBinaryFormulaType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.unary.AccessFormula;
 
 import java.util.HashMap;
@@ -73,6 +75,20 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       ctx.ID().getText()
+    );
+  }
+
+  @Override
+  public Object visitCompareBinaryFormula(UmbrellaSpecificationParser.CompareBinaryFormulaContext ctx) {
+    return new CompareBinaryFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula().get(0)),
+      (Formula) this.visit(ctx.formula().get(1)),
+      switch (ctx.operator.getType()) {
+        case UmbrellaSpecificationParser.OPERATOR_EQUAL -> CompareBinaryFormulaType.EQUAL;
+        default -> throw new RuntimeException("Unsupported compare binary formula type");
+      }
     );
   }
 }

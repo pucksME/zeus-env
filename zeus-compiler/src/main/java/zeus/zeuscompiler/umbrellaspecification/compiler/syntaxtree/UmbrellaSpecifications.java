@@ -14,7 +14,7 @@ public class UmbrellaSpecifications extends Node {
 
   @Override
   public void check() {
-
+    this.umbrellaSpecifications.values().forEach(UmbrellaSpecification::check);
   }
 
   @Override

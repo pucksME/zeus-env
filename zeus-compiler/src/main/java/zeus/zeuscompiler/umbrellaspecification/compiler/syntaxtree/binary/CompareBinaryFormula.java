@@ -8,8 +8,17 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Formula;
 import java.util.List;
 
 public class CompareBinaryFormula extends BinaryFormula {
-  public CompareBinaryFormula(int line, int linePosition, Formula leftFormula, Formula rightFormula) {
+  CompareBinaryFormulaType compareBinaryFormulaType;
+
+  public CompareBinaryFormula(
+    int line,
+    int linePosition,
+    Formula leftFormula,
+    Formula rightFormula,
+    CompareBinaryFormulaType compareBinaryFormulaType
+  ) {
     super(line, linePosition, leftFormula, rightFormula);
+    this.compareBinaryFormulaType = compareBinaryFormulaType;
   }
 
   @Override
