@@ -1,11 +1,10 @@
-package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.binary;
+package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Formula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
-import java.util.List;
+import java.util.Optional;
 
 public class ArithmeticBinaryFormula extends BinaryFormula {
   public ArithmeticBinaryFormula(int line, int linePosition, Formula leftFormula, Formula rightFormula) {
@@ -20,5 +19,10 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
   @Override
   public String translate(int depth, ExportTarget exportTarget) {
     return "";
+  }
+
+  @Override
+  public Optional<Type> evaluateType() {
+    return Optional.empty();
   }
 }

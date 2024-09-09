@@ -1,6 +1,9 @@
-package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
+package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
+
+import java.util.Optional;
 
 
 public class IdentifierFormula extends Formula {
@@ -23,5 +26,10 @@ public class IdentifierFormula extends Formula {
 
   public String getId() {
     return id;
+  }
+
+  @Override
+  public Optional<Type> evaluateType() {
+    return Optional.empty();
   }
 }

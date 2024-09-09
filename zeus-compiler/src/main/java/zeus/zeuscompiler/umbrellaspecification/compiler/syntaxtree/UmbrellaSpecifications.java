@@ -1,6 +1,7 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
 import java.util.Map;
 

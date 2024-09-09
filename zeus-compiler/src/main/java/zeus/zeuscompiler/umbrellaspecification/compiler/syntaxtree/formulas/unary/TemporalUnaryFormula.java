@@ -1,11 +1,10 @@
-package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.unary;
+package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Formula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
-import java.util.List;
+import java.util.Optional;
 
 public class TemporalUnaryFormula extends UnaryFormula {
   public TemporalUnaryFormula(int line, int linePosition, Formula formula) {
@@ -20,5 +19,10 @@ public class TemporalUnaryFormula extends UnaryFormula {
   @Override
   public String translate(int depth, ExportTarget exportTarget) {
     return "";
+  }
+
+  @Override
+  public Optional<Type> evaluateType() {
+    return Optional.empty();
   }
 }

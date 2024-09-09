@@ -1,14 +1,18 @@
-package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
+package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 
-import java.util.List;
+import java.util.Optional;
 
 public class LiteralFormula extends Formula {
   public LiteralFormula(int line, int linePosition) {
     super(line, linePosition);
+  }
+
+  @Override
+  public Optional<Type> evaluateType() {
+    return Optional.empty();
   }
 
   @Override

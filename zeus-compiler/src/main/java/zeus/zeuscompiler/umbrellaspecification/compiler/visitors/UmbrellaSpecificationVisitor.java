@@ -3,9 +3,11 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.visitors;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationBaseVisitor;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.*;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.binary.CompareBinaryFormula;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.binary.CompareBinaryFormulaType;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.unary.AccessFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.IdentifierFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.CompareBinaryFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.CompareBinaryFormulaType;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
 
 import java.util.HashMap;
 
@@ -87,6 +89,11 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       (Formula) this.visit(ctx.formula().get(1)),
       switch (ctx.operator.getType()) {
         case UmbrellaSpecificationParser.OPERATOR_EQUAL -> CompareBinaryFormulaType.EQUAL;
+        case UmbrellaSpecificationParser.OPERATOR_NOT_EQUAL -> CompareBinaryFormulaType.NOT_EQUAL;
+        case UmbrellaSpecificationParser.OPERATOR_GREATER_THAN -> CompareBinaryFormulaType.GREATER_THAN;
+        case UmbrellaSpecificationParser.OPERATOR_LESS_THAN -> CompareBinaryFormulaType.LESS_THAN;
+        case UmbrellaSpecificationParser.OPERATOR_GREATER_EQUAL_THAN -> CompareBinaryFormulaType.GREATER_EQUAL_THAN;
+        case UmbrellaSpecificationParser.OPERATOR_LESS_EQUAL_THAN -> CompareBinaryFormulaType.LESS_EQUAL_THAN;
         default -> throw new RuntimeException("Unsupported compare binary formula type");
       }
     );

@@ -1,10 +1,7 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
-import zeus.zeuscompiler.CompilerError;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-
-import java.util.List;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
 public class UmbrellaSpecification extends Node {
   String id;
