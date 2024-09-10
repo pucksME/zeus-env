@@ -27,7 +27,7 @@ formula : ID                                                                    
           | OPERATOR_GREATER_EQUAL_THAN
           | OPERATOR_LESS_EQUAL_THAN
           ) formula                                                                     # CompareBinaryFormula
-        | formula (
+        | formula operator=(
             OPERATOR_ADD
           | OPERATOR_SUBTRACT
           | OPERATOR_MULTIPLY

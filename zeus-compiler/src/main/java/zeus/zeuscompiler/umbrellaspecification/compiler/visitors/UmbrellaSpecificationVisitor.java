@@ -5,6 +5,8 @@ import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.IdentifierFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.ArithmeticBinaryFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.ArithmeticBinaryFormulaType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.CompareBinaryFormula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.CompareBinaryFormulaType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
@@ -95,6 +97,23 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
         case UmbrellaSpecificationParser.OPERATOR_GREATER_EQUAL_THAN -> CompareBinaryFormulaType.GREATER_EQUAL_THAN;
         case UmbrellaSpecificationParser.OPERATOR_LESS_EQUAL_THAN -> CompareBinaryFormulaType.LESS_EQUAL_THAN;
         default -> throw new RuntimeException("Unsupported compare binary formula type");
+      }
+    );
+  }
+
+  @Override
+  public Object visitArithmeticBinaryFormula(UmbrellaSpecificationParser.ArithmeticBinaryFormulaContext ctx) {
+    return new ArithmeticBinaryFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula().get(0)),
+      (Formula) this.visit(ctx.formula().get(1)),
+      switch (ctx.operator.getType()) {
+        case UmbrellaSpecificationParser.OPERATOR_ADD -> ArithmeticBinaryFormulaType.ADD;
+        case UmbrellaSpecificationParser.OPERATOR_SUBTRACT -> ArithmeticBinaryFormulaType.SUBTRACT;
+        case UmbrellaSpecificationParser.OPERATOR_MULTIPLY -> ArithmeticBinaryFormulaType.MULTIPLY;
+        case UmbrellaSpecificationParser.OPERATOR_DIVIDE -> ArithmeticBinaryFormulaType.DIVIDE;
+        default -> throw new RuntimeException("Unsupported arithmetic binary formula type");
       }
     );
   }
