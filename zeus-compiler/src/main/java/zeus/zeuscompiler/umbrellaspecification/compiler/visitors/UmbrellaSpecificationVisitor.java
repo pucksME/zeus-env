@@ -130,4 +130,15 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       }
     );
   }
+
+  @Override
+  public Object visitTemporalBinaryFormula(UmbrellaSpecificationParser.TemporalBinaryFormulaContext ctx) {
+    return new TemporalBinaryFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula().get(0)),
+      (Formula) this.visit(ctx.formula().get(1)),
+      TemporalBinaryFormulaType.SINCE
+    );
+  }
 }
