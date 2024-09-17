@@ -5,14 +5,13 @@ formulaAssignment: ID OPERATOR_ACCESS FORMULA OPERATOR_ASSIGNMENT formula ;
 contextAssignment : ID OPERATOR_ACCESS CONTEXT OPERATOR_ASSIGNMENT (CONTEXT_GLOBAL | CONTEXT_IP) ;
 actionAssignment : ID OPERATOR_ACCESS ACTION OPERATOR_ASSIGNMENT (ACTION_ALLOW | ACTION_BLOCK | ACTION_LOG) ;
 
-literal : LITERAL_BOOLEAN
-        | LITERAL_INT
-        | LITERAL_FLOAT
-        | LITERAL_STRING
-        ;
-
 formula : ID                                                                            # IdentifierFormula
-        | literal                                                                       # LiteralFormula
+        | literal=(
+            LITERAL_BOOLEAN
+          | LITERAL_INT
+          | LITERAL_FLOAT
+          | LITERAL_STRING
+        )                                                                               # LiteralFormula
         // unary formulas
         | '(' formula ')'                                                               # ParenthesisFormula
         | formula OPERATOR_ACCESS ID                                                    # AccessFormula

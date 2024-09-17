@@ -5,6 +5,8 @@ import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.IdentifierFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.LiteralFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.LiteralFormulaType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.LogicalNotFormula;
@@ -165,6 +167,21 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
         case UmbrellaSpecificationParser.OPERATOR_ONCE -> TemporalUnaryFormulaType.ONCE;
         case UmbrellaSpecificationParser.OPERATOR_HISTORICALLY -> TemporalUnaryFormulaType.HISTORICALLY;
         default -> throw new RuntimeException("Unsupported temporal unary formula type");
+      }
+    );
+  }
+
+  @Override
+  public Object visitLiteralFormula(UmbrellaSpecificationParser.LiteralFormulaContext ctx) {
+    return new LiteralFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      switch (ctx.literal.getType()) {
+        case UmbrellaSpecificationParser.LITERAL_BOOLEAN -> LiteralFormulaType.BOOLEAN;
+        case UmbrellaSpecificationParser.LITERAL_INT -> LiteralFormulaType.INT;
+        case UmbrellaSpecificationParser.LITERAL_FLOAT -> LiteralFormulaType.FLOAT;
+        case UmbrellaSpecificationParser.LITERAL_STRING -> LiteralFormulaType.STRING;
+        default -> throw new RuntimeException("Unsupported literal formula type");
       }
     );
   }
