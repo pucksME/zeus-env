@@ -17,7 +17,11 @@ formula : ID                                                                    
         | '(' formula ')'                                                               # ParenthesisFormula
         | formula OPERATOR_ACCESS ID                                                    # AccessFormula
         | OPERATOR_NOT formula                                                          # LogicalNotFormula
-        | (OPERATOR_YEASTERDAY | OPERATOR_ONCE | OPERATOR_HISTORICALLY) formula         # TemporalUnaryFormula
+        | operator=(
+            OPERATOR_YEASTERDAY
+          | OPERATOR_ONCE
+          | OPERATOR_HISTORICALLY
+          ) formula                                                                     # TemporalUnaryFormula
         // binary formulas
         | formula operator=(
             OPERATOR_EQUAL

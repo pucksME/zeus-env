@@ -8,6 +8,8 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Iden
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.LogicalNotFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.TemporalUnaryFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.TemporalUnaryFormulaType;
 
 import java.util.HashMap;
 
@@ -149,6 +151,21 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       (Formula) this.visit(ctx.formula())
+    );
+  }
+
+  @Override
+  public Object visitTemporalUnaryFormula(UmbrellaSpecificationParser.TemporalUnaryFormulaContext ctx) {
+    return new TemporalUnaryFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula()),
+      switch (ctx.operator.getType()) {
+        case UmbrellaSpecificationParser.OPERATOR_YEASTERDAY -> TemporalUnaryFormulaType.YESTERDAY;
+        case UmbrellaSpecificationParser.OPERATOR_ONCE -> TemporalUnaryFormulaType.ONCE;
+        case UmbrellaSpecificationParser.OPERATOR_HISTORICALLY -> TemporalUnaryFormulaType.HISTORICALLY;
+        default -> throw new RuntimeException("Unsupported temporal unary formula type");
+      }
     );
   }
 }
