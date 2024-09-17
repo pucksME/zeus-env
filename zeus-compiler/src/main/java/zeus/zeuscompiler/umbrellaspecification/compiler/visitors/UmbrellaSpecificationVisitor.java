@@ -7,6 +7,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Form
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.IdentifierFormula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.LogicalNotFormula;
 
 import java.util.HashMap;
 
@@ -139,6 +140,15 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       (Formula) this.visit(ctx.formula().get(0)),
       (Formula) this.visit(ctx.formula().get(1)),
       TemporalBinaryFormulaType.SINCE
+    );
+  }
+
+  @Override
+  public Object visitLogicalNotFormula(UmbrellaSpecificationParser.LogicalNotFormulaContext ctx) {
+    return new LogicalNotFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula())
     );
   }
 }
