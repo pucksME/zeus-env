@@ -29,7 +29,7 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
 
   @Override
   public void check() {
-
+    this.evaluateType();
   }
 
   @Override

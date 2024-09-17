@@ -33,7 +33,11 @@ formula : ID                                                                    
           | OPERATOR_MULTIPLY
           | OPERATOR_DIVIDE
           ) formula                                                                     # ArithmeticBinaryFormula
-        | formula (OPERATOR_AND | OPERATOR_OR | OPERATOR_IMPLICATION) formula           # LogicalBinaryFormula
+        | formula operator=(
+            OPERATOR_AND
+          | OPERATOR_OR
+          | OPERATOR_IMPLICATION
+          ) formula                                                                     # LogicalBinaryFormula
         | formula OPERATOR_SINCE formula                                                # TemporalBinaryFormula
         ;
 

@@ -5,10 +5,7 @@ import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.IdentifierFormula;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.ArithmeticBinaryFormula;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.ArithmeticBinaryFormulaType;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.CompareBinaryFormula;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.CompareBinaryFormulaType;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
 
 import java.util.HashMap;
@@ -114,6 +111,22 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
         case UmbrellaSpecificationParser.OPERATOR_MULTIPLY -> ArithmeticBinaryFormulaType.MULTIPLY;
         case UmbrellaSpecificationParser.OPERATOR_DIVIDE -> ArithmeticBinaryFormulaType.DIVIDE;
         default -> throw new RuntimeException("Unsupported arithmetic binary formula type");
+      }
+    );
+  }
+
+  @Override
+  public Object visitLogicalBinaryFormula(UmbrellaSpecificationParser.LogicalBinaryFormulaContext ctx) {
+    return new LogicalBinaryFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula().get(0)),
+      (Formula) this.visit(ctx.formula().get(1)),
+      switch (ctx.operator.getType()) {
+        case UmbrellaSpecificationParser.OPERATOR_AND -> LogicalBinaryFormulaType.AND;
+        case UmbrellaSpecificationParser.OPERATOR_OR -> LogicalBinaryFormulaType.OR;
+        case UmbrellaSpecificationParser.OPERATOR_IMPLICATION -> LogicalBinaryFormulaType.IMPLICATION;
+        default -> throw new RuntimeException("Unsupported logical binary formula type");
       }
     );
   }
