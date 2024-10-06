@@ -4,7 +4,10 @@ import org.antlr.v4.runtime.CharStreams;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.RainAnalyzer;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,6 +20,9 @@ public class RainParserTests {
 
   @BeforeEach()
   void init() {
+    ServiceProvider.initialize();
+    ServiceProvider.register(new CompilerErrorService());
+    ServiceProvider.register(new SymbolTableService());
     this.rainAnalyzer = new RainAnalyzer(CompilerPhase.PARSER);
   }
 
@@ -27,42 +33,42 @@ public class RainParserTests {
   @Test()
   void test1() throws IOException {
     runAnalyzer("project-1.rain");
-    assertThat(rainAnalyzer.hasErrors()).isFalse();
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
   }
 
   @Test()
   void test2() throws IOException {
     runAnalyzer("project-2.rain");
-    assertThat(rainAnalyzer.hasErrors()).isFalse();
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
   }
 
   @Test()
   void test3() throws IOException {
     runAnalyzer("project-3.rain");
-    assertThat(rainAnalyzer.hasErrors()).isFalse();
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
   }
 
   @Test()
   void test4() throws IOException {
     runAnalyzer("project-4.rain");
-    assertThat(rainAnalyzer.hasErrors()).isFalse();
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
   }
 
   @Test()
   void test5() throws IOException {
     runAnalyzer("project-5.rain");
-    assertThat(rainAnalyzer.hasErrors()).isFalse();
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
   }
 
   @Test()
   void test6() throws IOException {
     runAnalyzer("project-6.rain");
-    assertThat(rainAnalyzer.hasErrors()).isFalse();
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
   }
 
   @Test()
   void test7() throws IOException {
     runAnalyzer("project-7.rain");
-    assertThat(rainAnalyzer.hasErrors()).isFalse();
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
   }
 }

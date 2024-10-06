@@ -65,7 +65,9 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
       return Optional.empty();
     }
 
-    if (!leftFormulaType.compatible(rightFormulaTypeOptional.get())) {
+    Type rightFormulaType = rightFormulaTypeOptional.get();
+
+    if (!leftFormulaType.compatible(rightFormulaType)) {
       ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
@@ -75,6 +77,12 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
       return Optional.empty();
     }
 
-    return Optional.of(new PrimitiveType(PrimitiveTypeType.BOOLEAN));
+    if (((PrimitiveType) leftFormulaType).getType() == PrimitiveTypeType.FLOAT ||
+      (rightFormulaType instanceof PrimitiveType &&
+        ((PrimitiveType) rightFormulaType).getType() == PrimitiveTypeType.FLOAT)) {
+      return Optional.of(new PrimitiveType(PrimitiveTypeType.FLOAT));
+    }
+
+    return Optional.of(new PrimitiveType(PrimitiveTypeType.INT));
   }
 }

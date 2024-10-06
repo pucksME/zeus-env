@@ -185,4 +185,9 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       }
     );
   }
+
+  @Override
+  public Object visitParenthesisFormula(UmbrellaSpecificationParser.ParenthesisFormulaContext ctx) {
+    return this.visit(ctx.formula());
+  }
 }

@@ -16,6 +16,7 @@ public class UmbrellaSpecification extends Node {
 
   @Override
   public void check() {
+    this.formula.check();
   }
 
   @Override
