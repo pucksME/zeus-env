@@ -1,0 +1,34 @@
+[project project12]
+
+[server main@localhost:81]
+route POST test {
+    umbrella specification {`
+        specification1.formula = request.url.param1 == request.body.data2
+        specification1.context = IP
+        specification1.action = block
+
+        specification2.formula = request.body.data1 >= request.url.param2
+        specification2.context = IP
+        specification2.action = block
+
+        specification3.formula = response.body.data1 == request.url.param1 & response.body.data2 == request.body.data1
+        specification3.context = IP
+        specification3.action = block
+    `}
+    code modules {`
+        module types::route type definitions {
+            public type requestUrlType = {param1: string, param2: int};
+            public type requestBodyType = {data1: int, data2: string};
+            public type responseBodyType = {data1: string, data2: int};
+        }
+
+        module request::request specification {
+            output url: requestUrlType;
+            output body: requestBodyType;
+        }
+
+        module response::response specification {
+            input body: responseBodyType;
+        }
+    `}
+}

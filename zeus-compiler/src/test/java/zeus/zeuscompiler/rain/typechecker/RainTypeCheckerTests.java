@@ -161,4 +161,10 @@ public class RainTypeCheckerTests {
       ).getCodeModuleComponent()
     ).isEqualTo(CodeModuleComponent.BODY);
   }
+
+  @Test()
+  void test12() throws IOException {
+    runAnalyzer("project-12.rain");
+    assertThat(ServiceProvider.provide(CompilerErrorService.class).hasErrors()).isFalse();
+  }
 }

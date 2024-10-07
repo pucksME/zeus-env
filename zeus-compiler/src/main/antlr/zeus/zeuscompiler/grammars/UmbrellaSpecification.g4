@@ -14,7 +14,7 @@ formula : ID                                                                    
         )                                                                               # LiteralFormula
         // unary formulas
         | '(' formula ')'                                                               # ParenthesisFormula
-        | formula OPERATOR_ACCESS ID                                                    # AccessFormula
+        | ID OPERATOR_ACCESS formula                                                    # AccessFormula
         | OPERATOR_NOT formula                                                          # LogicalNotFormula
         | operator=(
             OPERATOR_YEASTERDAY

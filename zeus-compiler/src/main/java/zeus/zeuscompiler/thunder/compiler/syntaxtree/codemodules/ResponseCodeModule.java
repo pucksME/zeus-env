@@ -8,7 +8,12 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.Inc
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnsupportedCodeModuleComponentsException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.IdType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnknownIdentifierException;
+
+import java.util.List;
+import java.util.Optional;
 
 
 public class ResponseCodeModule extends RoutingCodeModule {
@@ -59,5 +64,22 @@ public class ResponseCodeModule extends RoutingCodeModule {
     }
 
     super.checkTypes();
+  }
+
+  public Optional<Type> evaluateInputType(List<String> identifiers) {
+    Optional<Input> inputOptional = this.getInput(identifiers.get(0));
+    identifiers.remove(0);
+
+    if (inputOptional.isEmpty()) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
+        this.getLine(),
+        this.getLinePosition(),
+        new UnknownIdentifierException(),
+        CompilerPhase.TYPE_CHECKER
+      ));
+      return Optional.empty();
+    }
+
+    return this.evaluatePortType(inputOptional.get(), identifiers);
   }
 }

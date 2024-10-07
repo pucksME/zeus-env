@@ -71,7 +71,8 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
     return new AccessFormula(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
-      (Formula) this.visit(ctx.formula())
+      (Formula) this.visit(ctx.formula()),
+      ctx.ID().getText()
     );
   }
 
