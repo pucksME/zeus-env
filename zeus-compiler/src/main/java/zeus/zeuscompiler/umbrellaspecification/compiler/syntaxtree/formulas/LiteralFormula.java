@@ -5,6 +5,8 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Primiti
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveTypeType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 public class LiteralFormula extends Formula {
@@ -28,6 +30,15 @@ public class LiteralFormula extends Formula {
   @Override
   public void check() {
     this.evaluateType();
+  }
+
+  @Override
+  public List<Formula> getSubFormulas() {
+    if (this.literalFormulaType != LiteralFormulaType.BOOLEAN) {
+      throw new RuntimeException("Could not get sub formulas of literal formula");
+    }
+
+    return new ArrayList<>(List.of(this));
   }
 
   @Override

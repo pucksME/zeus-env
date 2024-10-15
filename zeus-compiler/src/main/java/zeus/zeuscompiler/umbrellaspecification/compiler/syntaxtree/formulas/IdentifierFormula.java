@@ -8,6 +8,8 @@ import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnknownIdentifierException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 
@@ -42,5 +44,10 @@ public class IdentifierFormula extends Formula {
       CompilerPhase.TYPE_CHECKER
     ));
     return Optional.empty();
+  }
+
+  @Override
+  public List<Formula> getSubFormulas() {
+    throw new RuntimeException("Could not get sub formulas of identifier formula");
   }
 }

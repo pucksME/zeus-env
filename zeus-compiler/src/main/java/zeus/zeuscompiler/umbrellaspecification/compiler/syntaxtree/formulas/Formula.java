@@ -3,6 +3,7 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Node;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 
+import java.util.List;
 import java.util.Optional;
 
 public abstract class Formula extends Node {
@@ -11,4 +12,6 @@ public abstract class Formula extends Node {
   }
 
   public abstract Optional<Type> evaluateType();
+
+  public abstract List<Formula> getSubFormulas();
 }
