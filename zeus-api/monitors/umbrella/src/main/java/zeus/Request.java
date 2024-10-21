@@ -1,5 +1,9 @@
 package zeus;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonSyntaxException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,7 +12,7 @@ import java.io.InputStreamReader;
 public class Request {
   boolean isPost;
   boolean isApplicationJson;
-  String payload;
+  JsonObject payload;
 
   public Request(InputStream inputStream) throws IOException {
     this.isPost = false;
@@ -39,10 +43,14 @@ public class Request {
       stringBuilder.append(symbol);
     }
 
-    this.payload = stringBuilder.toString();
+    try {
+      this.payload = new Gson().fromJson(stringBuilder.toString(), JsonObject.class);
+    } catch (JsonSyntaxException jsonSyntaxException) {
+      this.payload = null;
+    }
   }
 
   public boolean isValid() {
-    return this.isPost && this.isApplicationJson;
+    return this.isPost && this.isApplicationJson && this.payload != null;
   }
 }

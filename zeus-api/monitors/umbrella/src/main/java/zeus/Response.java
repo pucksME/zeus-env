@@ -1,12 +1,22 @@
 package zeus;
 
+import com.google.gson.JsonObject;
+
 public class Response {
   int statusCode;
-  String payload;
+  JsonObject payload;
 
-  public Response(int statusCode, String payload) {
+  public Response(int statusCode) {
     this.statusCode = statusCode;
-    this.payload = payload;
+    this.payload = new JsonObject();
+
+    if (statusCode == 200) {
+      this.payload.addProperty("status", "ok");
+    }
+
+    if (statusCode == 400) {
+      this.payload.addProperty("status", "invalid request");
+    }
   }
 
   public byte[] toBytes() {
@@ -14,7 +24,7 @@ public class Response {
       "HTTP/1.1 200 OK",
       "Content-Type: application/json",
       "",
-      this.payload
+      this.payload.toString()
     }).getBytes();
   }
 }
