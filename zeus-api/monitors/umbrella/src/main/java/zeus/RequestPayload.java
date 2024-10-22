@@ -13,7 +13,7 @@ public class RequestPayload {
     this.ip = ip;
   }
 
-  public boolean valid() {
+  public boolean isValid() {
     return this.urlParameters != null && this.bodyPayload != null && this.ip != null;
   }
 }

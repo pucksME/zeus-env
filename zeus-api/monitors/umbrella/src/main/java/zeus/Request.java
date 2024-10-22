@@ -1,7 +1,6 @@
 package zeus;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
 
 import java.io.BufferedReader;
@@ -45,7 +44,7 @@ public class Request {
 
     try {
       this.payload = new Gson().fromJson(stringBuilder.toString(), RequestPayload.class);
-      if (!this.payload.valid()) {
+      if (!this.payload.isValid()) {
         this.payload = null;
       }
     } catch (JsonSyntaxException jsonSyntaxException) {
