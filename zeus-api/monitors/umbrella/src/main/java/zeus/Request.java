@@ -12,7 +12,7 @@ import java.io.InputStreamReader;
 public class Request {
   boolean isPost;
   boolean isApplicationJson;
-  JsonObject payload;
+  RequestPayload payload;
 
   public Request(InputStream inputStream) throws IOException {
     this.isPost = false;
@@ -44,7 +44,10 @@ public class Request {
     }
 
     try {
-      this.payload = new Gson().fromJson(stringBuilder.toString(), JsonObject.class);
+      this.payload = new Gson().fromJson(stringBuilder.toString(), RequestPayload.class);
+      if (!this.payload.valid()) {
+        this.payload = null;
+      }
     } catch (JsonSyntaxException jsonSyntaxException) {
       this.payload = null;
     }
