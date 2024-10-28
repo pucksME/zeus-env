@@ -12,6 +12,7 @@ public class ServerRouteSymbolTableIdentifier extends SymbolTableIdentifier {
   private String getId() {
     return String.format("%s/%s", this.serverName, this.routeId);
   }
+
   @Override
   public int hashCode() {
     return this.getId().hashCode();

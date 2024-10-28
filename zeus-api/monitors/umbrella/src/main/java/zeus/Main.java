@@ -9,6 +9,7 @@ import java.util.concurrent.Executors;
 public class Main {
   public static void main(String[] args) throws IOException {
     System.out.println("On-runtime, temporal, formal verification monitor");
+    SpecificationService.initialize();
 
     try (ServerSocket serverSocket = new ServerSocket(8081)) {
       ExecutorService executorService = Executors.newCachedThreadPool();
@@ -24,6 +25,8 @@ public class Main {
               socket.close();
               return;
             }
+
+            SpecificationService.verify(null);
 
             socket.getOutputStream().write(new Response(200).toBytes());
             socket.close();
