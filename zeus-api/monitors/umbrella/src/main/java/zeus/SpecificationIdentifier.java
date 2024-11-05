@@ -1,14 +1,14 @@
 package zeus;
 
 public class SpecificationIdentifier {
+  String context;
   String serverName;
   String routeId;
-  String context;
 
-  public SpecificationIdentifier(String serverName, String routeId, String context) {
+  public SpecificationIdentifier(String context, String serverName, String routeId) {
+    this.context = context;
     this.serverName = serverName;
     this.routeId = routeId;
-    this.context = context;
   }
 
   private String getId() {

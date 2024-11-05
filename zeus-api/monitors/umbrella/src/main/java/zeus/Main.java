@@ -26,7 +26,11 @@ public class Main {
               return;
             }
 
-            SpecificationService.verify(null);
+            SpecificationService.verify(new SpecificationIdentifier(
+              request.payload.context,
+              request.payload.server,
+              request.payload.route
+            ));
 
             socket.getOutputStream().write(new Response(200).toBytes());
             socket.close();

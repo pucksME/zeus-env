@@ -4,15 +4,15 @@ import zeus.specification.Action;
 import zeus.specification.Specification;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SpecificationService {
   private static SpecificationService specificationService;
-  private static HashMap<SpecificationIdentifier, List<Specification>> specifications;
+  private static ConcurrentHashMap<SpecificationIdentifier, List<Specification>> specifications;
 
   private SpecificationService() {
-    SpecificationService.specifications = new HashMap<>();
+    SpecificationService.specifications = new ConcurrentHashMap<>();
   }
 
   public static void initialize() {

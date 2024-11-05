@@ -21,6 +21,7 @@ public class Server extends Node {
         this.address = address;
         this.port = port;
         this.routes = routes;
+        this.routes.forEach(route -> route.setServer(this));
     }
 
     public HashMap<String, HashMap<String, String>> translateBootsSpecifications() {

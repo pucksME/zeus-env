@@ -28,6 +28,7 @@ public class Route extends Node {
     CodeModules codeModules;
     BootsSpecification bootsSpecification;
     UmbrellaSpecifications umbrellaSpecifications;
+    Server server;
 
     public Route(
       int line,
@@ -68,13 +69,28 @@ public class Route extends Node {
             translatedAdapters.add(String.format("(req, res, next) => bootsMonitorAdapter('%s', req, res, next)", this.id));
         }
 
-        translatedAdapters.add(String.format("(req, res, next) => umbrellaMonitorAdapter('%s', req, res, next)", this.id));
+        if (this.server == null) {
+            throw new RuntimeException(String.format(
+              "Could not translate monitor adapters of route \"%s\": unknown server",
+              this.id
+            ));
+        }
+
+        translatedAdapters.add(String.format(
+          "(req, res, next) => umbrellaMonitorAdapter('%s', '%s', req, res, next)",
+          this.server.name,
+          this.id
+        ));
 
         if (translatedAdapters.isEmpty()) {
             return "";
         }
 
         return String.format("[%s]", String.join(", ", translatedAdapters)) + ", ";
+    }
+
+    public void setServer(Server server) {
+        this.server = server;
     }
 
     @Override

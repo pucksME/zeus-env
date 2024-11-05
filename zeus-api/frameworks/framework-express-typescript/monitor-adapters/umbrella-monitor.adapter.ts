@@ -1,6 +1,12 @@
 import {exec} from 'child_process';
 
-export function umbrellaMonitorAdapter(route: string, req, res, next) {
+export function umbrellaMonitorAdapter(
+  server: string,
+  route: string,
+  req,
+  res,
+  next
+) {
   exec([
     'curl',
     '--request POST',
