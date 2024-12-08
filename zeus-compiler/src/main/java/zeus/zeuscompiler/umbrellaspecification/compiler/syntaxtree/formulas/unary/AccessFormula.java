@@ -51,7 +51,7 @@ public class AccessFormula extends UnaryFormula {
     this.buildIdentifiers(((AccessFormula) formula).formula, identifiers);
   }
 
-  private List<String> buildIdentifiers() {
+  public List<String> buildIdentifiers() {
     List<String> identifiers = new ArrayList<>();
     buildIdentifiers(this, identifiers);
     return identifiers;
@@ -92,11 +92,6 @@ public class AccessFormula extends UnaryFormula {
       new UnknownIdentifierException(),
       CompilerPhase.TYPE_CHECKER
     ));
-  }
-
-  @Override
-  public String translate(int depth, ExportTarget exportTarget) {
-    return "";
   }
 
   private Optional<Type> evaluateThunderType(zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type thunderType) {

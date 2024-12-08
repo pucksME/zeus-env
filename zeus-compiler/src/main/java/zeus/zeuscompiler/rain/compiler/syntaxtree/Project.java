@@ -136,6 +136,13 @@ public class Project extends Node {
               bootsSpecificationTranslation.getValue(),
               String.format("%s-%s.py", bootsSpecificationTranslations.getKey(), bootsSpecificationTranslation.getKey())
             )))
+          .toList(),
+        server.translateUmbrellaSpecifications().entrySet().stream()
+          .flatMap(serverUmbrellaSpecificationTranslations -> serverUmbrellaSpecificationTranslations.getValue().entrySet().stream()
+            .map(routeUmbrellaSpecificationTranslations -> new ExportedFileDto(
+              routeUmbrellaSpecificationTranslations.getValue(),
+              serverUmbrellaSpecificationTranslations.getKey() + routeUmbrellaSpecificationTranslations.getKey()
+            )))
           .toList()
       ))
       .toList();

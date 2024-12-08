@@ -3,6 +3,7 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class UmbrellaSpecifications extends Node {
@@ -18,9 +19,14 @@ public class UmbrellaSpecifications extends Node {
     this.umbrellaSpecifications.values().forEach(UmbrellaSpecification::check);
   }
 
-  @Override
-  public String translate(int depth, ExportTarget exportTarget) {
-    return "";
+  public HashMap<String, String> translate() {
+    HashMap<String, String> translation = new HashMap<>();
+
+    for (Map.Entry<String, UmbrellaSpecification> idSpecification : this.umbrellaSpecifications.entrySet()) {
+      translation.put(idSpecification.getKey(), idSpecification.getValue().translate());
+    }
+
+    return translation;
   }
 
   private void initializeUmbrellaSpecification(String id, int line, int linePosition) {

@@ -6,7 +6,7 @@ import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 
 import java.util.List;
 
-public abstract class Node implements Translatable {
+public abstract class Node {
   int line;
   int linePosition;
 

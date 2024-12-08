@@ -40,9 +40,4 @@ public class LiteralFormula extends Formula {
 
     return new ArrayList<>(List.of(this));
   }
-
-  @Override
-  public String translate(int depth, ExportTarget exportTarget) {
-    return "";
-  }
 }

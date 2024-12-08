@@ -32,11 +32,6 @@ public class TemporalUnaryFormula extends UnaryFormula {
   }
 
   @Override
-  public String translate(int depth, ExportTarget exportTarget) {
-    return "";
-  }
-
-  @Override
   public Optional<Type> evaluateType() {
     Optional<Type> formulaTypeOptional = this.formula.evaluateType();
 

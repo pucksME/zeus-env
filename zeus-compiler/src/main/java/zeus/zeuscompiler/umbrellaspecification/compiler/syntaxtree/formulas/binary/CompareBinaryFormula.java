@@ -34,11 +34,6 @@ public class CompareBinaryFormula extends BinaryFormula {
   }
 
   @Override
-  public String translate(int depth, ExportTarget exportTarget) {
-    return "";
-  }
-
-  @Override
   public Optional<Type> evaluateType() {
     Optional<Type> leftFormulaTypeOptional = this.leftFormula.evaluateType();
 

@@ -34,6 +34,18 @@ public class Server extends Node {
         return bootsSpecificationTranslations;
     }
 
+    public HashMap<String, HashMap<String, String>> translateUmbrellaSpecifications() {
+        HashMap<String, HashMap<String, String>> umbrellaSpecificationTranslations = new HashMap<>();
+
+        for (Route route : this.routes) {
+            ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ServerRouteSymbolTableIdentifier(this.name, route.id));
+            umbrellaSpecificationTranslations.put(route.id, route.translateUmbrellaSpecification());
+        }
+
+        ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ClientSymbolTableIdentifier());
+        return umbrellaSpecificationTranslations;
+    }
+
     public String translateConfiguration(int depth, ExportTarget exportTarget) {
         return switch (exportTarget) {
             case REACT_TYPESCRIPT -> String.format(

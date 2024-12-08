@@ -51,6 +51,10 @@ public class Route extends Node {
         return (this.bootsSpecification != null) ? this.bootsSpecification.translate() : new HashMap<>();
     }
 
+    public HashMap<String, String> translateUmbrellaSpecification() {
+        return (this.umbrellaSpecifications != null) ? this.umbrellaSpecifications.translate() : new HashMap<>();
+    }
+
     private String translateRequestMethod(ExportTarget exportTarget) {
         return switch (exportTarget) {
             case REACT_TYPESCRIPT -> switch (this.routeMethod) {

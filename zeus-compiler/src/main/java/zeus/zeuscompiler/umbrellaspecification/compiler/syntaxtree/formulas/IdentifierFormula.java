@@ -26,11 +26,6 @@ public class IdentifierFormula extends Formula {
     this.evaluateType();
   }
 
-  @Override
-  public String translate(int depth, ExportTarget exportTarget) {
-    return "";
-  }
-
   public String getId() {
     return id;
   }

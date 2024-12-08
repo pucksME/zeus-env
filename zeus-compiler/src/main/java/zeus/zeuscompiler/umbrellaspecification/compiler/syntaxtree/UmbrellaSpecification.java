@@ -2,6 +2,8 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.LiteralFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
@@ -26,8 +28,7 @@ public class UmbrellaSpecification extends Node {
   // Monitor generation algorithm adapted from
   // Havelund, Klaus, and Grigore Roşu. "Efficient monitoring of safety properties."
   // International Journal on Software Tools for Technology Transfer 6 (2004): 158-173.
-  @Override
-  public String translate(int depth, ExportTarget exportTarget) {
+  public String translate() {
     ArrayList<String> code = new ArrayList<>();
     code.add("import java.util.HashMap;");
     code.add("import java.util.stream.Stream;");
@@ -45,10 +46,25 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("");
     code.add("@Overwrite");
-    code.add(CompilerUtils.buildLinePadding(1) + "public boolean verify(Request request) {");
-    code.add(CompilerUtils.buildLinePadding(2) + "List<Request> requests = Stream.concat(SpecificationService.getRequests().stream(), Stream.of(request)).toList()");
-    code.add(CompilerUtils.buildLinePadding(2) + "SpecificationService.addRequest(request)");
-    code.add(CompilerUtils.buildLinePadding(2) + "this.state = requests.get(0).getVariables()");
+    code.add(CompilerUtils.buildLinePadding(1) + "public boolean verify(Request request, SpecificationIdentifier specificationIdentifier) {");
+    code.add(CompilerUtils.buildLinePadding(2) + "List<Request> requests = Stream.concat(SpecificationService.getRequests(specificationIdentifier).stream(), Stream.of(request)).toList();");
+    code.add(CompilerUtils.buildLinePadding(2) + "SpecificationService.addRequest(request, specificationIdentifier);");
+    code.add(CompilerUtils.buildLinePadding(2) + "this.state = requests.get(0).getVariables();");
+
+    for (int i = 0; i < subFormulas.size(); i++) {
+      Formula subFormula = subFormulas.get(i);
+
+      if (subFormula instanceof AccessFormula) {
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = this.state[%s]",
+          i,
+          String.join(".", ((AccessFormula) subFormula).buildIdentifiers())
+        ));
+        continue;
+      }
+
+    }
+
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("}");
 
