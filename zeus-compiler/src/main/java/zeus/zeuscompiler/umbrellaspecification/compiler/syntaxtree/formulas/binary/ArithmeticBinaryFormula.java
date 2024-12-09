@@ -27,6 +27,10 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
     this.arithmeticBinaryFormulaType = arithmeticBinaryFormulaType;
   }
 
+  public ArithmeticBinaryFormulaType getArithmeticBinaryFormulaType() {
+    return arithmeticBinaryFormulaType;
+  }
+
   @Override
   public void check() {
     this.evaluateType();

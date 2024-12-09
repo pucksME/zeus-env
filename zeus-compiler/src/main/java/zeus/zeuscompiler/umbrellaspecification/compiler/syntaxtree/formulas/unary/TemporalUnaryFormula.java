@@ -26,6 +26,10 @@ public class TemporalUnaryFormula extends UnaryFormula {
     this.temporalUnaryFormulaType = temporalUnaryFormulaType;
   }
 
+  public TemporalUnaryFormulaType getTemporalUnaryFormulaType() {
+    return temporalUnaryFormulaType;
+  }
+
   @Override
   public void check() {
     this.evaluateType();

@@ -28,6 +28,10 @@ public class CompareBinaryFormula extends BinaryFormula {
     this.compareBinaryFormulaType = compareBinaryFormulaType;
   }
 
+  public CompareBinaryFormulaType getCompareBinaryFormulaType() {
+    return compareBinaryFormulaType;
+  }
+
   @Override
   public void check() {
     this.evaluateType();

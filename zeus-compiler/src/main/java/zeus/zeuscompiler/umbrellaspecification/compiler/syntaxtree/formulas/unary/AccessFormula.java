@@ -12,6 +12,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RoutingCodeModu
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnknownRoutingCodeModuleException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnsupportedTypeException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveType;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveTypeType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
@@ -186,5 +187,22 @@ public class AccessFormula extends UnaryFormula {
       CompilerPhase.TYPE_CHECKER
     ));
     return Optional.empty();
+  }
+
+  @Override
+  public List<Formula> getSubFormulas() {
+    Optional<Type> typeOptional = this.evaluateType();
+
+    if (typeOptional.isEmpty()) {
+      throw new RuntimeException("Could not get sub formulas of access formula: type not present");
+    }
+
+    Type type = typeOptional.get();
+
+    if (!(type instanceof PrimitiveType) || ((PrimitiveType) type).getType() != PrimitiveTypeType.BOOLEAN) {
+      throw new RuntimeException("Could not get sub formulas of access formula: invalid type");
+    }
+
+    return new ArrayList<>(List.of(this));
   }
 }

@@ -177,6 +177,7 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
     return new LiteralFormula(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
+      ctx.literal.getText(),
       switch (ctx.literal.getType()) {
         case UmbrellaSpecificationParser.LITERAL_BOOLEAN -> LiteralFormulaType.BOOLEAN;
         case UmbrellaSpecificationParser.LITERAL_INT -> LiteralFormulaType.INT;

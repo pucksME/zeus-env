@@ -3,7 +3,10 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.LiteralFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.LogicalNotFormula;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.TemporalUnaryFormula;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
@@ -45,7 +48,7 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(2) + String.format("this.now = new boolean[%s]", subFormulas.size()));
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("");
-    code.add("@Overwrite");
+    code.add(CompilerUtils.buildLinePadding(1) + "@Overwrite");
     code.add(CompilerUtils.buildLinePadding(1) + "public boolean verify(Request request, SpecificationIdentifier specificationIdentifier) {");
     code.add(CompilerUtils.buildLinePadding(2) + "List<Request> requests = Stream.concat(SpecificationService.getRequests(specificationIdentifier).stream(), Stream.of(request)).toList();");
     code.add(CompilerUtils.buildLinePadding(2) + "SpecificationService.addRequest(request, specificationIdentifier);");
@@ -63,6 +66,93 @@ public class UmbrellaSpecification extends Node {
         continue;
       }
 
+      if (subFormula instanceof LiteralFormula) {
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = %s",
+          i,
+          ((LiteralFormula) subFormula).getValue()
+        ));
+        continue;
+      }
+
+      if (subFormula instanceof LogicalNotFormula) {
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = !pre[%s]",
+          i,
+          subFormulas.indexOf(((LogicalNotFormula) subFormula).getFormula())
+        ));
+        continue;
+      }
+
+      if (subFormula instanceof ArithmeticBinaryFormula) {
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = pre[%s] %s pre[%s]",
+          i,
+          subFormulas.indexOf(((ArithmeticBinaryFormula) subFormula).getLeftFormula()),
+          switch (((ArithmeticBinaryFormula) subFormula).getArithmeticBinaryFormulaType()) {
+            case ADD -> "+";
+            case SUBTRACT -> "-";
+            case MULTIPLY -> "*";
+            case DIVIDE -> "/";
+          },
+          subFormulas.indexOf(((ArithmeticBinaryFormula) subFormula).getRightFormula())
+        ));
+        continue;
+      }
+
+      if (subFormula instanceof CompareBinaryFormula) {
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = pre[%s] %s pre[%s]",
+          i,
+          subFormulas.indexOf(((CompareBinaryFormula) subFormula).getLeftFormula()),
+          switch (((CompareBinaryFormula) subFormula).getCompareBinaryFormulaType()) {
+            case EQUAL -> "==";
+            case NOT_EQUAL -> "!=";
+            case GREATER_THAN -> ">";
+            case LESS_THAN -> "<";
+            case GREATER_EQUAL_THAN -> ">=";
+            case LESS_EQUAL_THAN -> "<=";
+          },
+          subFormulas.indexOf(((CompareBinaryFormula) subFormula).getRightFormula())
+        ));
+        continue;
+      }
+
+      if (subFormula instanceof LogicalBinaryFormula) {
+        boolean isImplication = ((LogicalBinaryFormula) subFormula).getLogicalBinaryFormulaType() ==
+          LogicalBinaryFormulaType.IMPLICATION;
+
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = %spre[%s] %s pre[%s]",
+          i,
+          (isImplication) ? "!" : "",
+          subFormulas.indexOf(((LogicalBinaryFormula) subFormula).getLeftFormula()),
+          (isImplication) ? "||" : switch (((LogicalBinaryFormula) subFormula).getLogicalBinaryFormulaType()) {
+            case AND -> "&&";
+            case OR -> "||";
+            case IMPLICATION -> throw new RuntimeException("Could not generate monitor: unhandled implication");
+          },
+          subFormulas.indexOf(((LogicalBinaryFormula) subFormula).getRightFormula())
+        ));
+        continue;
+      }
+
+      if (subFormula instanceof TemporalUnaryFormula) {
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = pre[%s]",
+          i,
+          subFormulas.indexOf(((TemporalUnaryFormula) subFormula).getFormula())
+        ));
+      }
+
+      if (subFormula instanceof TemporalBinaryFormula &&
+        ((TemporalBinaryFormula) subFormula).getTemporalBinaryFormulaType() == TemporalBinaryFormulaType.SINCE) {
+        code.add(CompilerUtils.buildLinePadding(2) + String.format(
+          "pre[%s] = pre[%s]",
+          i,
+          subFormulas.indexOf(((TemporalBinaryFormula) subFormula).getRightFormula())
+        ));
+      }
     }
 
     code.add(CompilerUtils.buildLinePadding(1) + "}");

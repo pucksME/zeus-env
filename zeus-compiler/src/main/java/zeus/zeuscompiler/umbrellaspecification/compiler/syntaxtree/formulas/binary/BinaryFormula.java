@@ -20,6 +20,14 @@ public abstract class BinaryFormula extends Formula {
     this.rightFormula = rightFormula;
   }
 
+  public Formula getLeftFormula() {
+    return leftFormula;
+  }
+
+  public Formula getRightFormula() {
+    return rightFormula;
+  }
+
   @Override
   public List<Formula> getSubFormulas() {
     Optional<Type> leftFormulaTypeOptional = this.leftFormula.evaluateType();

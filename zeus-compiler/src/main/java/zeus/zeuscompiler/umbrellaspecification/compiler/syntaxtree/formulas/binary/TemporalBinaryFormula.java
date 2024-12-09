@@ -27,6 +27,10 @@ public class TemporalBinaryFormula extends BinaryFormula {
     this.temporalBinaryFormulaType = temporalBinaryFormulaType;
   }
 
+  public TemporalBinaryFormulaType getTemporalBinaryFormulaType() {
+    return temporalBinaryFormulaType;
+  }
+
   @Override
   public void check() {
     this.evaluateType();

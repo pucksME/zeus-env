@@ -18,6 +18,10 @@ public abstract class UnaryFormula extends Formula {
     this.formula = formula;
   }
 
+  public Formula getFormula() {
+    return formula;
+  }
+
   @Override
   public List<Formula> getSubFormulas() {
     Optional<Type> formulaTypeOptional = this.formula.evaluateType();

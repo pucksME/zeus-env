@@ -27,6 +27,10 @@ public class LogicalBinaryFormula extends BinaryFormula {
     this.logicalBinaryFormulaType = logicalBinaryFormulaType;
   }
 
+  public LogicalBinaryFormulaType getLogicalBinaryFormulaType() {
+    return logicalBinaryFormulaType;
+  }
+
   @Override
   public void check() {
     this.evaluateType();

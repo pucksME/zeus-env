@@ -10,11 +10,19 @@ import java.util.List;
 import java.util.Optional;
 
 public class LiteralFormula extends Formula {
+  String value;
   LiteralFormulaType literalFormulaType;
 
-  public LiteralFormula(int line, int linePosition, LiteralFormulaType literalFormulaType) {
+  public LiteralFormula(int line, int linePosition, String value, LiteralFormulaType literalFormulaType) {
     super(line, linePosition);
     this.literalFormulaType = literalFormulaType;
+    this.value = (this.literalFormulaType == LiteralFormulaType.STRING)
+      ? value.substring(1, value.length() - 1)
+      : value;
+  }
+
+  public String getValue() {
+    return value;
   }
 
   @Override
