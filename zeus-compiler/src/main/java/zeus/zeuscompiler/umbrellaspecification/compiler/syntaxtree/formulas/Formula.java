@@ -14,4 +14,8 @@ public abstract class Formula extends Node {
   public abstract Optional<Type> evaluateType();
 
   public abstract List<Formula> getSubFormulas();
+
+  public abstract String translatePre(List<Formula> subFormulas);
+
+  public abstract String translateNow(List<Formula> subFormulas);
 }

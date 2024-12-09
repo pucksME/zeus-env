@@ -2,13 +2,11 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.una
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
-import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RequestCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ResponseCodeModule;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RoutingCodeModule;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnknownRoutingCodeModuleException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnsupportedTypeException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveType;
@@ -204,5 +202,15 @@ public class AccessFormula extends UnaryFormula {
     }
 
     return new ArrayList<>(List.of(this));
+  }
+
+  @Override
+  public String translatePre(List<Formula> subFormulas) {
+    return String.format("this.state[%s]", String.join(".", this.buildIdentifiers()));
+  }
+
+  @Override
+  public String translateNow(List<Formula> subFormulas) {
+    return this.translatePre(subFormulas);
   }
 }

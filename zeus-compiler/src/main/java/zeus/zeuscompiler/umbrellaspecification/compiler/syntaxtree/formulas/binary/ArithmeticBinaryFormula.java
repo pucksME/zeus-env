@@ -2,7 +2,6 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.bin
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
-import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -11,6 +10,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Primiti
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ArithmeticBinaryFormula extends BinaryFormula {
@@ -25,10 +25,6 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
   ) {
     super(line, linePosition, leftFormula, rightFormula);
     this.arithmeticBinaryFormulaType = arithmeticBinaryFormulaType;
-  }
-
-  public ArithmeticBinaryFormulaType getArithmeticBinaryFormulaType() {
-    return arithmeticBinaryFormulaType;
   }
 
   @Override
@@ -83,5 +79,34 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
     }
 
     return Optional.of(new PrimitiveType(PrimitiveTypeType.INT));
+  }
+
+  private String translateOperator() {
+    return switch (this.arithmeticBinaryFormulaType) {
+      case ADD -> "+";
+      case SUBTRACT -> "-";
+      case MULTIPLY -> "*";
+      case DIVIDE -> "/";
+    };
+  }
+
+  @Override
+  public String translatePre(List<Formula> subFormulas) {
+    return String.format(
+      "pre[%s] %s pre[%s]",
+      subFormulas.indexOf(this.getLeftFormula()),
+      this.translateOperator(),
+      subFormulas.indexOf(this.getRightFormula())
+    );
+  }
+
+  @Override
+  public String translateNow(List<Formula> subFormulas) {
+    return String.format(
+      "now[%s] %s now[%s]",
+      subFormulas.indexOf(this.getLeftFormula()),
+      this.translateOperator(),
+      subFormulas.indexOf(this.getRightFormula())
+    );
   }
 }

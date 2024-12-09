@@ -1,6 +1,5 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas;
 
-import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveTypeType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
@@ -47,5 +46,15 @@ public class LiteralFormula extends Formula {
     }
 
     return new ArrayList<>(List.of(this));
+  }
+
+  @Override
+  public String translatePre(List<Formula> subFormulas) {
+    return this.getValue();
+  }
+
+  @Override
+  public String translateNow(List<Formula> subFormulas) {
+    return this.translatePre(subFormulas);
   }
 }

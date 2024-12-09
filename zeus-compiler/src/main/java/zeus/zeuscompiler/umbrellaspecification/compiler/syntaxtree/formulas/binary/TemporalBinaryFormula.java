@@ -2,7 +2,6 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.bin
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
-import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -11,6 +10,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Primiti
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
+import java.util.List;
 import java.util.Optional;
 
 public class TemporalBinaryFormula extends BinaryFormula {
@@ -25,10 +25,6 @@ public class TemporalBinaryFormula extends BinaryFormula {
   ) {
     super(line, linePosition, leftFormula, rightFormula);
     this.temporalBinaryFormulaType = temporalBinaryFormulaType;
-  }
-
-  public TemporalBinaryFormulaType getTemporalBinaryFormulaType() {
-    return temporalBinaryFormulaType;
   }
 
   @Override
@@ -74,5 +70,24 @@ public class TemporalBinaryFormula extends BinaryFormula {
     }
 
     return Optional.of(new PrimitiveType(PrimitiveTypeType.BOOLEAN));
+  }
+
+  @Override
+  public String translatePre(List<Formula> subFormulas) {
+    return switch (this.temporalBinaryFormulaType) {
+      case SINCE -> String.format("pre[%s]", subFormulas.indexOf(this.rightFormula));
+    };
+  }
+
+  @Override
+  public String translateNow(List<Formula> subFormulas) {
+    return switch (this.temporalBinaryFormulaType) {
+      case SINCE -> String.format(
+        "(pre[%s] && now[%s]) || now[%s]",
+        subFormulas.indexOf(this),
+        subFormulas.indexOf(this.leftFormula),
+        subFormulas.indexOf(this.rightFormula)
+      );
+    };
   }
 }

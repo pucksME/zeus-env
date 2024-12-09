@@ -2,7 +2,6 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.bin
 
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
-import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -11,6 +10,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Primiti
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
+import java.util.List;
 import java.util.Optional;
 
 public class LogicalBinaryFormula extends BinaryFormula {
@@ -25,10 +25,6 @@ public class LogicalBinaryFormula extends BinaryFormula {
   ) {
     super(line, linePosition, leftFormula, rightFormula);
     this.logicalBinaryFormulaType = logicalBinaryFormulaType;
-  }
-
-  public LogicalBinaryFormulaType getLogicalBinaryFormulaType() {
-    return logicalBinaryFormulaType;
   }
 
   @Override
@@ -73,5 +69,35 @@ public class LogicalBinaryFormula extends BinaryFormula {
     }
 
     return Optional.of(new PrimitiveType(PrimitiveTypeType.BOOLEAN));
+  }
+
+  private String translateOperator() {
+    return switch (this.logicalBinaryFormulaType) {
+      case AND -> "&&";
+      case OR -> "||";
+      case IMPLICATION -> throw new RuntimeException("Could not generate monitor: unhandled implication");
+    };
+  }
+
+  @Override
+  public String translatePre(List<Formula> subFormulas) {
+    return String.format(
+      "%spre[%s] %s pre[%s]",
+      (this.logicalBinaryFormulaType == LogicalBinaryFormulaType.IMPLICATION) ? "!" : "",
+      subFormulas.indexOf(this.getLeftFormula()),
+      (this.logicalBinaryFormulaType == LogicalBinaryFormulaType.IMPLICATION) ? "||" : this.translateOperator(),
+      subFormulas.indexOf(this.getRightFormula())
+    );
+  }
+
+  @Override
+  public String translateNow(List<Formula> subFormulas) {
+    return String.format(
+      "%snow[%s] %s now[%s]",
+      (this.logicalBinaryFormulaType == LogicalBinaryFormulaType.IMPLICATION) ? "!" : "",
+      subFormulas.indexOf(this.getLeftFormula()),
+      (this.logicalBinaryFormulaType == LogicalBinaryFormulaType.IMPLICATION) ? "||" : this.translateOperator(),
+      subFormulas.indexOf(this.getRightFormula())
+    );
   }
 }
