@@ -60,6 +60,31 @@ public class CompareBinaryFormula extends BinaryFormula {
     return Optional.of(new PrimitiveType(PrimitiveTypeType.BOOLEAN));
   }
 
+  private boolean hasDirectTranslation() {
+    if (this.compareBinaryFormulaType == CompareBinaryFormulaType.EQUAL ||
+      this.compareBinaryFormulaType == CompareBinaryFormulaType.NOT_EQUAL) {
+      Optional<Type> typeOptional = this.leftFormula.evaluateType();
+      if (typeOptional.isEmpty()) {
+        return false;
+      }
+
+      Type type = typeOptional.get();
+      return !(type instanceof PrimitiveType && ((PrimitiveType) type).getType() == PrimitiveTypeType.BOOLEAN);
+    }
+
+    return true;
+  }
+
+  @Override
+  public String translate() {
+    return String.format(
+      "%s %s %s",
+      this.leftFormula.translate(),
+      this.translateOperator(),
+      this.rightFormula.translate()
+    );
+  }
+
   private String translateOperator() {
     return switch (this.compareBinaryFormulaType) {
       case EQUAL -> "==";
@@ -73,6 +98,10 @@ public class CompareBinaryFormula extends BinaryFormula {
 
   @Override
   public String translatePre(List<Formula> subFormulas) {
+    if (this.hasDirectTranslation()) {
+      return this.translate();
+    }
+
     return String.format(
       "pre[%s] %s pre[%s]",
       subFormulas.indexOf(this.getLeftFormula()),
@@ -83,6 +112,10 @@ public class CompareBinaryFormula extends BinaryFormula {
 
   @Override
   public String translateNow(List<Formula> subFormulas) {
+    if (this.hasDirectTranslation()) {
+      return this.translate();
+    }
+
     return String.format(
       "now[%s] %s now[%s]",
       subFormulas.indexOf(this.getLeftFormula()),

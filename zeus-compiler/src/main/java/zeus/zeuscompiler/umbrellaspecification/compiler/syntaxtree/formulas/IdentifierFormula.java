@@ -45,6 +45,11 @@ public class IdentifierFormula extends Formula {
   }
 
   @Override
+  public String translate() {
+    throw new RuntimeException("Could not directly translate identifier formula");
+  }
+
+  @Override
   public String translatePre(List<Formula> subFormulas) {
     throw new RuntimeException("Could not translate identifier formula (pre)");
   }

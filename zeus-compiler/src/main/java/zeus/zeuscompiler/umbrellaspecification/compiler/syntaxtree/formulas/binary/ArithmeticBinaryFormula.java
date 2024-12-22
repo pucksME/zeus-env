@@ -81,6 +81,16 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
     return Optional.of(new PrimitiveType(PrimitiveTypeType.INT));
   }
 
+  @Override
+  public String translate() {
+    return String.format(
+      "%s %s %s",
+      this.leftFormula.translate(),
+      this.translateOperator(),
+      this.rightFormula.translate()
+    );
+  }
+
   private String translateOperator() {
     return switch (this.arithmeticBinaryFormulaType) {
       case ADD -> "+";
@@ -92,21 +102,11 @@ public class ArithmeticBinaryFormula extends BinaryFormula {
 
   @Override
   public String translatePre(List<Formula> subFormulas) {
-    return String.format(
-      "pre[%s] %s pre[%s]",
-      subFormulas.indexOf(this.getLeftFormula()),
-      this.translateOperator(),
-      subFormulas.indexOf(this.getRightFormula())
-    );
+    return this.translate();
   }
 
   @Override
   public String translateNow(List<Formula> subFormulas) {
-    return String.format(
-      "now[%s] %s now[%s]",
-      subFormulas.indexOf(this.getLeftFormula()),
-      this.translateOperator(),
-      subFormulas.indexOf(this.getRightFormula())
-    );
+    return this.translate();
   }
 }

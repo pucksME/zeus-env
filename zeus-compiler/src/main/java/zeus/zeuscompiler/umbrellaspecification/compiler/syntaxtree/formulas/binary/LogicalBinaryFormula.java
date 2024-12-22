@@ -71,6 +71,11 @@ public class LogicalBinaryFormula extends BinaryFormula {
     return Optional.of(new PrimitiveType(PrimitiveTypeType.BOOLEAN));
   }
 
+  @Override
+  public String translate() {
+    throw new RuntimeException("Could not directly translate logical binary formula");
+  }
+
   private String translateOperator() {
     return switch (this.logicalBinaryFormulaType) {
       case AND -> "&&";

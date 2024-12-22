@@ -73,6 +73,11 @@ public class TemporalBinaryFormula extends BinaryFormula {
   }
 
   @Override
+  public String translate() {
+    throw new RuntimeException("Could not directly translate temporal binary formula");
+  }
+
+  @Override
   public String translatePre(List<Formula> subFormulas) {
     return switch (this.temporalBinaryFormulaType) {
       case SINCE -> String.format("pre[%s]", subFormulas.indexOf(this.rightFormula));

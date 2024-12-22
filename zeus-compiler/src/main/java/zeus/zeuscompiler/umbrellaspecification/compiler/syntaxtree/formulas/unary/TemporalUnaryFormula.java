@@ -56,6 +56,11 @@ public class TemporalUnaryFormula extends UnaryFormula {
   }
 
   @Override
+  public String translate() {
+    throw new RuntimeException("Could not directly translate temporal unary formula");
+  }
+
+  @Override
   public String translatePre(List<Formula> subFormulas) {
     return String.format("pre[%s]", subFormulas.indexOf(this.getFormula()));
   }

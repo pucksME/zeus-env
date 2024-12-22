@@ -49,8 +49,13 @@ public class LiteralFormula extends Formula {
   }
 
   @Override
-  public String translatePre(List<Formula> subFormulas) {
+  public String translate() {
     return this.getValue();
+  }
+
+  @Override
+  public String translatePre(List<Formula> subFormulas) {
+    return this.translate();
   }
 
   @Override

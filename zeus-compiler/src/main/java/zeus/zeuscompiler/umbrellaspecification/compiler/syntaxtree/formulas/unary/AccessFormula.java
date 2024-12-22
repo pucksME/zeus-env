@@ -205,8 +205,13 @@ public class AccessFormula extends UnaryFormula {
   }
 
   @Override
-  public String translatePre(List<Formula> subFormulas) {
+  public String translate() {
     return String.format("this.state[%s]", String.join(".", this.buildIdentifiers()));
+  }
+
+  @Override
+  public String translatePre(List<Formula> subFormulas) {
+    return this.translate();
   }
 
   @Override
