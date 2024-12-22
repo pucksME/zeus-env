@@ -5,17 +5,17 @@ import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveTypeType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 
 import java.util.List;
 import java.util.Optional;
 
 
-public class LogicalNotFormula extends UnaryFormula {
-  public LogicalNotFormula(int line, int linePosition, Formula formula) {
+public class ArithmeticNegativeFormula extends UnaryFormula {
+  public ArithmeticNegativeFormula(int line, int linePosition, Formula formula) {
     super(line, linePosition, formula);
   }
 
@@ -35,7 +35,8 @@ public class LogicalNotFormula extends UnaryFormula {
     Type formulaType = formulaTypeOptional.get();
 
     if (!(formulaType instanceof PrimitiveType) ||
-      ((PrimitiveType) formulaType).getType() != PrimitiveTypeType.BOOLEAN) {
+      (((PrimitiveType) formulaType).getType() != PrimitiveTypeType.INT &&
+        ((PrimitiveType) formulaType).getType() != PrimitiveTypeType.FLOAT)) {
       ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),
@@ -45,21 +46,21 @@ public class LogicalNotFormula extends UnaryFormula {
       return Optional.empty();
     }
 
-    return Optional.of(new PrimitiveType(PrimitiveTypeType.BOOLEAN));
+    return Optional.of(new PrimitiveType(((PrimitiveType) formulaType).getType()));
   }
 
   @Override
   public String translate() {
-    throw new RuntimeException("Could not directly translate logical not formula");
+    return String.format("%s%s", "-", this.formula.translate());
   }
 
   @Override
   public String translatePre(List<Formula> subFormulas) {
-    return String.format("!pre[%s]", subFormulas.indexOf(this.getFormula()));
+    return this.translate();
   }
 
   @Override
   public String translateNow(List<Formula> subFormulas) {
-    return String.format("!now[%s]", subFormulas.indexOf(this.getFormula()));
+    return this.translate();
   }
 }

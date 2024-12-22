@@ -16,6 +16,7 @@ formula : ID                                                                    
         | '(' formula ')'                                                               # ParenthesisFormula
         | ID OPERATOR_ACCESS formula                                                    # AccessFormula
         | OPERATOR_NOT formula                                                          # LogicalNotFormula
+        | OPERATOR_SUBTRACT formula                                                     # ArithmeticNegativeFormula
         | operator=(
             OPERATOR_YEASTERDAY
           | OPERATOR_ONCE

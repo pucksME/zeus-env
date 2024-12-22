@@ -8,10 +8,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Iden
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.LiteralFormula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.LiteralFormulaType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.*;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.AccessFormula;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.LogicalNotFormula;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.TemporalUnaryFormula;
-import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.TemporalUnaryFormulaType;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.*;
 
 import java.util.HashMap;
 
@@ -151,6 +148,15 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
   @Override
   public Object visitLogicalNotFormula(UmbrellaSpecificationParser.LogicalNotFormulaContext ctx) {
     return new LogicalNotFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula())
+    );
+  }
+
+  @Override
+  public Object visitArithmeticNegativeFormula(UmbrellaSpecificationParser.ArithmeticNegativeFormulaContext ctx) {
+    return new ArithmeticNegativeFormula(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       (Formula) this.visit(ctx.formula())
