@@ -5,6 +5,7 @@ import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class UmbrellaSpecification extends Node {
   String id;
@@ -38,8 +39,8 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + String.format("public Specification%s() {", this.id));
     code.add(CompilerUtils.buildLinePadding(2) + "this.state = new HashMap<>();");
     List<Formula> subFormulas = this.formula.getSubFormulas();
-    code.add(CompilerUtils.buildLinePadding(2) + String.format("this.pre = new boolean[%s]", subFormulas.size()));
-    code.add(CompilerUtils.buildLinePadding(2) + String.format("this.now = new boolean[%s]", subFormulas.size()));
+    code.add(CompilerUtils.buildLinePadding(2) + String.format("this.pre = new boolean[%s];", subFormulas.size()));
+    code.add(CompilerUtils.buildLinePadding(2) + String.format("this.now = new boolean[%s];", subFormulas.size()));
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("");
     code.add(CompilerUtils.buildLinePadding(1) + "@Overwrite");
@@ -48,15 +49,35 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(2) + "SpecificationService.addRequest(request, specificationIdentifier);");
     code.add(CompilerUtils.buildLinePadding(2) + "this.state = requests.get(0).getVariables();");
 
-    for (int i = 0; i < subFormulas.size(); i++) {
-      Formula subFormula = subFormulas.get(i);
+    for (int i = subFormulas.size() - 1; i >= 0; i--) {
       code.add(CompilerUtils.buildLinePadding(2) + String.format(
-        "pre[%s] = %s",
+        "pre[%s] = %s;",
         i,
-        subFormula.translatePre(subFormulas)
+        subFormulas.get(i).translatePre(subFormulas)
       ));
     }
 
+    code.add(CompilerUtils.buildLinePadding(2) + "for (int i = 2; i < requests.size(); i++) {");
+    code.add(CompilerUtils.buildLinePadding(3) + "this.state = requests.get(i).getVariables();");
+
+    for (int i = subFormulas.size() - 1; i >= 0; i--) {
+      code.add(CompilerUtils.buildLinePadding(3) + String.format(
+        "now[%s] = %s;",
+        i,
+        subFormulas.get(i).translateNow(subFormulas)
+      ));
+    }
+
+    code.add(CompilerUtils.buildLinePadding(2) + "}");
+
+    code.add(CompilerUtils.buildLinePadding(2) + String.format(
+      "for (int i = 0; i < %s; i++) {",
+      subFormulas.size()
+    ));
+    code.add(CompilerUtils.buildLinePadding(3) + "pre[i] = now[i];");
+    code.add(CompilerUtils.buildLinePadding(2) + "}");
+
+    code.add(CompilerUtils.buildLinePadding(2) + "return now[0];");
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("}");
 
