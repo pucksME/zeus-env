@@ -10,9 +10,11 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SpecificationService {
   private static SpecificationService specificationService;
   private static ConcurrentHashMap<SpecificationIdentifier, List<Specification>> specifications;
+  private static List<Request> requests;
 
   private SpecificationService() {
     SpecificationService.specifications = new ConcurrentHashMap<>();
+    SpecificationService.requests = new ArrayList<>();
   }
 
   public static void initialize() {
@@ -27,6 +29,14 @@ public class SpecificationService {
     }
 
     SpecificationService.specifications.get(specificationIdentifier).add(specification);
+  }
+
+  public void addRequest(Request request) {
+    SpecificationService.requests.add(request);
+  }
+
+  public static List<Request> getRequests() {
+    return requests;
   }
 
   public static boolean verify(SpecificationIdentifier specificationIdentifier) {
