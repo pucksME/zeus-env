@@ -206,7 +206,28 @@ public class AccessFormula extends UnaryFormula {
 
   @Override
   public String translate() {
-    return String.format("this.state[%s]", String.join(".", this.buildIdentifiers()));
+    Optional<Type> typeOptional = this.evaluateType();
+
+    if (typeOptional.isEmpty()) {
+      throw new RuntimeException("Could not directly translate access formula: type evaluation failed");
+    }
+
+    Type type = typeOptional.get();
+
+    if (!(type instanceof PrimitiveType)) {
+      throw new RuntimeException("Could not directly translate access formula: unsupported type");
+    }
+
+    return String.format(
+      "%s(\"%s\", this.state)",
+      switch (((PrimitiveType) type).getType()) {
+        case INT -> "this.getVariableValueAsInt";
+        case FLOAT -> "this.getVariableValueAsFloat";
+        case STRING -> "this.getVariableValueAsString";
+        case BOOLEAN -> "this.getVariableAsBoolean";
+      },
+      String.join(".", this.buildIdentifiers())
+    );
   }
 
   @Override

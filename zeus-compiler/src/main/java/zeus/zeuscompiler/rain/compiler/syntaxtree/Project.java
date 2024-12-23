@@ -141,7 +141,11 @@ public class Project extends Node {
           .flatMap(serverUmbrellaSpecificationTranslations -> serverUmbrellaSpecificationTranslations.getValue().entrySet().stream()
             .map(routeUmbrellaSpecificationTranslations -> new ExportedFileDto(
               routeUmbrellaSpecificationTranslations.getValue(),
-              serverUmbrellaSpecificationTranslations.getKey() + routeUmbrellaSpecificationTranslations.getKey()
+              String.format(
+                "%s%s.jar",
+                serverUmbrellaSpecificationTranslations.getKey(),
+                routeUmbrellaSpecificationTranslations.getKey()
+              )
             )))
           .toList()
       ))

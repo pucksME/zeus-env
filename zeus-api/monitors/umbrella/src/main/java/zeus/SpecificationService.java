@@ -1,10 +1,12 @@
 package zeus;
 
 import zeus.specification.Action;
+import zeus.specification.InvalidBooleanVariableValueException;
 import zeus.specification.Specification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SpecificationService {
@@ -31,11 +33,11 @@ public class SpecificationService {
     SpecificationService.specifications.get(specificationIdentifier).add(specification);
   }
 
-  public void addRequest(Request request) {
+  public void addRequest(SpecificationIdentifier specificationIdentifier, Request request) {
     SpecificationService.requests.add(request);
   }
 
-  public static List<Request> getRequests() {
+  public static List<Request> getRequests(SpecificationIdentifier specificationIdentifier) {
     return requests;
   }
 
@@ -45,7 +47,16 @@ public class SpecificationService {
     }
 
     for (Specification specification : SpecificationService.specifications.get(specificationIdentifier)) {
-      boolean result = specification.verify();
+      boolean result = false;
+      try {
+        result = specification.verify();
+      } catch (NoSuchElementException noSuchElementException) {
+        return false;
+      } catch (NumberFormatException numberFormatException) {
+        return false;
+      } catch (InvalidBooleanVariableValueException invalidBooleanVariableValueException) {
+        return false;
+      }
 
       if (result && specification.getAction() == Action.BLOCK) {
         return false;

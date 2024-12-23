@@ -1,12 +1,16 @@
 package zeus;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Request {
   boolean isPost;
@@ -47,6 +51,7 @@ public class Request {
       if (!this.payload.isValid()) {
         this.payload = null;
       }
+      this.getVariables();
     } catch (JsonSyntaxException jsonSyntaxException) {
       this.payload = null;
     }
@@ -54,5 +59,33 @@ public class Request {
 
   public boolean isValid() {
     return this.isPost && this.isApplicationJson && this.payload != null;
+  }
+
+  private Map<String, String> getVariables(String identifier, Set<Map.Entry<String, JsonElement>> entrySet) {
+    Map<String, String> variables = new HashMap<>();
+
+    for (Map.Entry<String, JsonElement> entry : entrySet) {
+      identifier = String.format("%s.%s", identifier, entry.getKey());
+
+      if (entry.getValue() instanceof JsonObject) {
+        variables = Stream.concat(
+          variables.entrySet().stream(),
+          this.getVariables(identifier, ((JsonObject) entry.getValue()).entrySet()).entrySet().stream()
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      }
+
+      if (entry.getValue() instanceof JsonPrimitive) {
+        variables.put(identifier, entry.getValue().toString());
+      }
+    }
+
+    return variables;
+  }
+
+  public Map<String, String> getVariables() {
+    return Stream.concat(
+      this.getVariables("url", this.payload.urlParameters.entrySet()).entrySet().stream(),
+      this.getVariables("body", this.payload.bodyPayload.entrySet()).entrySet().stream()
+    ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
   }
 }

@@ -46,7 +46,7 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "@Overwrite");
     code.add(CompilerUtils.buildLinePadding(1) + "public boolean verify(Request request, SpecificationIdentifier specificationIdentifier) {");
     code.add(CompilerUtils.buildLinePadding(2) + "List<Request> requests = Stream.concat(SpecificationService.getRequests(specificationIdentifier).stream(), Stream.of(request)).toList();");
-    code.add(CompilerUtils.buildLinePadding(2) + "SpecificationService.addRequest(request, specificationIdentifier);");
+    code.add(CompilerUtils.buildLinePadding(2) + "SpecificationService.addRequest(specificationIdentifier, request);");
     code.add(CompilerUtils.buildLinePadding(2) + "this.state = requests.get(0).getVariables();");
 
     for (int i = subFormulas.size() - 1; i >= 0; i--) {
@@ -56,7 +56,7 @@ public class UmbrellaSpecification extends Node {
         subFormulas.get(i).translatePre(subFormulas)
       ));
     }
-
+    code.add("");
     code.add(CompilerUtils.buildLinePadding(2) + "for (int i = 2; i < requests.size(); i++) {");
     code.add(CompilerUtils.buildLinePadding(3) + "this.state = requests.get(i).getVariables();");
 
@@ -69,14 +69,14 @@ public class UmbrellaSpecification extends Node {
     }
 
     code.add(CompilerUtils.buildLinePadding(2) + "}");
-
+    code.add("");
     code.add(CompilerUtils.buildLinePadding(2) + String.format(
       "for (int i = 0; i < %s; i++) {",
       subFormulas.size()
     ));
     code.add(CompilerUtils.buildLinePadding(3) + "pre[i] = now[i];");
     code.add(CompilerUtils.buildLinePadding(2) + "}");
-
+    code.add("");
     code.add(CompilerUtils.buildLinePadding(2) + "return now[0];");
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("}");
