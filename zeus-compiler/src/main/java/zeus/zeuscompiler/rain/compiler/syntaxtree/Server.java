@@ -39,7 +39,7 @@ public class Server extends Node {
 
         for (Route route : this.routes) {
             ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ServerRouteSymbolTableIdentifier(this.name, route.id));
-            umbrellaSpecificationTranslations.put(route.id, route.translateUmbrellaSpecification());
+            umbrellaSpecificationTranslations.put(route.id, route.translateUmbrellaSpecification(this.name, route.id));
         }
 
         ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ClientSymbolTableIdentifier());

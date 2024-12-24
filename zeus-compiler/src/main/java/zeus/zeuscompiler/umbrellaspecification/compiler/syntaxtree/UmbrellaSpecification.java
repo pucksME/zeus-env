@@ -2,10 +2,8 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.utils.CompilerUtils;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class UmbrellaSpecification extends Node {
   String id;
@@ -26,12 +24,14 @@ public class UmbrellaSpecification extends Node {
   // Monitor generation algorithm adapted from
   // Havelund, Klaus, and Grigore Roşu. "Efficient monitoring of safety properties."
   // International Journal on Software Tools for Technology Transfer 6 (2004): 158-173.
-  public String translate() {
+  public String translate(String serverName, String routeId) {
     ArrayList<String> code = new ArrayList<>();
+    code.add("package zeus;");
+    code.add("");
     code.add("import java.util.HashMap;");
     code.add("import java.util.stream.Stream;");
     code.add("");
-    code.add(String.format("public class Specification%s extends Specification {", this.id));
+    code.add(String.format("public class Specification%s%s%s extends Specification {", serverName, routeId, this.id));
     code.add(CompilerUtils.buildLinePadding(1) + "HashMap<String, String> state;");
     code.add(CompilerUtils.buildLinePadding(1) + "boolean[] pre;");
     code.add(CompilerUtils.buildLinePadding(1) + "boolean[] now;");

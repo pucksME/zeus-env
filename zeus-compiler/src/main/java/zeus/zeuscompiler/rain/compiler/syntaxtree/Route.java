@@ -51,8 +51,8 @@ public class Route extends Node {
         return (this.bootsSpecification != null) ? this.bootsSpecification.translate() : new HashMap<>();
     }
 
-    public HashMap<String, String> translateUmbrellaSpecification() {
-        return (this.umbrellaSpecifications != null) ? this.umbrellaSpecifications.translate() : new HashMap<>();
+    public HashMap<String, String> translateUmbrellaSpecification(String serverName, String routeId) {
+        return (this.umbrellaSpecifications != null) ? this.umbrellaSpecifications.translate(serverName, routeId) : new HashMap<>();
     }
 
     private String translateRequestMethod(ExportTarget exportTarget) {

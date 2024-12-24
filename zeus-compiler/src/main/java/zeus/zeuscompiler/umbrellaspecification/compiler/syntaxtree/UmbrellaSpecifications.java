@@ -1,8 +1,6 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
-import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,11 +17,11 @@ public class UmbrellaSpecifications extends Node {
     this.umbrellaSpecifications.values().forEach(UmbrellaSpecification::check);
   }
 
-  public HashMap<String, String> translate() {
+  public HashMap<String, String> translate(String serverName, String routeId) {
     HashMap<String, String> translation = new HashMap<>();
 
     for (Map.Entry<String, UmbrellaSpecification> idSpecification : this.umbrellaSpecifications.entrySet()) {
-      translation.put(idSpecification.getKey(), idSpecification.getValue().translate());
+      translation.put(idSpecification.getKey(), idSpecification.getValue().translate(serverName, routeId));
     }
 
     return translation;
@@ -50,5 +48,9 @@ public class UmbrellaSpecifications extends Node {
   public void setUmbrellaSpecificationAction(String id, int line, int linePosition, Action action) {
     initializeUmbrellaSpecification(id, line, linePosition);
     this.umbrellaSpecifications.get(id).setAction(action);
+  }
+
+  public Map<String, UmbrellaSpecification> getUmbrellaSpecifications() {
+    return umbrellaSpecifications;
   }
 }

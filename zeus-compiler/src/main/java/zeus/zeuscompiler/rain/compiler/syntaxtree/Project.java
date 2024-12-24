@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Project extends Node {
   List<Element> elements;
@@ -122,6 +123,56 @@ public class Project extends Node {
     )));
   }
 
+  private String translateUmbrellaSpecificationsInitialization() {
+    ArrayList<String> code = new ArrayList<>();
+    code.add("package zeus;");
+    code.add("");
+
+    for (Server server : this.servers) {
+      for (Route route : server.routes) {
+        if (route.umbrellaSpecifications == null) {
+          continue;
+        }
+
+        for (String id : route.umbrellaSpecifications.getUmbrellaSpecifications().keySet()) {
+          code.add(String.format("import zeus.specification.Specification%s%s%s;", server.name, route.id, id));
+        }
+      }
+    }
+
+    code.add("");
+    code.add("public class SpecificationInitializationService {");
+    code.add(CompilerUtils.buildLinePadding(1) + "private SpecificationInitializationService() {");
+    code.add(CompilerUtils.buildLinePadding(1) + "}");
+    code.add("");
+    code.add(CompilerUtils.buildLinePadding(1) + "public static initialize() {");
+
+    for (Server server : this.servers) {
+      for (Route route : server.routes) {
+        if (route.umbrellaSpecifications == null) {
+          continue;
+        }
+
+        for (String id : route.umbrellaSpecifications.getUmbrellaSpecifications().keySet()) {
+          code.add(CompilerUtils.buildLinePadding(2) + String.format(
+            "SpecificationService.register(new SpecificationIdentifier(\"%s\", \"%s\", \"%s\"), new Specification%s%s%s())",
+            server.name,
+            route.id,
+            id,
+            server.name,
+            route.id,
+            id
+          ));
+        }
+      }
+    }
+
+    code.add(CompilerUtils.buildLinePadding(1) + "}");
+    code.add("}");
+
+    return String.join("\n", code);
+  }
+
   public List<ExportedServerDto> translateServers(ExportTarget exportTarget) {
     return this.servers.stream()
       .map(server -> new ExportedServerDto(
@@ -137,16 +188,22 @@ public class Project extends Node {
               String.format("%s-%s.py", bootsSpecificationTranslations.getKey(), bootsSpecificationTranslation.getKey())
             )))
           .toList(),
-        server.translateUmbrellaSpecifications().entrySet().stream()
-          .flatMap(serverUmbrellaSpecificationTranslations -> serverUmbrellaSpecificationTranslations.getValue().entrySet().stream()
-            .map(routeUmbrellaSpecificationTranslations -> new ExportedFileDto(
-              routeUmbrellaSpecificationTranslations.getValue(),
-              String.format(
-                "%s%s.jar",
-                serverUmbrellaSpecificationTranslations.getKey(),
-                routeUmbrellaSpecificationTranslations.getKey()
-              )
-            )))
+        Stream.concat(
+          server.translateUmbrellaSpecifications().entrySet().stream()
+            .flatMap(serverUmbrellaSpecificationTranslations -> serverUmbrellaSpecificationTranslations.getValue().entrySet().stream()
+              .map(routeUmbrellaSpecificationTranslations -> new ExportedFileDto(
+                routeUmbrellaSpecificationTranslations.getValue(),
+                String.format(
+                  "Specification%s%s.jar",
+                  serverUmbrellaSpecificationTranslations.getKey(),
+                  routeUmbrellaSpecificationTranslations.getKey()
+                )
+              ))),
+            Stream.of(new ExportedFileDto(
+              this.translateUmbrellaSpecificationsInitialization(),
+              "SpecificationInitializationService.jar"
+              ))
+          )
           .toList()
       ))
       .toList();

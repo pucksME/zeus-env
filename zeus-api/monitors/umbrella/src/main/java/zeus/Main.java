@@ -10,6 +10,7 @@ public class Main {
   public static void main(String[] args) throws IOException {
     System.out.println("On-runtime, temporal, formal verification monitor");
     SpecificationService.initialize();
+    SpecificationInitializationService.initialize();
 
     try (ServerSocket serverSocket = new ServerSocket(8081)) {
       ExecutorService executorService = Executors.newCachedThreadPool();
