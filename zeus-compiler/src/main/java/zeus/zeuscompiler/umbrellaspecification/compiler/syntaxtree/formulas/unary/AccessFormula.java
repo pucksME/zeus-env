@@ -224,7 +224,7 @@ public class AccessFormula extends UnaryFormula {
         case INT -> "this.getVariableValueAsInt";
         case FLOAT -> "this.getVariableValueAsFloat";
         case STRING -> "this.getVariableValueAsString";
-        case BOOLEAN -> "this.getVariableAsBoolean";
+        case BOOLEAN -> "this.getVariableValueAsBoolean";
       },
       String.join(".", this.buildIdentifiers())
     );

@@ -9,12 +9,10 @@ import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -127,6 +125,8 @@ public class Project extends Node {
     ArrayList<String> code = new ArrayList<>();
     code.add("package zeus;");
     code.add("");
+    code.add("import zeus.specification.Context;");
+    code.add("import zeus.specification.Action;");
 
     for (Server server : this.servers) {
       for (Route route : server.routes) {
@@ -145,7 +145,7 @@ public class Project extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "private SpecificationInitializationService() {");
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("");
-    code.add(CompilerUtils.buildLinePadding(1) + "public static initialize() {");
+    code.add(CompilerUtils.buildLinePadding(1) + "public static void initialize() {");
 
     for (Server server : this.servers) {
       for (Route route : server.routes) {
@@ -153,15 +153,17 @@ public class Project extends Node {
           continue;
         }
 
-        for (String id : route.umbrellaSpecifications.getUmbrellaSpecifications().keySet()) {
+        for (Map.Entry<String, UmbrellaSpecification> entry : route.umbrellaSpecifications.getUmbrellaSpecifications().entrySet()) {
           code.add(CompilerUtils.buildLinePadding(2) + String.format(
-            "SpecificationService.register(new SpecificationIdentifier(\"%s\", \"%s\", \"%s\"), new Specification%s%s%s())",
+            "SpecificationService.register(new SpecificationIdentifier(\"%s\", \"%s\", \"%s\"), new Specification%s%s%s(%s, %s));",
             server.name,
             route.id,
-            id,
+            entry.getKey(),
             server.name,
             route.id,
-            id
+            entry.getKey(),
+            entry.getValue().translateContext(),
+            entry.getValue().translateAction()
           ));
         }
       }
@@ -194,14 +196,15 @@ public class Project extends Node {
               .map(routeUmbrellaSpecificationTranslations -> new ExportedFileDto(
                 routeUmbrellaSpecificationTranslations.getValue(),
                 String.format(
-                  "Specification%s%s.jar",
+                  "Specification%s%s%s.java",
+                  server.name,
                   serverUmbrellaSpecificationTranslations.getKey(),
                   routeUmbrellaSpecificationTranslations.getKey()
                 )
               ))),
             Stream.of(new ExportedFileDto(
               this.translateUmbrellaSpecificationsInitialization(),
-              "SpecificationInitializationService.jar"
+              "SpecificationInitializationService.java"
               ))
           )
           .toList()

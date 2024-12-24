@@ -33,7 +33,7 @@ public class SpecificationService {
     SpecificationService.specifications.get(specificationIdentifier).add(specification);
   }
 
-  public void addRequest(SpecificationIdentifier specificationIdentifier, Request request) {
+  public static void addRequest(SpecificationIdentifier specificationIdentifier, Request request) {
     SpecificationService.requests.add(request);
   }
 
@@ -41,7 +41,7 @@ public class SpecificationService {
     return requests;
   }
 
-  public static boolean verify(SpecificationIdentifier specificationIdentifier) {
+  public static boolean verify(Request request, SpecificationIdentifier specificationIdentifier) {
     if (!SpecificationService.specifications.containsKey(specificationIdentifier)) {
       return true;
     }
@@ -49,7 +49,7 @@ public class SpecificationService {
     for (Specification specification : SpecificationService.specifications.get(specificationIdentifier)) {
       boolean result = false;
       try {
-        result = specification.verify();
+        result = specification.verify(request, specificationIdentifier);
       } catch (NoSuchElementException noSuchElementException) {
         return false;
       } catch (NumberFormatException numberFormatException) {
