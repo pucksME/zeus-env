@@ -10,7 +10,6 @@ public class Main {
   public static void main(String[] args) throws IOException {
     System.out.println("On-runtime, temporal, formal verification monitor");
     SpecificationService.initialize();
-    SpecificationInitializationService.initialize();
 
     try (ServerSocket serverSocket = new ServerSocket(8081)) {
       ExecutorService executorService = Executors.newCachedThreadPool();
@@ -27,7 +26,9 @@ public class Main {
               return;
             }
 
-            SpecificationService.verify(
+            SpecificationInitializationService.initialize(request.payload.context);
+
+            boolean result = SpecificationService.verify(
               request,
               new SpecificationIdentifier(
                 request.payload.context,
@@ -36,7 +37,7 @@ public class Main {
               )
             );
 
-            socket.getOutputStream().write(new Response(200).toBytes());
+            socket.getOutputStream().write(new Response((result) ? 200 : 403).toBytes());
             socket.close();
           } catch (IOException ioException) {
             ioException.printStackTrace();

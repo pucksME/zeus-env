@@ -65,17 +65,15 @@ public class Request {
     Map<String, String> variables = new HashMap<>();
 
     for (Map.Entry<String, JsonElement> entry : entrySet) {
-      identifier = String.format("%s.%s", identifier, entry.getKey());
-
       if (entry.getValue() instanceof JsonObject) {
         variables = Stream.concat(
           variables.entrySet().stream(),
-          this.getVariables(identifier, ((JsonObject) entry.getValue()).entrySet()).entrySet().stream()
+          this.getVariables(String.format("%s.%s", identifier, entry.getKey()), ((JsonObject) entry.getValue()).entrySet()).entrySet().stream()
         ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       }
 
       if (entry.getValue() instanceof JsonPrimitive) {
-        variables.put(identifier, entry.getValue().toString());
+        variables.put(String.format("%s.%s", identifier, entry.getKey()), entry.getValue().getAsString());
       }
     }
 
@@ -84,8 +82,8 @@ public class Request {
 
   public Map<String, String> getVariables() {
     return Stream.concat(
-      this.getVariables("url", this.payload.urlParameters.entrySet()).entrySet().stream(),
-      this.getVariables("body", this.payload.bodyPayload.entrySet()).entrySet().stream()
+      this.getVariables("request.url", this.payload.urlParameters.entrySet()).entrySet().stream(),
+      this.getVariables("request.body", this.payload.bodyPayload.entrySet()).entrySet().stream()
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
   }
 }

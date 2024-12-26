@@ -17,6 +17,10 @@ public class Response {
     if (statusCode == 400) {
       this.payload.addProperty("status", "invalid request");
     }
+
+    if (statusCode == 403) {
+      this.payload.addProperty("status", "forbidden");
+    }
   }
 
   public byte[] toBytes() {

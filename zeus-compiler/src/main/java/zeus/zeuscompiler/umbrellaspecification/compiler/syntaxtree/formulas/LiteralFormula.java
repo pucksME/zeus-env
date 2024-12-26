@@ -50,7 +50,9 @@ public class LiteralFormula extends Formula {
 
   @Override
   public String translate() {
-    return this.getValue();
+    return (this.literalFormulaType == LiteralFormulaType.STRING)
+      ? String.format("\"%s\"", this.getValue())
+      : this.getValue();
   }
 
   @Override

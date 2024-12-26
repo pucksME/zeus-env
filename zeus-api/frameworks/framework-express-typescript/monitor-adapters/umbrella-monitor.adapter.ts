@@ -14,7 +14,9 @@ export function umbrellaMonitorAdapter(
     `--data '${JSON.stringify({
       urlParameters: req.params,
       bodyPayload: req.body,
-      ip: req.ip
+      context: req.ip,
+      server: server,
+      route: route
     })}'`,
     'localhost:8081'
   ].join(' '), (error, stdout, stderr) => {

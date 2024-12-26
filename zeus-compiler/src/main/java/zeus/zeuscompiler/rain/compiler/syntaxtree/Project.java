@@ -9,6 +9,7 @@ import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Context;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
@@ -145,7 +146,7 @@ public class Project extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "private SpecificationInitializationService() {");
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("");
-    code.add(CompilerUtils.buildLinePadding(1) + "public static void initialize() {");
+    code.add(CompilerUtils.buildLinePadding(1) + "public static void initialize(String context) {");
 
     for (Server server : this.servers) {
       for (Route route : server.routes) {
@@ -155,7 +156,10 @@ public class Project extends Node {
 
         for (Map.Entry<String, UmbrellaSpecification> entry : route.umbrellaSpecifications.getUmbrellaSpecifications().entrySet()) {
           code.add(CompilerUtils.buildLinePadding(2) + String.format(
-            "SpecificationService.register(new SpecificationIdentifier(\"%s\", \"%s\", \"%s\"), new Specification%s%s%s(%s, %s));",
+            "SpecificationService.register(new SpecificationIdentifier(%s, \"%s\", \"%s\"), new Specification%s%s%s(\"%s\", \"%s\", \"%s\", %s, %s));",
+            (entry.getValue().getContext() == Context.GLOBAL) ? "\"global\"" : "context",
+            server.name,
+            route.id,
             server.name,
             route.id,
             entry.getKey(),

@@ -77,6 +77,22 @@ public class CompareBinaryFormula extends BinaryFormula {
 
   @Override
   public String translate() {
+    Optional<Type> typeOptional = this.leftFormula.evaluateType();
+
+    if (typeOptional.isEmpty()) {
+      throw new RuntimeException("Could not directly translate compare binary formula: type not present");
+    }
+
+    Type type = typeOptional.get();
+
+    if (type instanceof PrimitiveType && ((PrimitiveType) type).getType() == PrimitiveTypeType.STRING) {
+      return String.format(
+        "%s.equals(%s)",
+        this.leftFormula.translate(),
+        this.rightFormula.translate()
+      );
+    }
+
     return String.format(
       "%s %s %s",
       this.leftFormula.translate(),

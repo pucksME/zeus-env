@@ -45,11 +45,7 @@ public class UmbrellaSpecification extends Node {
     code.add("");
     code.add("import java.util.Map;");
     code.add("import java.util.HashMap;");
-    code.add("import java.util.List;");
-    code.add("import java.util.stream.Stream;");
-    code.add("import zeus.SpecificationService;");
     code.add("import zeus.Request;");
-    code.add("import zeus.SpecificationIdentifier;");
     code.add("");
     code.add(String.format("public class Specification%s%s%s extends Specification {", serverName, routeId, this.id));
     code.add(CompilerUtils.buildLinePadding(1) + "Map<String, String> state;");
@@ -57,12 +53,12 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "boolean[] now;");
     code.add("");
     code.add(CompilerUtils.buildLinePadding(1) + String.format(
-      "public Specification%s%s%s(Context context, Action action) {",
+      "public Specification%s%s%s(String serverName, String routeId, String name, Context context, Action action) {",
       serverName,
       routeId,
       this.id
     ));
-    code.add(CompilerUtils.buildLinePadding(2) + "super(context, action);");
+    code.add(CompilerUtils.buildLinePadding(2) + "super(serverName, routeId, name, context, action);");
     code.add(CompilerUtils.buildLinePadding(2) + "this.state = new HashMap<>();");
     List<Formula> subFormulas = this.formula.getSubFormulas();
     code.add(CompilerUtils.buildLinePadding(2) + String.format("this.pre = new boolean[%s];", subFormulas.size()));
@@ -70,10 +66,9 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("");
     code.add(CompilerUtils.buildLinePadding(1) + "@Override");
-    code.add(CompilerUtils.buildLinePadding(1) + "public boolean verify(Request request, SpecificationIdentifier specificationIdentifier) {");
-    code.add(CompilerUtils.buildLinePadding(2) + "List<Request> requests = Stream.concat(SpecificationService.getRequests(specificationIdentifier).stream(), Stream.of(request)).toList();");
-    code.add(CompilerUtils.buildLinePadding(2) + "SpecificationService.addRequest(specificationIdentifier, request);");
-    code.add(CompilerUtils.buildLinePadding(2) + "this.state = requests.get(0).getVariables();");
+    code.add(CompilerUtils.buildLinePadding(1) + "public boolean verify(Request request) {");
+    code.add(CompilerUtils.buildLinePadding(2) + "this.requests.add(request);");
+    code.add(CompilerUtils.buildLinePadding(2) + "this.state = this.requests.get(0).getVariables();");
 
     for (int i = subFormulas.size() - 1; i >= 0; i--) {
       code.add(CompilerUtils.buildLinePadding(2) + String.format(
@@ -83,8 +78,8 @@ public class UmbrellaSpecification extends Node {
       ));
     }
     code.add("");
-    code.add(CompilerUtils.buildLinePadding(2) + "for (int i = 2; i < requests.size(); i++) {");
-    code.add(CompilerUtils.buildLinePadding(3) + "this.state = requests.get(i).getVariables();");
+    code.add(CompilerUtils.buildLinePadding(2) + "for (int i = 2; i < this.requests.size(); i++) {");
+    code.add(CompilerUtils.buildLinePadding(3) + "this.state = this.requests.get(i).getVariables();");
 
     for (int i = subFormulas.size() - 1; i >= 0; i--) {
       code.add(CompilerUtils.buildLinePadding(3) + String.format(
@@ -94,12 +89,12 @@ public class UmbrellaSpecification extends Node {
       ));
     }
 
-    code.add(CompilerUtils.buildLinePadding(2) + "}");
-    code.add("");
-    code.add(CompilerUtils.buildLinePadding(2) + String.format(
+    code.add(CompilerUtils.buildLinePadding(3) + String.format(
       "System.arraycopy(now, 0, pre, 0, %s);",
       subFormulas.size()
     ));
+    code.add(CompilerUtils.buildLinePadding(2) + "}");
+    code.add("");
     code.add(CompilerUtils.buildLinePadding(2) + "return now[0];");
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("}");
@@ -117,5 +112,9 @@ public class UmbrellaSpecification extends Node {
 
   public void setAction(Action action) {
     this.action = action;
+  }
+
+  public Context getContext() {
+    return context;
   }
 }

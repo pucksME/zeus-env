@@ -1,19 +1,27 @@
 package zeus.specification;
 
 import zeus.Request;
-import zeus.SpecificationIdentifier;
 
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 public abstract class Specification {
+  String serverName;
+  String routeId;
+  String name;
   Context context;
   Action action;
+  List<Request> requests;
 
-  public Specification(Context context, Action action) {
+  public Specification(String serverName, String routeId, String name, Context context, Action action) {
+    this.serverName = serverName;
+    this.routeId = routeId;
+    this.name = name;
     this.context = context;
     this.action = action;
+    this.requests = new ArrayList<>();
   }
 
   private Optional<String> getVariableValue(String identifier, Map<String, String> variables) {
@@ -45,9 +53,27 @@ public abstract class Specification {
     throw new InvalidBooleanVariableValueException();
   }
 
-  public abstract boolean verify(Request request, SpecificationIdentifier specificationIdentifier);
+  public abstract boolean verify(Request request);
 
   public Action getAction() {
     return action;
+  }
+
+  private String getId() {
+    return String.format("%s/%s/%s", serverName, routeId, name);
+  }
+
+  @Override
+  public int hashCode() {
+    return this.getId().hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof Specification)) {
+      return false;
+    }
+
+    return this.getId().equals(((Specification) obj).getId());
   }
 }
