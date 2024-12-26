@@ -13,6 +13,7 @@ import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.RainAnalyzer;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.Project;
 import zeus.zeuscompiler.rain.dtos.ExportProjectDto;
+import zeus.zeuscompiler.rain.dtos.ExportedFileDto;
 import zeus.zeuscompiler.rain.dtos.ExportedProjectDto;
 import zeus.zeuscompiler.rain.dtos.TranslateProjectDto;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -85,6 +86,7 @@ public class ZeusCompilerApplication {
       return new ExportedProjectDto(
         new ArrayList<>(),
         new ArrayList<>(),
+        null,
         ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
@@ -92,6 +94,7 @@ public class ZeusCompilerApplication {
     return new ExportedProjectDto(
       projectOptional.get().translateClients(exportProjectDto.exportTarget()),
       new ArrayList<>(),
+      null,
       new ArrayList<>()
     );
   }
@@ -120,13 +123,19 @@ public class ZeusCompilerApplication {
       return new ExportedProjectDto(
         new ArrayList<>(),
         new ArrayList<>(),
+        null,
         ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
 
+    Project project = projectOptional.get();
     return new ExportedProjectDto(
       new ArrayList<>(),
-      projectOptional.get().translateServers(translateProjectDto.exportTarget()),
+      project.translateServers(translateProjectDto.exportTarget()),
+      new ExportedFileDto(
+        project.translateUmbrellaSpecificationsInitialization(),
+        "SpecificationInitializationService.java"
+      ),
       new ArrayList<>()
     );
   }

@@ -6,6 +6,6 @@ public record ExportedServerDto(
   String name,
   List<ExportedFileDto> exportedFileDtos,
   List<ExportedFileDto> exportedBootsMonitorFilesDto,
-  List<ExportedFileDto> exportedUmbrellaMonitorFilesDto
+  List<ExportedFileDto> umbrellaSpecifications
 ) {
 }

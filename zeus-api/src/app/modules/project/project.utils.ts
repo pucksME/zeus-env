@@ -466,25 +466,8 @@ export abstract class ProjectUtils {
           archivePath
         )
       case Monitor.UMBRELLA:
-        const umbrellaPath = './monitors/umbrella/'
-        exec([
-          umbrellaPath + 'gradlew',
-          '-p', umbrellaPath,
-          'clean'
-        ].join(' '));
-
-        exec([
-          umbrellaPath + 'gradlew',
-          '-p', umbrellaPath,
-          'build'
-        ].join(' '));
-
-        return ProjectUtils.buildExportProjectFrameworkFiles(
-          archiver,
-          './monitors/umbrella/build/libs/',
-          ['umbrella-1.0-SNAPSHOT.jar'],
-          archivePath
-        );
+        archiver.directory('./monitors/umbrella', 'monitors/umbrella');
+        return archiver;
     }
   }
 

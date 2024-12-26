@@ -122,7 +122,7 @@ public class Project extends Node {
     )));
   }
 
-  private String translateUmbrellaSpecificationsInitialization() {
+  public String translateUmbrellaSpecificationsInitialization() {
     ArrayList<String> code = new ArrayList<>();
     code.add("package zeus;");
     code.add("");
@@ -194,24 +194,17 @@ public class Project extends Node {
               String.format("%s-%s.py", bootsSpecificationTranslations.getKey(), bootsSpecificationTranslation.getKey())
             )))
           .toList(),
-        Stream.concat(
-          server.translateUmbrellaSpecifications().entrySet().stream()
-            .flatMap(serverUmbrellaSpecificationTranslations -> serverUmbrellaSpecificationTranslations.getValue().entrySet().stream()
-              .map(routeUmbrellaSpecificationTranslations -> new ExportedFileDto(
-                routeUmbrellaSpecificationTranslations.getValue(),
-                String.format(
-                  "Specification%s%s%s.java",
-                  server.name,
-                  serverUmbrellaSpecificationTranslations.getKey(),
-                  routeUmbrellaSpecificationTranslations.getKey()
-                )
-              ))),
-            Stream.of(new ExportedFileDto(
-              this.translateUmbrellaSpecificationsInitialization(),
-              "SpecificationInitializationService.java"
-              ))
-          )
-          .toList()
+        server.translateUmbrellaSpecifications().entrySet().stream()
+          .flatMap(serverUmbrellaSpecificationTranslations -> serverUmbrellaSpecificationTranslations.getValue().entrySet().stream()
+            .map(routeUmbrellaSpecificationTranslations -> new ExportedFileDto(
+              routeUmbrellaSpecificationTranslations.getValue(),
+              String.format(
+                "Specification%s%s%s.java",
+                server.name,
+                serverUmbrellaSpecificationTranslations.getKey(),
+                routeUmbrellaSpecificationTranslations.getKey()
+              )
+            ))).toList()
       ))
       .toList();
   }
