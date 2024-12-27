@@ -42,4 +42,9 @@ public abstract class UnaryFormula extends Formula {
       this.formula.getSubFormulas().stream()
     ).toList();
   }
+
+  @Override
+  public boolean accessesResponse() {
+    return this.formula.accessesResponse();
+  }
 }

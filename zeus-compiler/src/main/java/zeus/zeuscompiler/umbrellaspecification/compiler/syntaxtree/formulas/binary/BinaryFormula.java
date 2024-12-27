@@ -54,4 +54,9 @@ public abstract class BinaryFormula extends Formula {
       this.rightFormula.getSubFormulas().stream()
     )).toList();
   }
+
+  @Override
+  public boolean accessesResponse() {
+    return this.leftFormula.accessesResponse() || this.rightFormula.accessesResponse();
+  }
 }

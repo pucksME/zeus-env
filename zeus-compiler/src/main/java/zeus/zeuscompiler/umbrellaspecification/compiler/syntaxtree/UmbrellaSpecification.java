@@ -21,6 +21,11 @@ public class UmbrellaSpecification extends Node {
     this.formula.check();
   }
 
+  @Override
+  public boolean accessesResponse() {
+    return this.formula.accessesResponse();
+  }
+
   public String translateContext() {
     return switch (this.context) {
       case IP -> "Context.IP";

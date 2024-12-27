@@ -45,6 +45,11 @@ public class IdentifierFormula extends Formula {
   }
 
   @Override
+  public boolean accessesResponse() {
+    return false;
+  }
+
+  @Override
   public String translate() {
     throw new RuntimeException("Could not directly translate identifier formula");
   }

@@ -17,6 +17,11 @@ public class UmbrellaSpecifications extends Node {
     this.umbrellaSpecifications.values().forEach(UmbrellaSpecification::check);
   }
 
+  @Override
+  public boolean accessesResponse() {
+    return this.umbrellaSpecifications.values().stream().anyMatch(UmbrellaSpecification::accessesResponse);
+  }
+
   public HashMap<String, String> translate(String serverName, String routeId) {
     HashMap<String, String> translation = new HashMap<>();
 

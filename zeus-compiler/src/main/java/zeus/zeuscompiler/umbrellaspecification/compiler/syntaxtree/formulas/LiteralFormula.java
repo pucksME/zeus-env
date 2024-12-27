@@ -49,6 +49,11 @@ public class LiteralFormula extends Formula {
   }
 
   @Override
+  public boolean accessesResponse() {
+    return false;
+  }
+
+  @Override
   public String translate() {
     return (this.literalFormulaType == LiteralFormulaType.STRING)
       ? String.format("\"%s\"", this.getValue())

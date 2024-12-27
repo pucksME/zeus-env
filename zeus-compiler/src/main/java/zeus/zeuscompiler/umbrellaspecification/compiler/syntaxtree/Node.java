@@ -17,6 +17,8 @@ public abstract class Node {
 
   public abstract void check();
 
+  public abstract boolean accessesResponse();
+
   public int getLine() {
     return line;
   }

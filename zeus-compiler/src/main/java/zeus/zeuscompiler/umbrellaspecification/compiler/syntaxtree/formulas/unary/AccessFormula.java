@@ -205,6 +205,11 @@ public class AccessFormula extends UnaryFormula {
   }
 
   @Override
+  public boolean accessesResponse() {
+    return this.id.equals("response");
+  }
+
+  @Override
   public String translate() {
     Optional<Type> typeOptional = this.evaluateType();
 
