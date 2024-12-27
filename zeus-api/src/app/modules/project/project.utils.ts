@@ -466,8 +466,30 @@ export abstract class ProjectUtils {
           archivePath
         )
       case Monitor.UMBRELLA:
-        archiver.directory('./monitors/umbrella', 'monitors/umbrella');
-        return archiver;
+        return ProjectUtils.buildExportProjectFrameworkFiles(
+          archiver,
+          './monitors/umbrella/',
+          [
+            'gradle/wrapper/gradle-wrapper.jar',
+            'gradle/wrapper/gradle-wrapper.properties',
+            'src/main/java/zeus/specification/Action.java',
+            'src/main/java/zeus/specification/Context.java',
+            'src/main/java/zeus/specification/InvalidBooleanVariableValueException.java',
+            'src/main/java/zeus/specification/Specification.java',
+            'src/main/java/zeus/Main.java',
+            'src/main/java/zeus/Request.java',
+            'src/main/java/zeus/RequestPayload.java',
+            'src/main/java/zeus/Response.java',
+            'src/main/java/zeus/SpecificationIdentifier.java',
+            'src/main/java/zeus/SpecificationService.java',
+            'build.gradle.kts',
+            'gradlew',
+            'gradlew.bat',
+            'settings.gradle.kts',
+            'start-monitor.sh'
+          ],
+          archivePath
+        );
     }
   }
 
