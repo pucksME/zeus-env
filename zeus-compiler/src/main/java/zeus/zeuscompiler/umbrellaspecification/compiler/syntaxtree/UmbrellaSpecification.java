@@ -58,12 +58,12 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "boolean[] now;");
     code.add("");
     code.add(CompilerUtils.buildLinePadding(1) + String.format(
-      "public Specification%s%s%s(String serverName, String routeId, String name, Context context, Action action) {",
+      "public Specification%s%s%s(String serverName, String routeId, String name, Context context, Action action, boolean accessesResponse) {",
       serverName,
       routeId,
       this.id
     ));
-    code.add(CompilerUtils.buildLinePadding(2) + "super(serverName, routeId, name, context, action);");
+    code.add(CompilerUtils.buildLinePadding(2) + "super(serverName, routeId, name, context, action, accessesResponse);");
     code.add(CompilerUtils.buildLinePadding(2) + "this.state = new HashMap<>();");
     List<Formula> subFormulas = this.formula.getSubFormulas();
     code.add(CompilerUtils.buildLinePadding(2) + String.format("this.pre = new boolean[%s];", subFormulas.size()));

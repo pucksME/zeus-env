@@ -4,7 +4,7 @@ import zeus.zeuscompiler.Translatable;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.SymbolTableService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleOutputExpression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.ConnectionStatement;
@@ -49,12 +49,24 @@ public class Dependency implements Translatable {
   }
 
   String translateResponseAccess(int depth, ExportTarget exportTarget) {
+    ServerRouteSymbolTable serverRouteSymbolTable = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class);
+
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.connectionStatements.stream()
-        .map(connectionStatement -> String.format(
-          "res.send(%s_%s)",
-          connectionStatement.getCodeModuleOutputExpression().getCodeModuleId(),
-          connectionStatement.getCodeModuleOutputExpression().getOutputId()
+        .map(connectionStatement -> (serverRouteSymbolTable.getUmbrellaSpecifications().accessesResponse())
+          ? String.format(
+            "umbrellaMonitorAdapter(\"%s\", \"%s\", req, res, null, %s_%s);",
+            serverRouteSymbolTable.getServerName(),
+            serverRouteSymbolTable.getRouteId(),
+            connectionStatement.getCodeModuleOutputExpression().getCodeModuleId(),
+            connectionStatement.getCodeModuleOutputExpression().getOutputId()
+        )
+          : String.format(
+            "res.send(%s_%s)",
+            connectionStatement.getCodeModuleOutputExpression().getCodeModuleId(),
+            connectionStatement.getCodeModuleOutputExpression().getOutputId()
         ))
         .collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 1)));
     };

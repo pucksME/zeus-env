@@ -145,4 +145,8 @@ public class Route extends Node {
     @Override
     public void check() {
     }
+
+    public String getId() {
+        return id;
+    }
 }

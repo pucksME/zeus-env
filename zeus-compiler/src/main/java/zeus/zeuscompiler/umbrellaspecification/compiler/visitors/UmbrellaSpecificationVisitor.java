@@ -2,6 +2,9 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.visitors;
 
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationBaseVisitor;
 import zeus.zeuscompiler.grammars.UmbrellaSpecificationParser;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.*;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.IdentifierFormula;
@@ -22,6 +25,10 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       ctx.getStart().getCharPositionInLine(),
       new HashMap<>()
     );
+
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class).setUmbrellaSpecifications(this.umbrellaSpecifications);
 
     ctx.formulaAssignment().forEach(this::visitFormulaAssignment);
     ctx.contextAssignment().forEach(this::visitContextAssignment);

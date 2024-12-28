@@ -13,14 +13,23 @@ public abstract class Specification {
   String name;
   Context context;
   Action action;
+  boolean accessesResponse;
   List<Request> requests;
 
-  public Specification(String serverName, String routeId, String name, Context context, Action action) {
+  public Specification(
+    String serverName,
+    String routeId,
+    String name,
+    Context context,
+    Action action,
+    boolean accessesResponse
+  ) {
     this.serverName = serverName;
     this.routeId = routeId;
     this.name = name;
     this.context = context;
     this.action = action;
+    this.accessesResponse = accessesResponse;
     this.requests = new ArrayList<>();
   }
 
@@ -57,6 +66,10 @@ public abstract class Specification {
 
   public Action getAction() {
     return action;
+  }
+
+  public boolean accessesResponse() {
+    return accessesResponse;
   }
 
   private String getId() {

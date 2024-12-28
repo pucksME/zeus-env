@@ -10,6 +10,7 @@ import zeus.zeuscompiler.rain.compiler.utils.RainUtils;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ClientSymbolTableIdentifier;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.symboltable.ServerRouteSymbolTableIdentifier;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
@@ -389,6 +390,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       this.currentServerName,
       ctx.ID().getText()
     ));
+
     Optional<CodeModules> codeModulesOptional = thunderAnalyzer.analyze(code.substring(1, code.length() - 2));
     ServiceProvider.provide(CompilerErrorService.class).resetLineOffset();
 
@@ -408,9 +410,7 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       umbrellaSpecificationsOptional = umbrellaSpecificationAnalyzer.analyze(umbrellaSpecificationCode.substring(1, umbrellaSpecificationCode.length() - 2));
     }
 
-    ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ClientSymbolTableIdentifier());
-
-    return new Route(
+    Route route = new Route(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       ctx.ID().getText(),
@@ -419,5 +419,15 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       bootsSpecificationOptional.orElse(null),
       umbrellaSpecificationsOptional.orElse(null)
     );
+
+    ServerRouteSymbolTable serverRouteSymbolTable = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class);
+
+    serverRouteSymbolTable.setServerName(this.currentServerName);
+    serverRouteSymbolTable.setRouteId(route.getId());
+
+    ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ClientSymbolTableIdentifier());
+    return route;
   }
 }

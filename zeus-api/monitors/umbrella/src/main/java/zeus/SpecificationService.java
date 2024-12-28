@@ -1,5 +1,6 @@
 package zeus;
 
+import com.google.gson.JsonNull;
 import zeus.specification.Action;
 import zeus.specification.InvalidBooleanVariableValueException;
 import zeus.specification.Specification;
@@ -50,6 +51,10 @@ public class SpecificationService {
       SpecificationService.specifications.getOrDefault(specificationIdentifier, new ArrayList<>()).stream(),
       SpecificationService.specifications.getOrDefault(specificationIdentifierGlobal, new ArrayList<>()).stream()
     ).toList()) {
+      if (specification.accessesResponse() == (request.payload.responseBodyPayload instanceof JsonNull)) {
+        continue;
+      }
+
       boolean result;
       try {
         result = specification.verify(request);

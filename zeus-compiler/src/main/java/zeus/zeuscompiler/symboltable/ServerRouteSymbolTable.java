@@ -3,13 +3,17 @@ package zeus.zeuscompiler.symboltable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RequestCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RoutingCodeModule;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecifications;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class ServerRouteSymbolTable extends SymbolTable {
+  String serverName;
+  String routeId;
   List<String> bootsSpecificationClasses;
+  UmbrellaSpecifications umbrellaSpecifications;
 
   public ServerRouteSymbolTable() {
     this.bootsSpecificationClasses = new ArrayList<>();
@@ -34,7 +38,32 @@ public class ServerRouteSymbolTable extends SymbolTable {
 
     return Optional.of((T) codeModuleOptional.get());
   }
+
+  public String getServerName() {
+    return serverName;
+  }
+
+  public void setServerName(String serverName) {
+    this.serverName = serverName;
+  }
+
+  public String getRouteId() {
+    return routeId;
+  }
+
+  public void setRouteId(String routeId) {
+    this.routeId = routeId;
+  }
+
   public List<String> getBootsSpecificationClasses() {
     return bootsSpecificationClasses;
+  }
+
+  public UmbrellaSpecifications getUmbrellaSpecifications() {
+    return umbrellaSpecifications;
+  }
+
+  public void setUmbrellaSpecifications(UmbrellaSpecifications umbrellaSpecifications) {
+    this.umbrellaSpecifications = umbrellaSpecifications;
   }
 }

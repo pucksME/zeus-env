@@ -81,9 +81,18 @@ public class Request {
   }
 
   public Map<String, String> getVariables() {
+    Map<String, String> variables = Stream.concat(
+      this.getVariables("request.url", this.payload.requestUrlParameters.entrySet()).entrySet().stream(),
+      this.getVariables("request.body", this.payload.requestBodyPayload.entrySet()).entrySet().stream()
+    ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
+
+    if (!(this.payload.responseBodyPayload instanceof JsonObject)) {
+      return variables;
+    }
+
     return Stream.concat(
-      this.getVariables("request.url", this.payload.urlParameters.entrySet()).entrySet().stream(),
-      this.getVariables("request.body", this.payload.bodyPayload.entrySet()).entrySet().stream()
+      variables.entrySet().stream(),
+      this.getVariables("response.body", ((JsonObject) this.payload.responseBodyPayload).entrySet()).entrySet().stream()
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
   }
 }

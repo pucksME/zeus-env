@@ -15,7 +15,6 @@ import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Project extends Node {
   List<Element> elements;
@@ -156,7 +155,7 @@ public class Project extends Node {
 
         for (Map.Entry<String, UmbrellaSpecification> entry : route.umbrellaSpecifications.getUmbrellaSpecifications().entrySet()) {
           code.add(CompilerUtils.buildLinePadding(2) + String.format(
-            "SpecificationService.register(new SpecificationIdentifier(%s, \"%s\", \"%s\"), new Specification%s%s%s(\"%s\", \"%s\", \"%s\", %s, %s));",
+            "SpecificationService.register(new SpecificationIdentifier(%s, \"%s\", \"%s\"), new Specification%s%s%s(\"%s\", \"%s\", \"%s\", %s, %s, %s));",
             (entry.getValue().getContext() == Context.GLOBAL) ? "\"global\"" : "context",
             server.name,
             route.id,
@@ -167,7 +166,8 @@ public class Project extends Node {
             route.id,
             entry.getKey(),
             entry.getValue().translateContext(),
-            entry.getValue().translateAction()
+            entry.getValue().translateAction(),
+            entry.getValue().accessesResponse()
           ));
         }
       }

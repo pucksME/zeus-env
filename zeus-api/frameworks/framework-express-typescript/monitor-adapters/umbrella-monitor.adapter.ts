@@ -5,18 +5,20 @@ export function umbrellaMonitorAdapter(
   route: string,
   req,
   res,
-  next
+  next,
+  responseData = null
 ) {
   exec([
     'curl',
     '--request POST',
     '--header "Content-Type: application/json"',
     `--data '${JSON.stringify({
-      urlParameters: req.params,
-      bodyPayload: req.body,
+      requestUrlParameters: req.params,
+      requestBodyPayload: req.body,
       context: req.ip,
       server: server,
-      route: route
+      route: route,
+      responseBodyPayload: responseData
     })}'`,
     'localhost:8081'
   ].join(' '), (error, stdout, stderr) => {
@@ -37,6 +39,11 @@ export function umbrellaMonitorAdapter(
 
     if (response.status !== "ok") {
       res.status(403).send({error: 'verification failed'});
+      return;
+    }
+
+    if (responseData !== null) {
+      res.send(responseData);
       return;
     }
 
