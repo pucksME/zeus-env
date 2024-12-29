@@ -48,12 +48,9 @@ public class UmbrellaSpecification extends Node {
     ArrayList<String> code = new ArrayList<>();
     code.add("package zeus.specification;");
     code.add("");
-    code.add("import java.util.Map;");
-    code.add("import java.util.HashMap;");
     code.add("import zeus.Request;");
     code.add("");
     code.add(String.format("public class Specification%s%s%s extends Specification {", serverName, routeId, this.id));
-    code.add(CompilerUtils.buildLinePadding(1) + "Map<String, String> state;");
     code.add(CompilerUtils.buildLinePadding(1) + "boolean[] pre;");
     code.add(CompilerUtils.buildLinePadding(1) + "boolean[] now;");
     code.add("");
@@ -64,7 +61,6 @@ public class UmbrellaSpecification extends Node {
       this.id
     ));
     code.add(CompilerUtils.buildLinePadding(2) + "super(serverName, routeId, name, context, action, accessesResponse);");
-    code.add(CompilerUtils.buildLinePadding(2) + "this.state = new HashMap<>();");
     List<Formula> subFormulas = this.formula.getSubFormulas();
     code.add(CompilerUtils.buildLinePadding(2) + String.format("this.pre = new boolean[%s];", subFormulas.size()));
     code.add(CompilerUtils.buildLinePadding(2) + String.format("this.now = new boolean[%s];", subFormulas.size()));

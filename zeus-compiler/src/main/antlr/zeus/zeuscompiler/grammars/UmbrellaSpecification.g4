@@ -15,6 +15,7 @@ formula : ID                                                                    
         // unary formulas
         | '(' formula ')'                                                               # ParenthesisFormula
         | ID OPERATOR_ACCESS formula                                                    # AccessFormula
+        | ID '[' formula ']' (OPERATOR_ACCESS formula)?                                 # AccessListFormula
         | OPERATOR_NOT formula                                                          # LogicalNotFormula
         | OPERATOR_SUBTRACT formula                                                     # ArithmeticNegativeFormula
         | operator=(

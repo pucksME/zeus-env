@@ -3,19 +3,15 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
+import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ListType;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.MapType;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.*;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 
 public class ReadAccessExpression extends BinaryExpression {
@@ -50,6 +46,14 @@ public class ReadAccessExpression extends BinaryExpression {
 
     Type containerExpressionType = containerExpressionTypeOptional.get();
     Type accessExpressionType = accessExpressionTypeOptional.get();
+
+    if (containerExpressionType instanceof IdType) {
+      ServerRouteSymbolTable serverRouteSymbolTable = ServiceProvider.provide(SymbolTableService.class).getContextSymbolTableProvider().provide(ServerRouteSymbolTable.class);
+      Optional<TypeInformation> typeInformationOptional = serverRouteSymbolTable.getType(serverRouteSymbolTable.getCurrentCodeModule(), ((IdType) containerExpressionType).getId());
+      if (typeInformationOptional.isPresent()) {
+        containerExpressionType = typeInformationOptional.get().getType();
+      }
+    }
 
     if (!(containerExpressionType instanceof ListType) && !(containerExpressionType instanceof MapType)) {
       ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(

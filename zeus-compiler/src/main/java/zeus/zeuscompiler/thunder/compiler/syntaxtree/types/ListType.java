@@ -29,6 +29,10 @@ public class ListType extends Type {
 
   @Override
   public boolean compatible(Type type) {
+    if (type instanceof IdType) {
+      return type.compatible(this);
+    }
+
     if (type instanceof ListType && ((ListType) type).type instanceof IdType) {
       return ((ListType) type).type.compatible(this.type);
     }

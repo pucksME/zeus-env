@@ -29,7 +29,7 @@ statement : declarationTypeStatement
           | whileStatement
           ;
 
-declarationTypeStatement : KEYWORD_PUBLIC? KEYWORD_TYPE ID OPERATOR_ASSIGNMENT typeObject ';' ;
+declarationTypeStatement : KEYWORD_PUBLIC? KEYWORD_TYPE ID OPERATOR_ASSIGNMENT type ';' ;
 declarationVariableStatement : KEYWORD_DECLARATION declaration ;
 assignmentStatement: ID OPERATOR_ASSIGNMENT expression ';' ;
 accessWriteStatement: expression LIST_START expression LIST_END OPERATOR_ASSIGNMENT expression ';' ;

@@ -81,6 +81,17 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
   }
 
   @Override
+  public Object visitAccessListFormula(UmbrellaSpecificationParser.AccessListFormulaContext ctx) {
+    return new AccessListFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula(0)),
+      (ctx.formula().size() > 1) ? (Formula) this.visit(ctx.formula(1)) : null,
+      ctx.ID().getText()
+    );
+  }
+
+  @Override
   public Object visitIdentifierFormula(UmbrellaSpecificationParser.IdentifierFormulaContext ctx) {
     return new IdentifierFormula(
       ctx.getStart().getLine(),

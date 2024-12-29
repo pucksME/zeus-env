@@ -33,12 +33,12 @@ public abstract class SymbolTable {
     types.get(id).add(typeInformation);
   }
 
-  public void addPrivateType(String id, ObjectType objectType) {
-    addType(id, new TypeInformation(objectType, TypeVisibility.PRIVATE));
+  public void addPrivateType(String id, Type type) {
+    addType(id, new TypeInformation(type, TypeVisibility.PRIVATE));
   }
 
-  public void addPublicType(String id, ObjectType objectType) {
-    addType(id, new TypeInformation(objectType, TypeVisibility.PUBLIC));
+  public void addPublicType(String id, Type type) {
+    addType(id, new TypeInformation(type, TypeVisibility.PUBLIC));
   }
 
   public void addVariable(String id, Type type, VariableType variableType, int line, int linePosition) {

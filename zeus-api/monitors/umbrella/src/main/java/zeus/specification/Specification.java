@@ -1,11 +1,9 @@
 package zeus.specification;
 
+import com.google.gson.JsonElement;
 import zeus.Request;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public abstract class Specification {
   String serverName;
@@ -15,6 +13,7 @@ public abstract class Specification {
   Action action;
   boolean accessesResponse;
   List<Request> requests;
+  Map<String, JsonElement> state;
 
   public Specification(
     String serverName,
@@ -31,26 +30,27 @@ public abstract class Specification {
     this.action = action;
     this.accessesResponse = accessesResponse;
     this.requests = new ArrayList<>();
+    this.state = new HashMap<>();
   }
 
-  private Optional<String> getVariableValue(String identifier, Map<String, String> variables) {
-    return Optional.ofNullable(variables.get(identifier));
+  private Optional<JsonElement> getVariableValue(String identifier) {
+    return Optional.ofNullable(this.state.get(identifier));
   }
 
-  public String getVariableValueAsString(String identifier, Map<String, String> variables) {
-    return this.getVariableValue(identifier, variables).orElseThrow();
+  public String getVariableValueAsString(String identifier) {
+    return this.getVariableValue(identifier).orElseThrow().getAsString();
   }
 
-  public int getVariableValueAsInt(String identifier, Map<String, String> variables) {
-    return Integer.parseInt(this.getVariableValue(identifier, variables).orElseThrow());
+  public int getVariableValueAsInt(String identifier) {
+    return Integer.parseInt(this.getVariableValueAsString(identifier));
   }
 
-  public float getVariableValueAsFloat(String identifier, Map<String, String> variables) {
-    return Float.parseFloat(this.getVariableValue(identifier, variables).orElseThrow());
+  public float getVariableValueAsFloat(String identifier) {
+    return Float.parseFloat(this.getVariableValueAsString(identifier));
   }
 
-  public boolean getVariableValueAsBoolean(String identifier, Map<String, String> variables) {
-    String variableValue = this.getVariableValue(identifier, variables).orElseThrow();
+  public boolean getVariableValueAsBoolean(String identifier) {
+    String variableValue = this.getVariableValueAsString(identifier);
     if (variableValue.equals("true")) {
       return true;
     }

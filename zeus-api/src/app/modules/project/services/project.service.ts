@@ -454,9 +454,12 @@ export class ProjectService {
 
     }
 
-    archive.append(exportedProject.umbrellaSpecificationInitialization.code, {
-      name: `monitors/umbrella/src/main/java/zeus/${exportedProject.umbrellaSpecificationInitialization.filename}`
-    });
+    if (exportedProject.umbrellaSpecificationInitialization !== null) {
+      archive.append(exportedProject.umbrellaSpecificationInitialization.code, {
+        name: `monitors/umbrella/src/main/java/zeus/${exportedProject.umbrellaSpecificationInitialization.filename}`
+      });
+    }
+
     archive = ProjectUtils.buildExportProjectErrors(archive, exportedProject.errors)
 
     await archive.finalize();

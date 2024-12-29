@@ -51,7 +51,8 @@ public class Request {
       if (!this.payload.isValid()) {
         this.payload = null;
       }
-      this.getVariables();
+      Map<String, JsonElement> variables = this.getVariables(); // todo
+      variables.clear();
     } catch (JsonSyntaxException jsonSyntaxException) {
       this.payload = null;
     }
@@ -61,38 +62,48 @@ public class Request {
     return this.isPost && this.isApplicationJson && this.payload != null;
   }
 
-  private Map<String, String> getVariables(String identifier, Set<Map.Entry<String, JsonElement>> entrySet) {
-    Map<String, String> variables = new HashMap<>();
+  private Map<String, JsonElement> getVariables(String identifier, JsonElement jsonElement) {
+    Map<String, JsonElement> variables = new HashMap<>();
 
-    for (Map.Entry<String, JsonElement> entry : entrySet) {
-      if (entry.getValue() instanceof JsonObject) {
+    if (jsonElement instanceof JsonObject) {
+      for (Map.Entry<String, JsonElement> entry : ((JsonObject) jsonElement).entrySet()) {
         variables = Stream.concat(
           variables.entrySet().stream(),
-          this.getVariables(String.format("%s.%s", identifier, entry.getKey()), ((JsonObject) entry.getValue()).entrySet()).entrySet().stream()
+          this.getVariables(String.format("%s.%s", identifier, entry.getKey()), entry.getValue()).entrySet().stream()
         ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-      }
-
-      if (entry.getValue() instanceof JsonPrimitive) {
-        variables.put(String.format("%s.%s", identifier, entry.getKey()), entry.getValue().getAsString());
       }
     }
 
+    if (jsonElement instanceof JsonArray) {
+      for (int i = 0; i < ((JsonArray) jsonElement).size(); i++) {
+        variables = Stream.concat(
+          variables.entrySet().stream(),
+          this.getVariables(String.format("%s@%s", identifier, i), ((JsonArray) jsonElement).get(i)).entrySet().stream()
+        ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      }
+    }
+
+    if (jsonElement instanceof JsonPrimitive) {
+      variables.put(String.format("%s", identifier), jsonElement);
+    }
+
     return variables;
+
   }
 
-  public Map<String, String> getVariables() {
-    Map<String, String> variables = Stream.concat(
-      this.getVariables("request.url", this.payload.requestUrlParameters.entrySet()).entrySet().stream(),
-      this.getVariables("request.body", this.payload.requestBodyPayload.entrySet()).entrySet().stream()
+  public Map<String, JsonElement> getVariables() {
+    Map<String, JsonElement> variables = Stream.concat(
+      this.getVariables("request.url", this.payload.requestUrlParameters).entrySet().stream(),
+      this.getVariables("request.body", this.payload.requestBodyPayload).entrySet().stream()
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
 
-    if (!(this.payload.responseBodyPayload instanceof JsonObject)) {
+    if (this.payload.responseBodyPayload instanceof JsonNull) {
       return variables;
     }
 
     return Stream.concat(
       variables.entrySet().stream(),
-      this.getVariables("response.body", ((JsonObject) this.payload.responseBodyPayload).entrySet()).entrySet().stream()
+      this.getVariables("response.body", this.payload.responseBodyPayload).entrySet().stream()
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
   }
 }

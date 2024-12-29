@@ -14,6 +14,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Output;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RequestCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.IdType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecifications;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
@@ -117,7 +118,10 @@ public class Route extends Node {
                       );
 
                     if(typeInformationOptional.isPresent()) {
-                        parameters = typeInformationOptional.get().getType().translateToUrlParameters(exportTarget);
+                        Type type = typeInformationOptional.get().getType();
+                        if (type instanceof ObjectType) {
+                            parameters = ((ObjectType) typeInformationOptional.get().getType()).translateToUrlParameters(exportTarget);
+                        }
                     }
                 }
             }

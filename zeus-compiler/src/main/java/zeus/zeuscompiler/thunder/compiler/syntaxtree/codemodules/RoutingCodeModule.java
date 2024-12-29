@@ -8,6 +8,7 @@ import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.IdType;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ListType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -21,7 +22,7 @@ public abstract class RoutingCodeModule extends ClientCodeModule {
   }
 
   protected Optional<Type> evaluatePortType(HeadComponent headComponent, List<String> identifiers) {
-    ObjectType objectType;
+    Type type;
 
     if (headComponent.type instanceof IdType) {
       Optional<TypeInformation> typeInformationOptional = ServiceProvider
@@ -39,16 +40,24 @@ public abstract class RoutingCodeModule extends ClientCodeModule {
         return Optional.empty();
       }
 
-      objectType = typeInformationOptional.get().getType();
+      TypeInformation typeInformation = typeInformationOptional.get();
+      if (typeInformation.getType() instanceof ListType && !identifiers.isEmpty() && identifiers.get(0).equals("[]")) {
+        type = ((ListType) typeInformation.getType()).getType();
+        identifiers.remove(0);
+      } else {
+        type =  typeInformationOptional.get().getType();
+      }
     } else {
-      objectType = (ObjectType) headComponent.type;
+      type = headComponent.type;
     }
 
-    Type type = objectType;
-
     for (String identifier : identifiers) {
+      if (type instanceof ListType) {
+        type = ((ListType) type).getType();
+      }
+
       if (!(type instanceof ObjectType)) {
-        break;
+        return Optional.empty();
       }
 
       Optional<Type> typeOptional = ((ObjectType) type).getPropertyType(identifier);

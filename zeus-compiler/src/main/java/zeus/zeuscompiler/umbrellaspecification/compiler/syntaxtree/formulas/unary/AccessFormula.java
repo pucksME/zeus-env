@@ -9,6 +9,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RequestCodeModu
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ResponseCodeModule;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnknownRoutingCodeModuleException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnsupportedTypeException;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.AccessListFormula;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveTypeType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.Type;
@@ -30,9 +31,30 @@ public class AccessFormula extends UnaryFormula {
     this.id = id;
   }
 
-  private void buildIdentifiers(Formula formula, List<String> identifiers) {
+  private void buildIdentifiers(Formula formula, List<String> identifiers, boolean translate) {
     if (formula instanceof IdentifierFormula) {
       identifiers.add(((IdentifierFormula) formula).getId());
+      return;
+    }
+
+    if (formula instanceof AccessListFormula) {
+      identifiers.add((translate)
+        ? String.format(
+            "%s@\" + (%s) + \"",
+            ((AccessListFormula) formula).getId(),
+            ((AccessListFormula) formula).translateIndexAccess()
+          )
+        : String.format("%s", ((AccessListFormula) formula).getId()));
+
+      if (!translate) {
+        identifiers.add("[]");
+      }
+
+      Optional<Formula> nextAccessFormulaOptional = ((AccessListFormula) formula).getNextAccessFormula();
+      if (nextAccessFormulaOptional.isPresent()) {
+        this.buildIdentifiers(((AccessListFormula) formula).getRightFormula(), identifiers, translate);
+      }
+
       return;
     }
 
@@ -47,50 +69,24 @@ public class AccessFormula extends UnaryFormula {
     }
 
     identifiers.add(((AccessFormula) formula).id);
-    this.buildIdentifiers(((AccessFormula) formula).formula, identifiers);
+    this.buildIdentifiers(((AccessFormula) formula).formula, identifiers, translate);
   }
 
   public List<String> buildIdentifiers() {
     List<String> identifiers = new ArrayList<>();
-    buildIdentifiers(this, identifiers);
+    this.buildIdentifiers(this, identifiers, false);
+    return identifiers;
+  }
+
+  public List<String> buildTranslatedIdentifiers() {
+    List<String> identifiers = new ArrayList<>();
+    this.buildIdentifiers(this, identifiers, true);
     return identifiers;
   }
 
   @Override
   public void check() {
-    int errorCount = ServiceProvider.provide(CompilerErrorService.class).getErrors().size();
-    List<String> identifiers = this.buildIdentifiers();
-
-    if (errorCount < ServiceProvider.provide(CompilerErrorService.class).getErrors().size()) {
-      return;
-    }
-
-    if (identifiers.size() < 3) {
-      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
-        this.formula.getLine(),
-        this.formula.getLinePosition(),
-        new UnknownIdentifierException(),
-        CompilerPhase.TYPE_CHECKER
-      ));
-      return;
-    }
-
-    if (identifiers.get(0).equals("request")) {
-      // TODO: handle request code module access
-      return;
-    }
-
-    if (identifiers.get(0).equals("response")) {
-      // TODO: handle response code module access
-      return;
-    }
-
-    ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
-      this.formula.getLine(),
-      this.formula.getLinePosition(),
-      new UnknownIdentifierException(),
-      CompilerPhase.TYPE_CHECKER
-    ));
+    this.evaluateType();
   }
 
   private Optional<Type> evaluateThunderType(zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type thunderType) {
@@ -172,6 +168,12 @@ public class AccessFormula extends UnaryFormula {
         responseCodeModuleOptional.get().evaluateInputType(identifiers);
 
       if (thunderTypeOptional.isEmpty()) {
+        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
+          this.getLine(),
+          this.getLinePosition(),
+          new UnknownIdentifierException(),
+          CompilerPhase.TYPE_CHECKER
+        ));
         return Optional.empty();
       }
 
@@ -224,14 +226,14 @@ public class AccessFormula extends UnaryFormula {
     }
 
     return String.format(
-      "%s(\"%s\", this.state)",
+      "%s(\"%s\")",
       switch (((PrimitiveType) type).getType()) {
         case INT -> "this.getVariableValueAsInt";
         case FLOAT -> "this.getVariableValueAsFloat";
         case STRING -> "this.getVariableValueAsString";
         case BOOLEAN -> "this.getVariableValueAsBoolean";
       },
-      String.join(".", this.buildIdentifiers())
+      String.join(".", this.buildTranslatedIdentifiers())
     );
   }
 

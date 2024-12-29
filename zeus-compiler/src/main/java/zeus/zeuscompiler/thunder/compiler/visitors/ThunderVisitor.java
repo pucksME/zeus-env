@@ -168,16 +168,16 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
   @Override
   public DeclarationTypeStatement visitDeclarationTypeStatement(ThunderParser.DeclarationTypeStatementContext ctx) {
     String typeId = ctx.ID().getText();
-    ObjectType objectType = (ObjectType) visit(ctx.typeObject());
+    Type type = (Type) visit(ctx.type());
 
     if (ctx.KEYWORD_PUBLIC() != null) {
       ServiceProvider
         .provide(SymbolTableService.class).getContextSymbolTableProvider()
-        .provide(SymbolTable.class).addPublicType(typeId, objectType);
+        .provide(SymbolTable.class).addPublicType(typeId, type);
     } else {
       ServiceProvider
         .provide(SymbolTableService.class).getContextSymbolTableProvider()
-        .provide(SymbolTable.class).addPrivateType(typeId, objectType);
+        .provide(SymbolTable.class).addPrivateType(typeId, type);
     }
 
     Token startToken = (ctx.KEYWORD_PUBLIC() != null)
