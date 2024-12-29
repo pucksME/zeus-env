@@ -51,8 +51,6 @@ public class Request {
       if (!this.payload.isValid()) {
         this.payload = null;
       }
-      Map<String, JsonElement> variables = this.getVariables(); // todo
-      variables.clear();
     } catch (JsonSyntaxException jsonSyntaxException) {
       this.payload = null;
     }
