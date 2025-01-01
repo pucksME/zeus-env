@@ -4,12 +4,14 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Form
 import zeus.zeuscompiler.utils.CompilerUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class UmbrellaSpecification extends Node {
   String id;
   Formula formula;
   Context context;
-  Action action;
+  Set<Action> actions;
 
   public UmbrellaSpecification(int line, int linePosition, String id) {
     super(line, linePosition);
@@ -33,12 +35,15 @@ public class UmbrellaSpecification extends Node {
     };
   }
 
-  public String translateAction() {
-    return switch (this.action) {
-      case LOG -> "Action.LOG";
-      case ALLOW -> "Action.ALLOW";
-      case BLOCK -> "Action.BLOCK";
-    };
+  public String translateActions() {
+    return String.format(
+      "Set.of(%s)",
+      this.actions.stream()
+        .map(action -> switch (action) {
+          case LOG -> "Action.LOG";
+          case BLOCK -> "Action.BLOCK";
+        })
+        .collect(Collectors.joining(", ")));
   }
 
   // Monitor generation algorithm adapted from
@@ -48,6 +53,7 @@ public class UmbrellaSpecification extends Node {
     ArrayList<String> code = new ArrayList<>();
     code.add("package zeus.specification;");
     code.add("");
+    code.add("import java.util.Set;");
     code.add("import zeus.Request;");
     code.add("");
     code.add(String.format("public class Specification%s%s%s extends Specification {", serverName, routeId, this.id));
@@ -55,12 +61,12 @@ public class UmbrellaSpecification extends Node {
     code.add(CompilerUtils.buildLinePadding(1) + "boolean[] now;");
     code.add("");
     code.add(CompilerUtils.buildLinePadding(1) + String.format(
-      "public Specification%s%s%s(String serverName, String routeId, String name, Context context, Action action, boolean accessesResponse) {",
+      "public Specification%s%s%s(String serverName, String routeId, String name, Context context, Set<Action> actions, boolean accessesResponse) {",
       serverName,
       routeId,
       this.id
     ));
-    code.add(CompilerUtils.buildLinePadding(2) + "super(serverName, routeId, name, context, action, accessesResponse);");
+    code.add(CompilerUtils.buildLinePadding(2) + "super(serverName, routeId, name, context, actions, accessesResponse);");
     List<Formula> subFormulas = this.formula.getSubFormulas();
     code.add(CompilerUtils.buildLinePadding(2) + String.format("this.pre = new boolean[%s];", subFormulas.size()));
     code.add(CompilerUtils.buildLinePadding(2) + String.format("this.now = new boolean[%s];", subFormulas.size()));
@@ -111,8 +117,8 @@ public class UmbrellaSpecification extends Node {
     this.context = context;
   }
 
-  public void setAction(Action action) {
-    this.action = action;
+  public void setActions(Set<Action> actions) {
+    this.actions = actions;
   }
 
   public Context getContext() {

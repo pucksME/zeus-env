@@ -3,6 +3,7 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class UmbrellaSpecifications extends Node {
   Map<String, UmbrellaSpecification> umbrellaSpecifications;
@@ -50,9 +51,9 @@ public class UmbrellaSpecifications extends Node {
     this.umbrellaSpecifications.get(id).setContext(context);
   }
 
-  public void setUmbrellaSpecificationAction(String id, int line, int linePosition, Action action) {
+  public void setUmbrellaSpecificationAction(String id, int line, int linePosition, Set<Action> actions) {
     initializeUmbrellaSpecification(id, line, linePosition);
-    this.umbrellaSpecifications.get(id).setAction(action);
+    this.umbrellaSpecifications.get(id).setActions(actions);
   }
 
   public Map<String, UmbrellaSpecification> getUmbrellaSpecifications() {

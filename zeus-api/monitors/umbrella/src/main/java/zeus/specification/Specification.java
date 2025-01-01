@@ -4,13 +4,14 @@ import com.google.gson.JsonElement;
 import zeus.Request;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class Specification {
   String serverName;
   String routeId;
   String name;
   Context context;
-  Action action;
+  Set<Action> actions;
   boolean accessesResponse;
   List<Request> requests;
   Map<String, JsonElement> state;
@@ -20,14 +21,14 @@ public abstract class Specification {
     String routeId,
     String name,
     Context context,
-    Action action,
+    Set<Action> actions,
     boolean accessesResponse
   ) {
     this.serverName = serverName;
     this.routeId = routeId;
     this.name = name;
     this.context = context;
-    this.action = action;
+    this.actions = actions;
     this.accessesResponse = accessesResponse;
     this.requests = new ArrayList<>();
     this.state = new HashMap<>();
@@ -64,15 +65,23 @@ public abstract class Specification {
 
   public abstract boolean verify(Request request);
 
-  public Action getAction() {
-    return action;
+  public String actionsToString() {
+    return this.actions.stream()
+      .map(action -> switch (action) {
+        case BLOCK -> "block";
+        case LOG -> "log";
+      })
+      .collect(Collectors.joining(", "));
+  }
+  public Set<Action> getActions() {
+    return actions;
   }
 
   public boolean accessesResponse() {
     return accessesResponse;
   }
 
-  private String getId() {
+  public String getId() {
     return String.format("%s/%s/%s", serverName, routeId, name);
   }
 

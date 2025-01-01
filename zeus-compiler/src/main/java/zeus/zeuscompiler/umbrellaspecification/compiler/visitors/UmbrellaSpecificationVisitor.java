@@ -14,6 +14,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.bina
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.unary.*;
 
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisitor<Object> {
   UmbrellaSpecifications umbrellaSpecifications;
@@ -32,7 +33,7 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
 
     ctx.formulaAssignment().forEach(this::visitFormulaAssignment);
     ctx.contextAssignment().forEach(this::visitContextAssignment);
-    ctx.actionAssignment().forEach(this::visitActionAssignment);
+    ctx.actionsAssignment().forEach(this::visitActionsAssignment);
 
     return this.umbrellaSpecifications;
   }
@@ -60,12 +61,14 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
   }
 
   @Override
-  public Object visitActionAssignment(UmbrellaSpecificationParser.ActionAssignmentContext ctx) {
+  public Object visitActionsAssignment(UmbrellaSpecificationParser.ActionsAssignmentContext ctx) {
     this.umbrellaSpecifications.setUmbrellaSpecificationAction(
       ctx.ID().getText(),
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
-      (ctx.ACTION_ALLOW() != null) ? Action.ALLOW : ((ctx.ACTION_BLOCK() != null) ? Action.BLOCK : Action.LOG)
+      ctx.actions().action().stream()
+        .map(actionContext -> (actionContext.ACTION_BLOCK() != null) ? Action.BLOCK : Action.LOG)
+        .collect(Collectors.toSet())
     );
     return null;
   }

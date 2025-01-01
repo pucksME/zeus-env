@@ -125,6 +125,7 @@ public class Project extends Node {
     ArrayList<String> code = new ArrayList<>();
     code.add("package zeus;");
     code.add("");
+    code.add("import java.util.Set;");
     code.add("import zeus.specification.Context;");
     code.add("import zeus.specification.Action;");
 
@@ -166,7 +167,7 @@ public class Project extends Node {
             route.id,
             entry.getKey(),
             entry.getValue().translateContext(),
-            entry.getValue().translateAction(),
+            entry.getValue().translateActions(),
             entry.getValue().accessesResponse()
           ));
         }

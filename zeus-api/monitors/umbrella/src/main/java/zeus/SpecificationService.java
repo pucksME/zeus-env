@@ -5,6 +5,7 @@ import zeus.specification.Action;
 import zeus.specification.InvalidBooleanVariableValueException;
 import zeus.specification.Specification;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -66,16 +67,24 @@ public class SpecificationService {
         return false;
       }
 
-      if (!result && specification.getAction() == Action.BLOCK) {
-        return false;
+
+
+      if (specification.getActions().contains(Action.LOG)) {
+        System.out.printf(
+          "[%s] Specification \"%s\" %s (%s)%n",
+          new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()),
+          specification.getId(),
+          (result) ? "ok" : "violated",
+          specification.actionsToString()
+        );
       }
 
-      if (!result && specification.getAction() == Action.ALLOW) {
-        return false;
+      if (result) {
+        continue;
       }
 
-      if (result && specification.getAction() == Action.LOG) {
-        // TODO: log
+      if (specification.getActions().contains(Action.BLOCK)) {
+        return false;
       }
     }
 
