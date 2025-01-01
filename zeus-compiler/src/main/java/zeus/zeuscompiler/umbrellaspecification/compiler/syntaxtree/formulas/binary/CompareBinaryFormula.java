@@ -86,11 +86,23 @@ public class CompareBinaryFormula extends BinaryFormula {
     Type type = typeOptional.get();
 
     if (type instanceof PrimitiveType && ((PrimitiveType) type).getType() == PrimitiveTypeType.STRING) {
-      return String.format(
-        "%s.equals(%s)",
-        this.leftFormula.translate(),
-        this.rightFormula.translate()
-      );
+      if (compareBinaryFormulaType == CompareBinaryFormulaType.EQUAL) {
+        return String.format(
+          "%s.equals(%s)",
+          this.leftFormula.translate(),
+          this.rightFormula.translate()
+        );
+      }
+
+      if (compareBinaryFormulaType == CompareBinaryFormulaType.NOT_EQUAL) {
+        return String.format(
+          "!%s.equals(%s)",
+          this.leftFormula.translate(),
+          this.rightFormula.translate()
+        );
+      }
+
+      throw new RuntimeException("Could not directly translate string compare binary formula: invalid operator");
     }
 
     return String.format(
