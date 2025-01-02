@@ -219,4 +219,20 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
   public Object visitParenthesisFormula(UmbrellaSpecificationParser.ParenthesisFormulaContext ctx) {
     return this.visit(ctx.formula());
   }
+
+  @Override
+  public Object visitQuantifierFormula(UmbrellaSpecificationParser.QuantifierFormulaContext ctx) {
+    return new QuantifierFormula(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Formula) this.visit(ctx.formula(0)),
+      (Formula) this.visit(ctx.formula(1)),
+      ctx.ID().getText(),
+      switch (ctx.operator.getType()) {
+        case UmbrellaSpecificationParser.OPERATOR_FOR_EVERY -> QuantifierFormulaType.FOR_EVERY;
+        case UmbrellaSpecificationParser.OPERATOR_FOR_ANY -> QuantifierFormulaType.FOR_ANY;
+        default -> throw new RuntimeException("Unsupported quantifier formula type");
+      }
+    );
+  }
 }

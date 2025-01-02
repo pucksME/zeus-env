@@ -25,6 +25,7 @@ formula : ID                                                                    
           | OPERATOR_ONCE
           | OPERATOR_HISTORICALLY
           ) formula                                                                     # TemporalUnaryFormula
+
         // binary formulas
         | formula operator=(
             OPERATOR_EQUAL
@@ -46,6 +47,10 @@ formula : ID                                                                    
           | OPERATOR_IMPLICATION
           ) formula                                                                     # LogicalBinaryFormula
         | formula OPERATOR_SINCE formula                                                # TemporalBinaryFormula
+        | operator=(
+            OPERATOR_FOR_EVERY
+          | OPERATOR_FOR_ANY
+          ) formula '/' ID ':{' formula '}'                                             # QuantifierFormula
         ;
 
 FORMULA : 'formula' ;
@@ -78,6 +83,8 @@ OPERATOR_YEASTERDAY: 'Y' ;
 OPERATOR_SINCE : 'S' ;
 OPERATOR_ONCE : 'O' ;
 OPERATOR_HISTORICALLY : 'H' ;
+OPERATOR_FOR_EVERY : 'for every' ;
+OPERATOR_FOR_ANY : 'for any' ;
 
 LITERAL_BOOLEAN : 'true' | 'false' ;
 LITERAL_INT : [0-9]+ ;
