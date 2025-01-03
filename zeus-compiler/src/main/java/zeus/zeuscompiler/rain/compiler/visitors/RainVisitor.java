@@ -398,16 +398,40 @@ public class RainVisitor extends RainBaseVisitor<Object> {
 
     Optional<BootsSpecification> bootsSpecificationOptional = Optional.empty();
     if (ctx.bootsSpecification() != null) {
-      BootsSpecificationAnalyzer bootsSpecificationAnalyzer = new BootsSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
+      ServiceProvider.provide(CompilerErrorService.class).setLineOffset(
+        ctx.bootsSpecification().getStart().getLine() - 1
+      );
+
+      BootsSpecificationAnalyzer bootsSpecificationAnalyzer =
+        new BootsSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
+
       String bootsSpecificationCode = ctx.bootsSpecification().CODE().getText();
-      bootsSpecificationOptional = bootsSpecificationAnalyzer.analyze(bootsSpecificationCode.substring(1, bootsSpecificationCode.length() - 2));
+
+      bootsSpecificationOptional = bootsSpecificationAnalyzer.analyze(bootsSpecificationCode.substring(
+        1,
+        bootsSpecificationCode.length() - 2
+      ));
+
+      ServiceProvider.provide(CompilerErrorService.class).reset();
     }
 
     Optional<UmbrellaSpecifications> umbrellaSpecificationsOptional = Optional.empty();
     if (ctx.umbrellaSpecification() != null) {
-      UmbrellaSpecificationAnalyzer umbrellaSpecificationAnalyzer = new UmbrellaSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
+      ServiceProvider.provide(CompilerErrorService.class).setLineOffset(
+        ctx.umbrellaSpecification().getStart().getLine() - 1
+      );
+
+      UmbrellaSpecificationAnalyzer umbrellaSpecificationAnalyzer =
+        new UmbrellaSpecificationAnalyzer(CompilerPhase.TYPE_CHECKER);
+
       String umbrellaSpecificationCode = ctx.umbrellaSpecification().CODE().getText();
-      umbrellaSpecificationsOptional = umbrellaSpecificationAnalyzer.analyze(umbrellaSpecificationCode.substring(1, umbrellaSpecificationCode.length() - 2));
+
+      umbrellaSpecificationsOptional = umbrellaSpecificationAnalyzer.analyze(umbrellaSpecificationCode.substring(
+        1,
+        umbrellaSpecificationCode.length() - 2
+      ));
+
+      ServiceProvider.provide(CompilerErrorService.class).resetLineOffset();
     }
 
     Route route = new Route(

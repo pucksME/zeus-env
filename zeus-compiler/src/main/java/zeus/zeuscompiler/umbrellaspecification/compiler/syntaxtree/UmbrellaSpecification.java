@@ -1,5 +1,11 @@
 package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree;
 
+import zeus.zeuscompiler.CompilerError;
+import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.MissingActionsException;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.MissingContextException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.Formula;
 import zeus.zeuscompiler.utils.CompilerUtils;
 import java.util.ArrayList;
@@ -20,6 +26,24 @@ public class UmbrellaSpecification extends Node {
 
   @Override
   public void check() {
+    if (this.context == null) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
+        this.getLine(),
+        this.getLinePosition(),
+        new MissingContextException(),
+        CompilerPhase.TYPE_CHECKER
+      ));
+    }
+
+    if (this.actions == null) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
+        this.getLine(),
+        this.getLinePosition(),
+        new MissingActionsException(),
+        CompilerPhase.TYPE_CHECKER
+      ));
+    }
+
     this.formula.check();
   }
 
