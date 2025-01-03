@@ -73,6 +73,11 @@ public class TemporalBinaryFormula extends BinaryFormula {
   }
 
   @Override
+  public boolean isTemporal() {
+    return true;
+  }
+
+  @Override
   public String translate() {
     throw new RuntimeException("Could not directly translate temporal binary formula");
   }

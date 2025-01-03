@@ -20,6 +20,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.se
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 
@@ -89,7 +90,7 @@ public class AccessFormula extends UnaryFormula {
     this.evaluateType();
   }
 
-  private Optional<Type> evaluateThunderType(zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type thunderType) {
+  private Optional<PrimitiveType> convertType(zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type thunderType) {
     if (!(thunderType instanceof zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType)) {
       ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
@@ -114,12 +115,13 @@ public class AccessFormula extends UnaryFormula {
       return Optional.empty();
     }
 
-    return Optional.of(primitiveTypeOptional.get());
+    return primitiveTypeOptional;
   }
 
-  @Override
-  public Optional<Type> evaluateType() {
-    List<String> identifiers = this.buildIdentifiers();
+  public Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> evaluateRoutingCodeModuleThunderType(
+    List<String> identifiers
+  ) {
+    Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> thunderTypeOptional = Optional.empty();
 
     if (identifiers.get(0).equals("request")) {
       identifiers.remove(0);
@@ -137,14 +139,7 @@ public class AccessFormula extends UnaryFormula {
         return Optional.empty();
       }
 
-      Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> thunderTypeOptional =
-        requestCodeModuleOptional.get().evaluateOutputType(identifiers);
-
-      if (thunderTypeOptional.isEmpty()) {
-        return Optional.empty();
-      }
-
-      return this.evaluateThunderType(thunderTypeOptional.get());
+      thunderTypeOptional = requestCodeModuleOptional.get().evaluateOutputType(identifiers);
     }
 
     if (identifiers.get(0).equals("response")) {
@@ -164,29 +159,69 @@ public class AccessFormula extends UnaryFormula {
         return Optional.empty();
       }
 
-      Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> thunderTypeOptional =
-        responseCodeModuleOptional.get().evaluateInputType(identifiers);
+      thunderTypeOptional = responseCodeModuleOptional.get().evaluateInputType(identifiers);
+    }
 
-      if (thunderTypeOptional.isEmpty()) {
-        ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
-          this.getLine(),
-          this.getLinePosition(),
-          new UnknownIdentifierException(),
-          CompilerPhase.TYPE_CHECKER
-        ));
+
+
+    return thunderTypeOptional;
+  }
+
+  private Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> evaluateQuantifierThunderType(List<String> identifiers) {
+    Optional<Map<String, zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type>> quantifierVariableTypesOptional = ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class).getCurrentQuantifierVariableTypes();
+
+    if (quantifierVariableTypesOptional.isPresent()) {
+      Map<String, zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> quantifierVariableTypes =
+        quantifierVariableTypesOptional.get();
+
+      zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type quantifierVariableType =
+        quantifierVariableTypes.get(identifiers.get(0));
+
+      if (quantifierVariableType == null) {
         return Optional.empty();
       }
 
-      return this.evaluateThunderType(thunderTypeOptional.get());
+      return quantifierVariableType.getType(identifiers.subList(1, identifiers.size()));
     }
 
-    ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
-      this.getLine(),
-      this.getLinePosition(),
-      new UnknownRoutingCodeModuleException(),
-      CompilerPhase.TYPE_CHECKER
-    ));
     return Optional.empty();
+  }
+
+  public Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> evaluateThunderType() {
+    List<String> identifiers = this.buildIdentifiers();
+    Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> thunderTypeOptional =
+      this.evaluateRoutingCodeModuleThunderType(new ArrayList<>(identifiers));
+
+    if (thunderTypeOptional.isPresent()) {
+      return thunderTypeOptional;
+    }
+
+    thunderTypeOptional = this.evaluateQuantifierThunderType(new ArrayList<>(identifiers));
+
+    if (thunderTypeOptional.isEmpty()) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
+        this.getLine(),
+        this.getLinePosition(),
+        new UnknownIdentifierException(),
+        CompilerPhase.TYPE_CHECKER
+      ));
+      return Optional.empty();
+    }
+
+    return thunderTypeOptional;
+  }
+
+  @Override
+  public Optional<Type> evaluateType() {
+    Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> thunderTypeOptional = this.evaluateThunderType();
+
+    if (thunderTypeOptional.isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.ofNullable(this.convertType(thunderTypeOptional.get()).orElse(null));
   }
 
   @Override

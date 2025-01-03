@@ -1,8 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-import zeus.zeuscompiler.CompilerError;
 
 import java.util.List;
 import java.util.Map;
@@ -85,5 +83,24 @@ public class ObjectType extends Type {
   public Optional<Type> getPropertyType(String propertyId) {
     Type propertyType = this.propertyTypes.get(propertyId);
     return (propertyType == null) ? Optional.empty() : Optional.of(propertyType);
+  }
+
+  @Override
+  public Optional<Type> getType(List<String> identifiers) {
+    if (identifiers.isEmpty()) {
+      return Optional.of(this);
+    }
+
+    Optional<Type> typeOptional = this.getPropertyType(identifiers.get(0));
+    if (typeOptional.isEmpty()) {
+      return Optional.empty();
+    }
+
+    if (identifiers.size() > 1) {
+      Type type = typeOptional.get();
+      return type.getType(identifiers.subList(1, identifiers.size()));
+    }
+
+    return typeOptional;
   }
 }

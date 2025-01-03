@@ -56,6 +56,11 @@ public class TemporalUnaryFormula extends UnaryFormula {
   }
 
   @Override
+  public boolean isTemporal() {
+    return true;
+  }
+
+  @Override
   public String translate() {
     throw new RuntimeException("Could not directly translate temporal unary formula");
   }

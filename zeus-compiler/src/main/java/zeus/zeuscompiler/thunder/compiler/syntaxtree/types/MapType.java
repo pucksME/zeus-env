@@ -1,10 +1,9 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-import zeus.zeuscompiler.CompilerError;
 
 import java.util.List;
+import java.util.Optional;
 
 public class MapType extends Type {
   Type keyType;
@@ -35,6 +34,11 @@ public class MapType extends Type {
     }
 
     return this.equals(type);
+  }
+
+  @Override
+  public Optional<Type> getType(List<String> identifiers) {
+    throw new RuntimeException("Could not get type from map type: unsupported");
   }
 
   @Override

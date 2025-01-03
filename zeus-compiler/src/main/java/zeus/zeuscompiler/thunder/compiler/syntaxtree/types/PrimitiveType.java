@@ -1,12 +1,11 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.UnknownPrimitiveTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
-import zeus.zeuscompiler.CompilerError;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PrimitiveType extends Type {
   LiteralType type;
@@ -52,6 +51,15 @@ public class PrimitiveType extends Type {
     }
 
     return this.equals(type);
+  }
+
+  @Override
+  public Optional<Type> getType(List<String> identifiers) {
+    if (identifiers.isEmpty()) {
+      return Optional.of(this);
+    }
+
+    return Optional.empty();
   }
 
   @Override

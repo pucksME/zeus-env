@@ -42,7 +42,7 @@ public class LiteralFormula extends Formula {
   @Override
   public List<Formula> getSubFormulas() {
     if (this.literalFormulaType != LiteralFormulaType.BOOLEAN) {
-      throw new RuntimeException("Could not get sub formulas of literal formula");
+      return new ArrayList<>();
     }
 
     return new ArrayList<>(List.of(this));

@@ -1,10 +1,9 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-import zeus.zeuscompiler.CompilerError;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ListType extends Type {
   Type type;
@@ -60,5 +59,29 @@ public class ListType extends Type {
 
   public Type getType() {
     return type;
+  }
+
+  @Override
+  public Optional<Type> getType(List<String> identifiers) {
+    if (identifiers.isEmpty()) {
+      return Optional.of(this);
+    }
+
+    Optional<Type> typeOptional = Optional.empty();
+
+    if (identifiers.get(0).equals("[]")) {
+      typeOptional = Optional.of(this.getType());
+    }
+
+    if (typeOptional.isEmpty()) {
+      return Optional.empty();
+    }
+
+    if (identifiers.size() > 1) {
+      Type type = typeOptional.get();
+      return type.getType(identifiers.subList(1, identifiers.size()));
+    }
+
+    return typeOptional;
   }
 }

@@ -3,10 +3,12 @@ package zeus.zeuscompiler.symboltable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RequestCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RoutingCodeModule;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecifications;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class ServerRouteSymbolTable extends SymbolTable {
@@ -14,6 +16,7 @@ public class ServerRouteSymbolTable extends SymbolTable {
   String routeId;
   List<String> bootsSpecificationClasses;
   UmbrellaSpecifications umbrellaSpecifications;
+  Map<String, Type> currentQuantifierVariableTypes;
 
   public ServerRouteSymbolTable() {
     this.bootsSpecificationClasses = new ArrayList<>();
@@ -65,5 +68,17 @@ public class ServerRouteSymbolTable extends SymbolTable {
 
   public void setUmbrellaSpecifications(UmbrellaSpecifications umbrellaSpecifications) {
     this.umbrellaSpecifications = umbrellaSpecifications;
+  }
+
+  public void setCurrentQuantifierVariableTypes(Map<String, Type> currentQuantifierVariableTypes) {
+    this.currentQuantifierVariableTypes = currentQuantifierVariableTypes;
+  }
+
+  public void resetCurrentQuantifierVariableTypes() {
+    this.currentQuantifierVariableTypes = null;
+  }
+
+  public Optional<Map<String, Type>> getCurrentQuantifierVariableTypes() {
+    return Optional.ofNullable(this.currentQuantifierVariableTypes);
   }
 }

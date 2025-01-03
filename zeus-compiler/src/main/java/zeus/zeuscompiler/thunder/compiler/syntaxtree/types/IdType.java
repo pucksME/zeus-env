@@ -4,7 +4,6 @@ import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownTypeException;
@@ -85,6 +84,11 @@ public class IdType extends Type {
     }
 
     return thisType.compatible(type);
+  }
+
+  @Override
+  public Optional<Type> getType(List<String> identifiers) {
+    throw new RuntimeException("Could not get type from id type: unsupported");
   }
 
   @Override

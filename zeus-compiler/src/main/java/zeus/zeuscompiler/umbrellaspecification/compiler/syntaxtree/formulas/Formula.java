@@ -15,6 +15,10 @@ public abstract class Formula extends Node {
 
   public abstract List<Formula> getSubFormulas();
 
+  public boolean isTemporal() {
+    return false;
+  }
+
   public abstract String translate();
 
   public abstract String translatePre(List<Formula> subFormulas);
