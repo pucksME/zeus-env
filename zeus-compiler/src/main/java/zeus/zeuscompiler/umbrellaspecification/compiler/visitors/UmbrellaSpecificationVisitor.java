@@ -229,8 +229,8 @@ public class UmbrellaSpecificationVisitor extends UmbrellaSpecificationBaseVisit
       (Formula) this.visit(ctx.formula(1)),
       ctx.ID().getText(),
       switch (ctx.operator.getType()) {
-        case UmbrellaSpecificationParser.OPERATOR_FOR_EVERY -> QuantifierFormulaType.FOR_EVERY;
-        case UmbrellaSpecificationParser.OPERATOR_FOR_ANY -> QuantifierFormulaType.FOR_ANY;
+        case UmbrellaSpecificationParser.OPERATOR_FOR_EVERY_START -> QuantifierFormulaType.FOR_EVERY;
+        case UmbrellaSpecificationParser.OPERATOR_FOR_ANY_START -> QuantifierFormulaType.FOR_ANY;
         default -> throw new RuntimeException("Unsupported quantifier formula type");
       }
     );
