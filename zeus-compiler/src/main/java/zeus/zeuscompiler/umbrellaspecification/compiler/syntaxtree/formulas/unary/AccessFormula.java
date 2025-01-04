@@ -246,8 +246,31 @@ public class AccessFormula extends UnaryFormula {
     return this.id.equals("response");
   }
 
+  public String translateQuantifierList() {
+    return String.format(
+      "this.getVariableValueAsList(\"%s\")",
+      String.join(".", this.buildTranslatedIdentifiers())
+    );
+  }
+
+  public String translateQuantifierVariableAccess() {
+    return String.join(".", this.buildTranslatedIdentifiers());
+  }
+
   @Override
   public String translate() {
+    Optional<Map<String, zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type>> quantifierVariableTypes =
+      ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(ServerRouteSymbolTable.class).getCurrentQuantifierVariableTypes();
+
+    if (quantifierVariableTypes.isPresent()) {
+      if (quantifierVariableTypes.get().containsKey(this.id)) {
+        return this.translateQuantifierVariableAccess();
+      }
+      return this.translateQuantifierList();
+    }
+
     Optional<Type> typeOptional = this.evaluateType();
 
     if (typeOptional.isEmpty()) {
@@ -280,5 +303,9 @@ public class AccessFormula extends UnaryFormula {
   @Override
   public String translateNow(List<Formula> subFormulas) {
     return this.translatePre(subFormulas);
+  }
+
+  public String getId() {
+    return id;
   }
 }

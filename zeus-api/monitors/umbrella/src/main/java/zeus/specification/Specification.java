@@ -1,5 +1,6 @@
 package zeus.specification;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import zeus.Request;
 
@@ -61,6 +62,10 @@ public abstract class Specification {
     }
 
     throw new InvalidBooleanVariableValueException();
+  }
+
+  public List<JsonElement> getVariableValueAsList(String identifier) {
+    return ((JsonArray) this.getVariableValue(identifier).orElse(null)).asList();
   }
 
   public abstract boolean verify(Request request);

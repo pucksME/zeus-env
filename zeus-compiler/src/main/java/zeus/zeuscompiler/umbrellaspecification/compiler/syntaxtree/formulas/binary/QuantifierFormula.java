@@ -102,21 +102,58 @@ public class QuantifierFormula extends BinaryFormula {
 
   @Override
   public List<Formula> getSubFormulas() {
-    return new ArrayList<>();
+    return new ArrayList<>(List.of(this));
+  }
+
+  private String translateQuantifier() {
+    return switch (this.type) {
+      case FOR_EVERY -> "allMatch";
+      case FOR_ANY -> "anyMatch";
+    };
   }
 
   @Override
   public String translate() {
-    return "";
+    Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> leftFormulaThunderTypeOptional = (
+      (AccessFormula) this.leftFormula
+    ).evaluateThunderType();
+
+    if (leftFormulaThunderTypeOptional.isEmpty()) {
+      throw new RuntimeException("Could not translate quantifier formula: type not present");
+    }
+
+    zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type leftFormulaThunderType =
+      leftFormulaThunderTypeOptional.get();
+
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class).setCurrentQuantifierVariableTypes(Map.of(
+        this.id,
+        ((ListType) leftFormulaThunderType).getType()
+      ));
+
+    String translation = String.format(
+      "%s.stream().%s(%s -> %s)",
+      this.leftFormula.translate(),
+      this.translateQuantifier(),
+      this.id,
+      this.rightFormula.translate()
+    );
+
+    ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class).resetCurrentQuantifierVariableTypes();
+
+    return translation;
   }
 
   @Override
   public String translatePre(List<Formula> subFormulas) {
-    return "";
+    return this.translate();
   }
 
   @Override
   public String translateNow(List<Formula> subFormulas) {
-    return "";
+    return this.translate();
   }
 }

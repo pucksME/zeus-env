@@ -73,6 +73,7 @@ public class Request {
     }
 
     if (jsonElement instanceof JsonArray) {
+      variables.put(identifier, jsonElement);
       for (int i = 0; i < ((JsonArray) jsonElement).size(); i++) {
         variables = Stream.concat(
           variables.entrySet().stream(),
@@ -82,7 +83,7 @@ public class Request {
     }
 
     if (jsonElement instanceof JsonPrimitive) {
-      variables.put(String.format("%s", identifier), jsonElement);
+      variables.put(identifier, jsonElement);
     }
 
     return variables;

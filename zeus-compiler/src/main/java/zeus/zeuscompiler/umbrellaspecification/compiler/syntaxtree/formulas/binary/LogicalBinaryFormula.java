@@ -3,6 +3,8 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.bin
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveType;
@@ -73,7 +75,19 @@ public class LogicalBinaryFormula extends BinaryFormula {
 
   @Override
   public String translate() {
-    throw new RuntimeException("Could not directly translate logical binary formula");
+    if (ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class).getCurrentQuantifierVariableTypes().isEmpty()) {
+      throw new RuntimeException("Could not directly translate logical binary formula");
+    }
+
+    return String.format(
+      "%s%s %s %s",
+      (this.logicalBinaryFormulaType == LogicalBinaryFormulaType.IMPLICATION) ? "!" : "",
+      this.leftFormula.translate(),
+      (this.logicalBinaryFormulaType == LogicalBinaryFormulaType.IMPLICATION) ? "||" : this.translateOperator(),
+      this.rightFormula.translate()
+    );
   }
 
   private String translateOperator() {

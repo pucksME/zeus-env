@@ -86,6 +86,15 @@ public class IdentifierFormula extends Formula {
 
   @Override
   public String translate() {
+    Optional<Map<String, zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type>> quantifierVariableTypes =
+      ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(ServerRouteSymbolTable.class).getCurrentQuantifierVariableTypes();
+
+    if (quantifierVariableTypes.isPresent() && quantifierVariableTypes.get().containsKey(id)) {
+      return this.id;
+    }
+
     throw new RuntimeException("Could not directly translate identifier formula");
   }
 

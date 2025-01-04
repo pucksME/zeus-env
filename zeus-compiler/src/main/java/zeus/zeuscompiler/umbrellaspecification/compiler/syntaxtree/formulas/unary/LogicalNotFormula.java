@@ -3,6 +3,8 @@ package zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.una
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.services.SymbolTableService;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.types.PrimitiveType;
@@ -50,6 +52,12 @@ public class LogicalNotFormula extends UnaryFormula {
 
   @Override
   public String translate() {
+    if (ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(ServerRouteSymbolTable.class).getCurrentQuantifierVariableTypes().isPresent()) {
+      return String.format("!%s", this.formula.translate());
+    }
+
     throw new RuntimeException("Could not directly translate logical not formula");
   }
 
