@@ -253,8 +253,27 @@ public class AccessFormula extends UnaryFormula {
     );
   }
 
+  private String translatePrimitiveTypeAccess(Type type) {
+    if (!(type instanceof PrimitiveType)) {
+      throw new RuntimeException("Could not directly translate access formula: unsupported type");
+    }
+
+    return switch (((PrimitiveType) type).getType()) {
+        case INT -> "this.getVariableValueAsInt";
+        case FLOAT -> "this.getVariableValueAsFloat";
+        case STRING -> "this.getVariableValueAsString";
+        case BOOLEAN -> "this.getVariableValueAsBoolean";
+      };
+  }
+
   public String translateQuantifierVariableAccess() {
-    return String.join(".", this.buildTranslatedIdentifiers());
+    return String.format(
+      "%s(\"%s\", Request.getVariables(\"%s\", %s))",
+      this.translatePrimitiveTypeAccess(this.evaluateType().orElse(null)),
+      String.join(".", this.buildTranslatedIdentifiers()),
+      this.id,
+      this.id
+    );
   }
 
   @Override
@@ -277,20 +296,9 @@ public class AccessFormula extends UnaryFormula {
       throw new RuntimeException("Could not directly translate access formula: type evaluation failed");
     }
 
-    Type type = typeOptional.get();
-
-    if (!(type instanceof PrimitiveType)) {
-      throw new RuntimeException("Could not directly translate access formula: unsupported type");
-    }
-
     return String.format(
       "%s(\"%s\")",
-      switch (((PrimitiveType) type).getType()) {
-        case INT -> "this.getVariableValueAsInt";
-        case FLOAT -> "this.getVariableValueAsFloat";
-        case STRING -> "this.getVariableValueAsString";
-        case BOOLEAN -> "this.getVariableValueAsBoolean";
-      },
+      this.translatePrimitiveTypeAccess(typeOptional.get()),
       String.join(".", this.buildTranslatedIdentifiers())
     );
   }

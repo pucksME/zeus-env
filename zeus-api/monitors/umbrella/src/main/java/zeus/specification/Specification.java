@@ -35,24 +35,40 @@ public abstract class Specification {
     this.state = new HashMap<>();
   }
 
+  private Optional<JsonElement> getVariableValue(String identifier, Map<String, JsonElement> state) {
+    return Optional.ofNullable(state.get(identifier));
+  }
+
   private Optional<JsonElement> getVariableValue(String identifier) {
-    return Optional.ofNullable(this.state.get(identifier));
+    return this.getVariableValue(identifier, this.state);
+  }
+
+  public String getVariableValueAsString(String identifier, Map<String, JsonElement> state) {
+    return this.getVariableValue(identifier, state).orElseThrow().getAsString();
   }
 
   public String getVariableValueAsString(String identifier) {
-    return this.getVariableValue(identifier).orElseThrow().getAsString();
+    return this.getVariableValueAsString(identifier, this.state);
+  }
+
+  public int getVariableValueAsInt(String identifier, Map<String, JsonElement> state) {
+    return Integer.parseInt(this.getVariableValueAsString(identifier, state));
   }
 
   public int getVariableValueAsInt(String identifier) {
-    return Integer.parseInt(this.getVariableValueAsString(identifier));
+    return getVariableValueAsInt(identifier, this.state);
+  }
+
+  public float getVariableValueAsFloat(String identifier, Map<String, JsonElement> state) {
+    return Float.parseFloat(this.getVariableValueAsString(identifier, state));
   }
 
   public float getVariableValueAsFloat(String identifier) {
-    return Float.parseFloat(this.getVariableValueAsString(identifier));
+    return this.getVariableValueAsFloat(identifier, this.state);
   }
 
-  public boolean getVariableValueAsBoolean(String identifier) {
-    String variableValue = this.getVariableValueAsString(identifier);
+  public boolean getVariableValueAsBoolean(String identifier, Map<String, JsonElement> state) {
+    String variableValue = this.getVariableValueAsString(identifier, state);
     if (variableValue.equals("true")) {
       return true;
     }
@@ -64,8 +80,16 @@ public abstract class Specification {
     throw new InvalidBooleanVariableValueException();
   }
 
+  public boolean getVariableValueAsBoolean(String identifier) {
+    return this.getVariableValueAsBoolean(identifier, this.state);
+  }
+
+  public List<JsonElement> getVariableValueAsList(String identifier, Map<String, JsonElement> state) {
+    return ((JsonArray) this.getVariableValue(identifier, state).orElseThrow()).asList();
+  }
+
   public List<JsonElement> getVariableValueAsList(String identifier) {
-    return ((JsonArray) this.getVariableValue(identifier).orElse(null)).asList();
+    return this.getVariableValueAsList(identifier, this.state);
   }
 
   public abstract boolean verify(Request request);

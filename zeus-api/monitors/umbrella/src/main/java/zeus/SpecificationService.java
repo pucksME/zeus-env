@@ -65,8 +65,6 @@ public class SpecificationService {
         return false;
       } catch (InvalidBooleanVariableValueException invalidBooleanVariableValueException) {
         return false;
-      } catch (NullPointerException nullPointerException) {
-        return false;
       }
 
 

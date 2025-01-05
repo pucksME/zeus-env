@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -60,14 +59,14 @@ public class Request {
     return this.isPost && this.isApplicationJson && this.payload != null;
   }
 
-  private Map<String, JsonElement> getVariables(String identifier, JsonElement jsonElement) {
+  public static Map<String, JsonElement> getVariables(String identifier, JsonElement jsonElement) {
     Map<String, JsonElement> variables = new HashMap<>();
 
     if (jsonElement instanceof JsonObject) {
       for (Map.Entry<String, JsonElement> entry : ((JsonObject) jsonElement).entrySet()) {
         variables = Stream.concat(
           variables.entrySet().stream(),
-          this.getVariables(String.format("%s.%s", identifier, entry.getKey()), entry.getValue()).entrySet().stream()
+          Request.getVariables(String.format("%s.%s", identifier, entry.getKey()), entry.getValue()).entrySet().stream()
         ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       }
     }
@@ -77,7 +76,7 @@ public class Request {
       for (int i = 0; i < ((JsonArray) jsonElement).size(); i++) {
         variables = Stream.concat(
           variables.entrySet().stream(),
-          this.getVariables(String.format("%s@%s", identifier, i), ((JsonArray) jsonElement).get(i)).entrySet().stream()
+          Request.getVariables(String.format("%s@%s", identifier, i), ((JsonArray) jsonElement).get(i)).entrySet().stream()
         ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
       }
     }
@@ -87,13 +86,12 @@ public class Request {
     }
 
     return variables;
-
   }
 
   public Map<String, JsonElement> getVariables() {
     Map<String, JsonElement> variables = Stream.concat(
-      this.getVariables("request.url", this.payload.requestUrlParameters).entrySet().stream(),
-      this.getVariables("request.body", this.payload.requestBodyPayload).entrySet().stream()
+      Request.getVariables("request.url", this.payload.requestUrlParameters).entrySet().stream(),
+      Request.getVariables("request.body", this.payload.requestBodyPayload).entrySet().stream()
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
 
     if (this.payload.responseBodyPayload instanceof JsonNull) {
@@ -102,7 +100,7 @@ public class Request {
 
     return Stream.concat(
       variables.entrySet().stream(),
-      this.getVariables("response.body", this.payload.responseBodyPayload).entrySet().stream()
+      Request.getVariables("response.body", this.payload.responseBodyPayload).entrySet().stream()
     ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (first, second) -> second));
   }
 }
