@@ -1,5 +1,6 @@
 [project project3]
 
+[client client1]
 [view root home height=100px; width=100px;]
 component test {
   position {

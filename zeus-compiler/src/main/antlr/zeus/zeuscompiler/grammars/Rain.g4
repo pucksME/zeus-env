@@ -1,6 +1,6 @@
 grammar Rain;
 
-project : '[' PROJECT ID ']' blueprintComponents? view* server* EOF ;
+project : '[' PROJECT ID ']' client? server* EOF ;
 
 positionX : POSITION_X '=' NEGATIVE? NUMBER_PX ';' ;
 positionY : POSITION_Y '=' NEGATIVE? NUMBER_PX ';' ;
@@ -109,10 +109,12 @@ shapeTextProperties : SHAPE_PROPERTIES BLOCK_START (
 )+ BLOCK_END ;
 shapeText : SHAPE SHAPE_TEXT ID BLOCK_START position shapeTextProperties BLOCK_END ;
 
-shape : shapeRectangle | shapeCircle | shapeText;
+shape : shapeRectangle | shapeCircle | shapeText ;
 
 componentElement: (component | componentReference) ;
-view : '[' VIEW ROOT? ID propertyHeight propertyWidth ']' componentElement*;
+view : '[' VIEW ROOT? ID propertyHeight propertyWidth ']' componentElement* ;
+
+client : '[' CLIENT name=ID ']' blueprintComponents? view* ;
 
 bootsSpecification : BOOTS_SPECIFICATION BLOCK_START CODE BLOCK_END ;
 umbrellaSpecification : UMBRELLA_SPECIFICATION BLOCK_START CODE BLOCK_END ;
@@ -135,6 +137,7 @@ SERVER_IP : [0-9]+ '.' [0-9]+ '.' [0-9]+ '.' [0-9]+ ;
 NUMBER : [0-9]+ ;
 
 PROJECT : 'project' ;
+CLIENT : 'client' ;
 SECTION_BLUEPRINT_COMPONENTS : '[blueprint components]' ;
 BLUEPRINT_COMPONENT : 'blueprint component' ;
 

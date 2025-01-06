@@ -1,5 +1,6 @@
 [project project2]
 
+[client client1]
 [blueprint components]
 blueprint component b1 {
 }

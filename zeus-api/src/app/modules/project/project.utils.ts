@@ -423,6 +423,7 @@ export abstract class ProjectUtils {
             'src/main.tsx',
             'src/vite-env.d.ts',
             'eslintrc.cjs',
+            'index.css',
             'index.html',
             'package.json',
             'README.md',

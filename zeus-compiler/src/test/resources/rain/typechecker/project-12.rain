@@ -5,15 +5,15 @@ route POST test {
     umbrella specification {`
         specification1.formula = request.url.param1 == request.body.data2
         specification1.context = IP
-        specification1.action = block
+        specification1.actions = block
 
         specification2.formula = request.body.data1 >= request.url.param2
         specification2.context = IP
-        specification2.action = block
+        specification2.actions = block
 
         specification3.formula = response.body.data1 == request.url.param1 & response.body.data2 == request.body.data1
         specification3.context = IP
-        specification3.action = block
+        specification3.actions = block
     `}
     code modules {`
         module types::route type definitions {

@@ -427,6 +427,14 @@ export class ProjectService {
 
     let archive = archiver('zip');
 
+    for (const exportedClientDto of exportedProject.exportedClientDtos) {
+      const clientArchivePath = `client-${exportedClientDto.name}/`;
+      archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.REACT_TYPESCRIPT, clientArchivePath);
+      for (const exportedFileDto of exportedClientDto.exportedFileDtos) {
+        archive.append(exportedFileDto.code, {name: clientArchivePath + 'src/' + exportedFileDto.filename});
+      }
+    }
+
     for (const exportedServerDto of exportedProject.exportedServerDtos) {
       const serverArchivePath = `server-${exportedServerDto.name}/`;
       archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.EXPRESS_TYPESCRIPT, serverArchivePath)

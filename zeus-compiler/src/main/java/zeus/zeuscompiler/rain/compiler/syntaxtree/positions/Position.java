@@ -2,7 +2,6 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree.positions;
 
 import zeus.zeuscompiler.Translatable;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
@@ -11,6 +10,11 @@ import java.util.List;
 public class Position implements Translatable {
   Float x;
   Float y;
+
+  public Position() {
+    this.x = null;
+    this.y = null;
+  }
 
   public Position(Float x, Float y) {
     this.x = x;

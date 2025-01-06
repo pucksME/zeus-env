@@ -130,7 +130,7 @@ public class ZeusCompilerApplication {
 
     Project project = projectOptional.get();
     return new ExportedProjectDto(
-      new ArrayList<>(),
+      project.translateClients(translateProjectDto.exportTarget()),
       project.translateServers(translateProjectDto.exportTarget()),
       new ExportedFileDto(
         project.translateUmbrellaSpecificationsInitialization(),

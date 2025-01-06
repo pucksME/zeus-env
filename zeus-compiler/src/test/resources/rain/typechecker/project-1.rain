@@ -1,5 +1,6 @@
 [project project1]
 
+[client client1]
 [blueprint components]
 blueprint component test {
   position {

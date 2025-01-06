@@ -60,7 +60,7 @@ public class BlueprintComponent extends Element {
           0
         ),
         this.name,
-        this.getDescendantNames().stream().map(
+        Stream.concat(Stream.of(this.getName()), this.getDescendantNames().stream()).map(
           name -> String.format("%s: (properties.mutations) ? properties.mutations.%s : undefined", name, name)
         ).collect(Collectors.joining(",\n" + CompilerUtils.buildLinePadding(depth + 2)))
       );
@@ -93,15 +93,23 @@ public class BlueprintComponent extends Element {
   }
 
   String translateStyle(int depth, ExportTarget exportTarget) {
+    String mutationProperties = String.format(
+      "...((properties.mutations && properties.mutations.%s) ? properties.mutations.%s.style : undefined)",
+      this.getName(),
+      this.getName()
+    );
+
+    String positionTranslation = this.position.translate(depth + 2, exportTarget);
+
+    if (positionTranslation.isEmpty()) {
+      return CompilerUtils.buildLinePadding(depth + 2) + mutationProperties;
+    }
+
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> String.format(
         CompilerUtils.buildLinesFormat(new String[]{"%s,", "%s"}, 2),
-        this.position.translate(depth + 2, exportTarget),
-        CompilerUtils.buildLinePadding(depth) + String.format(
-          "...((properties.mutations && properties.mutations.%s) ? properties.mutations.%s.style : undefined)",
-          this.getName(),
-          this.getName()
-        )
+        positionTranslation,
+        CompilerUtils.buildLinePadding(depth) + mutationProperties
       );
     };
   }

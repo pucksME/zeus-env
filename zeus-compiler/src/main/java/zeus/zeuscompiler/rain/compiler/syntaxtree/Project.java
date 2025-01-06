@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Project extends Node {
+  String clientName;
   List<Element> elements;
   List<View> views;
   List<Server> servers;
@@ -25,11 +26,13 @@ public class Project extends Node {
     int line,
     int linePosition,
     String name,
+    String clientName,
     List<Element> elements,
     List<View> views,
     List<Server> servers
   ) {
     super(line, linePosition, name);
+    this.clientName = clientName;
     this.elements = elements;
     this.views = views;
     this.servers = servers;
@@ -111,14 +114,21 @@ public class Project extends Node {
   }
 
   public List<ExportedClientDto> translateClients(ExportTarget exportTarget) {
+    if (this.clientName == null) {
+      return new ArrayList<>();
+    }
+
     String appFileName = switch (exportTarget) {
       case REACT_TYPESCRIPT -> "app.tsx";
     };
 
-    return List.of(new ExportedClientDto(List.of(
-      new ExportedFileDto(this.translate(0, exportTarget), appFileName),
-      new ExportedFileDto(this.translateViews(appFileName, exportTarget), "views.tsx")
-    )));
+    return List.of(new ExportedClientDto(
+      this.clientName,
+      List.of(
+        new ExportedFileDto(this.translate(0, exportTarget), appFileName),
+        new ExportedFileDto(this.translateViews(appFileName, exportTarget), "views.tsx")
+      )
+    ));
   }
 
   public String translateUmbrellaSpecificationsInitialization() {
@@ -231,6 +241,7 @@ public class Project extends Node {
     return new Project(
       -1,
       -1,
+      exportProjectDto.name(),
       exportProjectDto.name(),
       exportProjectDto.exportElementDtos().stream().map(
         exportElementDto -> Element.fromDto(exportElementDto, true)

@@ -5,6 +5,8 @@ import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecificati
 import zeus.zeuscompiler.grammars.RainParser;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.*;
+import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ComponentMutation;
+import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ShapeMutation;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.*;
 import zeus.zeuscompiler.rain.compiler.utils.RainUtils;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -24,13 +26,16 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpeci
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RainVisitor extends RainBaseVisitor<Object> {
   ShapeProperties currentShapeProperties;
   String currentServerName;
+  boolean currentComponentIsBlueprint;
 
   public RainVisitor() {
     this.currentShapeProperties = null;
+    this.currentComponentIsBlueprint = false;
   }
 
   private void resetCurrentShapeProperties() {
@@ -44,12 +49,15 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       ctx.ID().getText(),
-      (ctx.blueprintComponents() == null)
+      (ctx.client() != null) ? ctx.client().name.getText() : null,
+      (ctx.client() == null || ctx.client().blueprintComponents() == null)
         ? new ArrayList<>()
-        : ctx.blueprintComponents().blueprintComponent().stream()
+        : ctx.client().blueprintComponents().blueprintComponent().stream()
           .map(blueprintComponentContext -> (Element) visit(blueprintComponentContext))
           .toList(),
-      ctx.view().stream().map(viewContext -> (View) visit(viewContext)).toList(),
+      (ctx.client() == null) ? new ArrayList<>() : ctx.client().view().stream()
+        .map(viewContext -> (View) visit(viewContext))
+        .toList(),
       ctx.server().stream().map(serverContext -> (Server) visit(serverContext)).toList()
     );
   }
@@ -61,13 +69,20 @@ public class RainVisitor extends RainBaseVisitor<Object> {
 
   @Override
   public Object visitBlueprintComponent(RainParser.BlueprintComponentContext ctx) {
-    return new BlueprintComponent(
+    this.currentComponentIsBlueprint = true;
+
+    BlueprintComponent blueprintComponent = new BlueprintComponent(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       ctx.ID().getText(),
-      (ctx.position() == null) ? null : (Position) visit(ctx.position()),
-      ctx.blueprintElement().stream().map(blueprintElementContext -> (Element) visit(blueprintElementContext)).toList()
+      (ctx.position() == null) ? new Position() : (Position) visit(ctx.position()),
+      ctx.blueprintElement().stream()
+        .map(blueprintElementContext -> (Element) visit(blueprintElementContext))
+        .toList()
     );
+
+    this.currentComponentIsBlueprint = false;
+    return blueprintComponent;
   }
 
   @Override
@@ -83,6 +98,14 @@ public class RainVisitor extends RainBaseVisitor<Object> {
   }
 
   @Override
+  public Object visitPositionMutation(RainParser.PositionMutationContext ctx) {
+    return new Position(
+      Float.parseFloat(RainUtils.extractPxNumber(ctx.positionX().NUMBER_PX().getText())),
+      Float.parseFloat(RainUtils.extractPxNumber(ctx.positionY().NUMBER_PX().getText()))
+    );
+  }
+
+  @Override
   public Object visitShapeRectangle(RainParser.ShapeRectangleContext ctx) {
     this.currentShapeProperties = new ShapeProperties(new HashMap<>());
     visit(ctx.shapeRectangleProperties());
@@ -93,10 +116,10 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       ctx.ID().getText(),
       (Position) visit(ctx.position()),
       this.currentShapeProperties,
-      false
+      this.currentComponentIsBlueprint
     );
 
-    resetCurrentShapeProperties();
+    this.resetCurrentShapeProperties();
     return rectangle;
   }
 
@@ -111,10 +134,10 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       ctx.ID().getText(),
       (Position) visit(ctx.position()),
       this.currentShapeProperties,
-      false
+      this.currentComponentIsBlueprint
     );
 
-    resetCurrentShapeProperties();
+    this.resetCurrentShapeProperties();
     return circle;
   }
 
@@ -129,10 +152,10 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       ctx.ID().getText(),
       (Position) visit(ctx.position()),
       this.currentShapeProperties,
-      false
+      this.currentComponentIsBlueprint
     );
 
-    resetCurrentShapeProperties();
+    this.resetCurrentShapeProperties();
     return text;
   }
 
@@ -338,13 +361,57 @@ public class RainVisitor extends RainBaseVisitor<Object> {
   }
 
   @Override
+  public Object visitComponentMutation(RainParser.ComponentMutationContext ctx) {
+    return new ComponentMutation((Position) this.visit(ctx.positionMutation()), ctx.ID().getText());
+  }
+
+  @Override
+  public Object visitShapeMutation(RainParser.ShapeMutationContext ctx) {
+    this.currentShapeProperties = new ShapeProperties(new HashMap<>());
+
+    if (ctx.shapeRectangleProperties() != null) {
+      this.visit(ctx.shapeRectangleProperties());
+    }
+
+    if (ctx.shapeCircleProperties() != null) {
+      this.visit(ctx.shapeCircleProperties());
+    }
+
+    if (ctx.shapeTextProperties() != null) {
+      this.visit(ctx.shapeTextProperties());
+    }
+
+    ShapeMutation shapeMutation = new ShapeMutation(
+      (Position) ((ctx.positionMutation() != null) ? this.visit(ctx.positionMutation()) : new Position()),
+      ctx.ID().getText(),
+      this.currentShapeProperties
+    );
+
+    this.resetCurrentShapeProperties();
+    return shapeMutation;
+  }
+
+  @Override
   public Object visitComponentReference(RainParser.ComponentReferenceContext ctx) {
+    Position position = (Position) visit(ctx.position());
+    String blueprintComponentName = ctx.ID(1).getText();
     return new Component(
       ctx.getStart().getLine(),
       ctx.getStart().getCharPositionInLine(),
       ctx.ID(0).getText(),
-      (Position) visit(ctx.position()),
-      new BlueprintComponentReference(ctx.ID(1).getText(), new ArrayList<>(), new ArrayList<>()),
+      position,
+      new BlueprintComponentReference(
+        blueprintComponentName,
+        Stream.concat(
+          Stream.of(new ComponentMutation(position, blueprintComponentName)),
+          ctx.componentMutation().stream()
+            .map(componentMutationContext ->
+              (ComponentMutation) this.visit(componentMutationContext))
+        ).toList(),
+        ctx.shapeMutation().stream()
+          .map(shapeMutationContext -> (ShapeMutation) visit(shapeMutationContext))
+          .toList()
+      ),
       null,
       new ArrayList<>()
     );
