@@ -98,34 +98,35 @@ public class UmbrellaSpecification extends Node {
     code.add("");
     code.add(CompilerUtils.buildLinePadding(1) + "@Override");
     code.add(CompilerUtils.buildLinePadding(1) + "public boolean verify(Request request) {");
-    code.add(CompilerUtils.buildLinePadding(2) + "this.requests.add(request);");
-    code.add(CompilerUtils.buildLinePadding(2) + "this.state = this.requests.get(0).getVariables();");
+    code.add(CompilerUtils.buildLinePadding(2) + "this.state = request.getVariables();");
+    code.add("");
+    code.add(CompilerUtils.buildLinePadding(2) + "if (this.isFirstRequest) {");
 
     for (int i = subFormulas.size() - 1; i >= 0; i--) {
-      code.add(CompilerUtils.buildLinePadding(2) + String.format(
+      code.add(CompilerUtils.buildLinePadding(3) + String.format(
         "pre[%s] = %s;",
         i,
         subFormulas.get(i).translatePre(subFormulas)
       ));
     }
+
+    code.add(CompilerUtils.buildLinePadding(3) + "this.isFirstRequest = false;");
+    code.add(CompilerUtils.buildLinePadding(3) + "return false;");
+    code.add(CompilerUtils.buildLinePadding(2) + "}");
     code.add("");
-    code.add(CompilerUtils.buildLinePadding(2) + "for (int i = 2; i < this.requests.size(); i++) {");
-    code.add(CompilerUtils.buildLinePadding(3) + "this.state = this.requests.get(i).getVariables();");
 
     for (int i = subFormulas.size() - 1; i >= 0; i--) {
-      code.add(CompilerUtils.buildLinePadding(3) + String.format(
+      code.add(CompilerUtils.buildLinePadding(2) + String.format(
         "now[%s] = %s;",
         i,
         subFormulas.get(i).translateNow(subFormulas)
       ));
     }
 
-    code.add(CompilerUtils.buildLinePadding(3) + String.format(
+    code.add(CompilerUtils.buildLinePadding(2) + String.format(
       "System.arraycopy(now, 0, pre, 0, %s);",
       subFormulas.size()
     ));
-    code.add(CompilerUtils.buildLinePadding(2) + "}");
-    code.add("");
     code.add(CompilerUtils.buildLinePadding(2) + "return now[0];");
     code.add(CompilerUtils.buildLinePadding(1) + "}");
     code.add("}");

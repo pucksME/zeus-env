@@ -14,8 +14,8 @@ public abstract class Specification {
   Context context;
   Set<Action> actions;
   boolean accessesResponse;
-  List<Request> requests;
   Map<String, JsonElement> state;
+  boolean isFirstRequest;
 
   public Specification(
     String serverName,
@@ -31,8 +31,8 @@ public abstract class Specification {
     this.context = context;
     this.actions = actions;
     this.accessesResponse = accessesResponse;
-    this.requests = new ArrayList<>();
     this.state = new HashMap<>();
+    this.isFirstRequest = true;
   }
 
   private Optional<JsonElement> getVariableValue(String identifier, Map<String, JsonElement> state) {
