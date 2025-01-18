@@ -8,6 +8,7 @@ import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port.CodeModuleOutputExpression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.ConnectionStatement;
+import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecifications;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.ArrayList;
@@ -53,9 +54,13 @@ public class Dependency implements Translatable {
       .provide(SymbolTableService.class).getContextSymbolTableProvider()
       .provide(ServerRouteSymbolTable.class);
 
+    Optional<UmbrellaSpecifications> umbrellaSpecificationsOptional =
+      serverRouteSymbolTable.getUmbrellaSpecifications();
+
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.connectionStatements.stream()
-        .map(connectionStatement -> (serverRouteSymbolTable.getUmbrellaSpecifications().accessesResponse())
+        .map(connectionStatement -> (umbrellaSpecificationsOptional.isPresent() &&
+          umbrellaSpecificationsOptional.get().accessesResponse())
           ? String.format(
             "umbrellaMonitorAdapter(\"%s\", \"%s\", req, res, null, %s_%s);",
             serverRouteSymbolTable.getServerName(),
@@ -64,7 +69,7 @@ public class Dependency implements Translatable {
             connectionStatement.getCodeModuleOutputExpression().getOutputId()
         )
           : String.format(
-            "res.send(%s_%s)",
+            "res.send(%s_%s);",
             connectionStatement.getCodeModuleOutputExpression().getCodeModuleId(),
             connectionStatement.getCodeModuleOutputExpression().getOutputId()
         ))

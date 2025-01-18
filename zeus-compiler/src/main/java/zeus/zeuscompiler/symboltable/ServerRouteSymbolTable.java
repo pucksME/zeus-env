@@ -62,8 +62,8 @@ public class ServerRouteSymbolTable extends SymbolTable {
     return bootsSpecificationClasses;
   }
 
-  public UmbrellaSpecifications getUmbrellaSpecifications() {
-    return umbrellaSpecifications;
+  public Optional<UmbrellaSpecifications> getUmbrellaSpecifications() {
+    return Optional.ofNullable(umbrellaSpecifications);
   }
 
   public void setUmbrellaSpecifications(UmbrellaSpecifications umbrellaSpecifications) {

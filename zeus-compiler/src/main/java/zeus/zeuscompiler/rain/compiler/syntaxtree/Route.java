@@ -71,7 +71,9 @@ public class Route extends Node {
         List<String> translatedAdapters = new ArrayList<>();
 
         if (this.bootsSpecification != null) {
-            translatedAdapters.add(String.format("(req, res, next) => bootsMonitorAdapter('%s', req, res, next)", this.id));
+            translatedAdapters.add(String.format(
+              "(req, res, next) => bootsMonitorAdapter('%s', req, res, next)", this.id
+            ));
         }
 
         if (this.server == null) {
@@ -81,11 +83,13 @@ public class Route extends Node {
             ));
         }
 
-        translatedAdapters.add(String.format(
-          "(req, res, next) => umbrellaMonitorAdapter('%s', '%s', req, res, next)",
-          this.server.name,
-          this.id
-        ));
+        if (this.umbrellaSpecifications != null) {
+            translatedAdapters.add(String.format(
+              "(req, res, next) => umbrellaMonitorAdapter('%s', '%s', req, res, next)",
+              this.server.name,
+              this.id
+            ));
+        }
 
         if (translatedAdapters.isEmpty()) {
             return "";
