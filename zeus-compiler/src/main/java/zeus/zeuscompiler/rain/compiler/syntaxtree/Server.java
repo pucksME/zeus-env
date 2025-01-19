@@ -61,12 +61,31 @@ public class Server extends Node {
         };
     }
 
+    public String translateTypingMiddleware(ExportTarget exportTarget, int depth) {
+        return this.routes.stream()
+          .map(route -> {
+              ServiceProvider
+                .provide(SymbolTableService.class)
+                .setContextSymbolTable(new ServerRouteSymbolTableIdentifier(this.name, route.getId()));
+
+              String translation = route.translateTypingMiddleware(exportTarget, depth);
+
+              ServiceProvider
+                .provide(SymbolTableService.class)
+                .setContextSymbolTable(new ClientSymbolTableIdentifier());
+
+              return translation;
+          })
+          .collect(Collectors.joining("\n"));
+    }
+
     @Override
     public String translate(int depth, ExportTarget exportTarget) {
         return switch (exportTarget) {
             case REACT_TYPESCRIPT -> String.format(
               CompilerUtils.buildLinesFormat(new String[]{
                 "import {app} from './index';",
+                "import {typingMiddleware} from '../middlewares/typing.middleware'",
                 "import {bootsMonitorAdapter} from './adapters/boots-monitor.adapter'",
                 "import {umbrellaMonitorAdapter} from './adapters/umbrella-monitor.adapter'",
                 "%s"

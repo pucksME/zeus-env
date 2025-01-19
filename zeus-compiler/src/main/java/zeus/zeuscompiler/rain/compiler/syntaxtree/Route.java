@@ -1,11 +1,10 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecification;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.SymbolTableService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
@@ -65,6 +64,46 @@ public class Route extends Node {
                 case UPDATE -> "update";
             };
         };
+    }
+
+    public String translateTypingMiddleware(ExportTarget exportTarget, int depth) {
+        return switch (exportTarget) {
+            case REACT_TYPESCRIPT -> {
+                Optional<RequestCodeModule> requestCodeModuleOptional = ServiceProvider
+                  .provide(SymbolTableService.class).getContextSymbolTableProvider()
+                  .provide(ServerRouteSymbolTable.class).getRoutingCodeModule(RequestCodeModule.class);
+
+                yield String.format(
+                  CompilerUtils.buildLinesFormat(
+                    new String[]{
+                      "if (routeId === '%s') {",
+                      CompilerUtils.buildLinePadding(depth + 1) + "%s",
+                      "}",
+                      "",
+                      "next();"
+                    },
+                    depth
+                  ),
+                  this.id,
+                  (requestCodeModuleOptional.isPresent())
+                    ? requestCodeModuleOptional.get().translateTypingMiddleware(exportTarget, depth + 1)
+                    : ""
+                );
+            }
+        };
+    }
+
+    private String translateMiddlewares(ExportTarget exportTarget) {
+        switch (exportTarget) {
+            case REACT_TYPESCRIPT -> {
+                List<String> middlewares = new ArrayList<>();
+
+                middlewares.add(String.format("(req, res, next) => typingMiddleware(req, res, next, '%s')", this.id));
+
+                return (middlewares.isEmpty()) ? "" : String.join(", ", middlewares) + ", ";
+            }
+        }
+        throw new RuntimeException("Could not translate middlewares: unsupported export target");
     }
 
     private String translateMonitorAdapters() {
@@ -144,7 +183,7 @@ public class Route extends Node {
               this.translateRequestMethod(exportTarget),
               this.id,
               "/" + parameters,
-              this.translateMonitorAdapters(),
+              this.translateMiddlewares(exportTarget) + this.translateMonitorAdapters(),
               this.codeModules.translate(depth, exportTarget)
             );
         };

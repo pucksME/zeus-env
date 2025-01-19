@@ -381,7 +381,7 @@ export class ProjectService {
               filename: exportedFile.filename
             }))
           }],
-          exportedServerDtos: [],
+          servers: null,
           errors: projectAssignment.project.exportedProject.exportedErrors
         })
       );
@@ -435,7 +435,7 @@ export class ProjectService {
       }
     }
 
-    for (const exportedServerDto of exportedProject.exportedServerDtos) {
+    for (const exportedServerDto of exportedProject.servers.servers) {
       const serverArchivePath = `server-${exportedServerDto.name}/`;
       archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.EXPRESS_TYPESCRIPT, serverArchivePath)
       for (const exportedFileDto of exportedServerDto.exportedFileDtos) {
@@ -450,10 +450,14 @@ export class ProjectService {
       }
     }
 
+    archive.append(exportedProject.servers.typingMiddleware.code, {
+      name: `middlewares/${exportedProject.servers.typingMiddleware.filename}`
+    });
+
     archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.BOOTS, 'monitors/boots/');
     archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.UMBRELLA, 'monitors/umbrella/');
 
-    for (const umbrellaMonitorSpecification of exportedProject.exportedServerDtos.flatMap(
+    for (const umbrellaMonitorSpecification of exportedProject.servers.servers.flatMap(
       server => server.umbrellaSpecifications
     )) {
       archive.append(umbrellaMonitorSpecification.code, {

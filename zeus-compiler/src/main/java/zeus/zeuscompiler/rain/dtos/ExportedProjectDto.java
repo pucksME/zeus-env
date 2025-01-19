@@ -6,7 +6,7 @@ import java.util.List;
 
 public record ExportedProjectDto(
   List<ExportedClientDto> exportedClientDtos,
-  List<ExportedServerDto> exportedServerDtos,
+  ExportedServersDto servers,
   ExportedFileDto umbrellaSpecificationInitialization,
   List<ErrorDto> errors
 ) {

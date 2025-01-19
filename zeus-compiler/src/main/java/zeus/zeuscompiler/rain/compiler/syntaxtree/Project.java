@@ -190,6 +190,27 @@ public class Project extends Node {
     return String.join("\n", code);
   }
 
+  public ExportedFileDto translateTypingMiddleware(ExportTarget exportTarget) {
+    return switch (exportTarget) {
+      case REACT_TYPESCRIPT -> new ExportedFileDto(
+        String.format(
+          CompilerUtils.buildLinesFormat(
+            new String[]{
+              "export function typingMiddleware(req, res, next, routeId: string) {",
+              "%s",
+              "}"
+            },
+            0
+          ),
+          this.servers.stream()
+            .map(server -> server.translateTypingMiddleware(exportTarget, 1))
+            .collect(Collectors.joining("\n"))
+        ),
+        "typing.middleware.ts"
+      );
+    };
+  }
+
   public List<ExportedServerDto> translateServers(ExportTarget exportTarget) {
     return this.servers.stream()
       .map(server -> new ExportedServerDto(

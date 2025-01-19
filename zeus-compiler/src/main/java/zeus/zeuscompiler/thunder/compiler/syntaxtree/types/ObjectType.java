@@ -1,6 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,44 @@ public class ObjectType extends Type {
       case REACT_TYPESCRIPT -> this.propertyTypes.keySet().stream()
         .map(key -> String.format("%s/:%s", key, key))
         .collect(Collectors.joining("/"));
+    };
+  }
+
+  public String translateTypingMiddleware(ExportTarget exportTarget, int depth) {
+    return switch (exportTarget) {
+      case REACT_TYPESCRIPT -> this.propertyTypes.entrySet().stream().map(propertyType -> {
+        if (!(propertyType.getValue() instanceof PrimitiveType)) {
+          throw new RuntimeException("Could not translate typing middleware for object type: property type not of type primitive type");
+        }
+
+        return switch (((PrimitiveType) propertyType.getValue()).getType()) {
+          case INT -> String.format(
+            "req.params['%s'] = parseInt(req.params['%s'])",
+            propertyType.getKey(),
+            propertyType.getKey()
+          );
+
+          case FLOAT -> String.format(
+            "req.params['%s'] = parseFloat(req.params['%s'])",
+            propertyType.getKey(),
+            propertyType.getKey()
+          );
+
+          case STRING -> String.format(
+            "req.params['%s'] = String(req.params['%s'])",
+            propertyType.getKey(),
+            propertyType.getKey()
+          );
+
+          case BOOLEAN -> String.format(
+            "req.params['%s'] = (req.params['%s'] === 'true') ? true : false",
+            propertyType.getKey(),
+            propertyType.getKey()
+          );
+
+          default -> throw new RuntimeException("Could not translate typing middleware for object type: unsupported literal type");
+        };
+      }).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth)));
     };
   }
 

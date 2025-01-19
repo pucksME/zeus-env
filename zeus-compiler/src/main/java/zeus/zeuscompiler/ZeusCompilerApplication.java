@@ -12,10 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.RainAnalyzer;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.Project;
-import zeus.zeuscompiler.rain.dtos.ExportProjectDto;
-import zeus.zeuscompiler.rain.dtos.ExportedFileDto;
-import zeus.zeuscompiler.rain.dtos.ExportedProjectDto;
-import zeus.zeuscompiler.rain.dtos.TranslateProjectDto;
+import zeus.zeuscompiler.rain.dtos.*;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
@@ -85,7 +82,7 @@ public class ZeusCompilerApplication {
     if (projectOptional.isEmpty()) {
       return new ExportedProjectDto(
         new ArrayList<>(),
-        new ArrayList<>(),
+        null,
         null,
         ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
@@ -93,7 +90,7 @@ public class ZeusCompilerApplication {
 
     return new ExportedProjectDto(
       projectOptional.get().translateClients(exportProjectDto.exportTarget()),
-      new ArrayList<>(),
+      null,
       null,
       new ArrayList<>()
     );
@@ -122,7 +119,7 @@ public class ZeusCompilerApplication {
     if (projectOptional.isEmpty() || ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
       return new ExportedProjectDto(
         new ArrayList<>(),
-        new ArrayList<>(),
+        null,
         null,
         ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
@@ -131,7 +128,10 @@ public class ZeusCompilerApplication {
     Project project = projectOptional.get();
     return new ExportedProjectDto(
       project.translateClients(translateProjectDto.exportTarget()),
-      project.translateServers(translateProjectDto.exportTarget()),
+      new ExportedServersDto(
+        project.translateTypingMiddleware(translateProjectDto.exportTarget()),
+        project.translateServers(translateProjectDto.exportTarget())
+      ),
       new ExportedFileDto(
         project.translateUmbrellaSpecificationsInitialization(),
         "SpecificationInitializationService.java"
