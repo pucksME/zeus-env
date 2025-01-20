@@ -69,7 +69,17 @@ public class ObjectType extends Type {
 
         return switch (((PrimitiveType) propertyType.getValue()).getType()) {
           case INT -> String.format(
-            "req.params['%s'] = parseInt(req.params['%s'])",
+            CompilerUtils.buildLinesFormat(
+              new String[]{
+                "if (!isNaN(req.params['%s'])) {",
+                CompilerUtils.buildLinePadding(depth + 1) + "res.status(400).send({error: \"request type checking error\"});",
+                CompilerUtils.buildLinePadding(depth + 1) + "return;",
+                "}",
+                "req.params['%s'] = parseInt(req.params['%s'])"
+              },
+              depth
+            ),
+            propertyType.getKey(),
             propertyType.getKey(),
             propertyType.getKey()
           );

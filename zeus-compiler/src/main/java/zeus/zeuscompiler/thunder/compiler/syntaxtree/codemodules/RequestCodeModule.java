@@ -47,7 +47,7 @@ public class RequestCodeModule extends RoutingCodeModule {
       throw new RuntimeException("Could not translate typing middleware for request code module: url output type is not of type object");
     }
 
-    return ((ObjectType) type).translateTypingMiddleware(exportTarget, depth + 1);
+    return ((ObjectType) type).translateTypingMiddleware(exportTarget, depth);
   }
 
   @Override

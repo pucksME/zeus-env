@@ -77,10 +77,10 @@ public class Route extends Node {
                   CompilerUtils.buildLinesFormat(
                     new String[]{
                       "if (routeId === '%s') {",
-                      CompilerUtils.buildLinePadding(depth + 1) + "%s",
-                      "}",
-                      "",
-                      "next();"
+                      "%s",
+                      CompilerUtils.buildLinePadding(depth + 1) + "next();",
+                      CompilerUtils.buildLinePadding(depth + 1) + "return;",
+                      "}"
                     },
                     depth
                   ),
