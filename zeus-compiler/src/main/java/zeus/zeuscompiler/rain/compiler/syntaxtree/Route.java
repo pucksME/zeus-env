@@ -80,9 +80,9 @@ public class Route extends Node {
                       "%s",
                       CompilerUtils.buildLinePadding(depth + 1) + "next();",
                       CompilerUtils.buildLinePadding(depth + 1) + "return;",
-                      "}"
+                      CompilerUtils.buildLinePadding(depth) + "}"
                     },
-                    depth
+                    0
                   ),
                   this.id,
                   (requestCodeModuleOptional.isPresent())

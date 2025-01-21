@@ -1,6 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.types;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
 import java.util.List;
@@ -55,6 +56,7 @@ public class ObjectType extends Type {
   public String translateToUrlParameters(ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> this.propertyTypes.keySet().stream()
+        .sorted()
         .map(key -> String.format("%s/:%s", key, key))
         .collect(Collectors.joining("/"));
     };
@@ -62,49 +64,59 @@ public class ObjectType extends Type {
 
   public String translateTypingMiddleware(ExportTarget exportTarget, int depth) {
     return switch (exportTarget) {
-      case REACT_TYPESCRIPT -> this.propertyTypes.entrySet().stream().map(propertyType -> {
-        if (!(propertyType.getValue() instanceof PrimitiveType)) {
-          throw new RuntimeException("Could not translate typing middleware for object type: property type not of type primitive type");
-        }
+      case REACT_TYPESCRIPT -> {
+        String error = "res.status(400).send({error: \"request type checking error\"});";
+        yield this.propertyTypes.entrySet().stream().map(propertyType -> {
+          if (!(propertyType.getValue() instanceof PrimitiveType)) {
+            throw new RuntimeException("Could not translate typing middleware for object type: property type not of type primitive type");
+          }
 
-        return switch (((PrimitiveType) propertyType.getValue()).getType()) {
-          case INT -> String.format(
-            CompilerUtils.buildLinesFormat(
-              new String[]{
-                "if (!isNaN(req.params['%s'])) {",
-                CompilerUtils.buildLinePadding(depth + 1) + "res.status(400).send({error: \"request type checking error\"});",
-                CompilerUtils.buildLinePadding(depth + 1) + "return;",
-                "}",
-                "req.params['%s'] = parseInt(req.params['%s'])"
-              },
-              depth
-            ),
-            propertyType.getKey(),
-            propertyType.getKey(),
-            propertyType.getKey()
-          );
+          return switch (((PrimitiveType) propertyType.getValue()).getType()) {
+            case INT, FLOAT -> String.format(
+              CompilerUtils.buildLinesFormat(
+                new String[]{
+                  "if (isNaN(req.params['%s'])) {",
+                  CompilerUtils.buildLinePadding(1) + error,
+                  CompilerUtils.buildLinePadding(1) + "return;",
+                  "}",
+                  (((PrimitiveType) propertyType.getValue()).getType() == LiteralType.INT)
+                    ? "req.params['%s'] = parseInt(req.params['%s'])"
+                    : "req.params['%s'] = parseFloat(req.params['%s'])"
+                },
+                depth
+              ),
+              propertyType.getKey(),
+              propertyType.getKey(),
+              propertyType.getKey()
+            );
 
-          case FLOAT -> String.format(
-            "req.params['%s'] = parseFloat(req.params['%s'])",
-            propertyType.getKey(),
-            propertyType.getKey()
-          );
+            case STRING -> String.format(
+              CompilerUtils.buildLinePadding(depth) + "req.params['%s'] = String(req.params['%s'])",
+              propertyType.getKey(),
+              propertyType.getKey()
+            );
 
-          case STRING -> String.format(
-            "req.params['%s'] = String(req.params['%s'])",
-            propertyType.getKey(),
-            propertyType.getKey()
-          );
+            case BOOLEAN -> String.format(
+              CompilerUtils.buildLinesFormat(
+                new String[]{
+                  "if (!['true', 'false'].includes(req.params['%s'])) {",
+                  CompilerUtils.buildLinePadding(1) + error,
+                  CompilerUtils.buildLinePadding(1) + "return;",
+                  "}",
+                  "req.params['%s'] = (req.params['%s'] === 'true') ? true : false"
+                },
+                depth
+              ),
+              propertyType.getKey(),
+              propertyType.getKey(),
+              propertyType.getKey(),
+              propertyType.getKey()
+            );
 
-          case BOOLEAN -> String.format(
-            "req.params['%s'] = (req.params['%s'] === 'true') ? true : false",
-            propertyType.getKey(),
-            propertyType.getKey()
-          );
-
-          default -> throw new RuntimeException("Could not translate typing middleware for object type: unsupported literal type");
-        };
-      }).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth)));
+            default -> throw new RuntimeException("Could not translate typing middleware for object type: unsupported literal type");
+          };
+        }).collect(Collectors.joining("\n"));
+      }
     };
   }
 

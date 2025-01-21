@@ -74,7 +74,7 @@ public class Server extends Node {
                 .provide(SymbolTableService.class)
                 .setContextSymbolTable(new ClientSymbolTableIdentifier());
 
-              return translation;
+              return CompilerUtils.buildLinePadding(depth) + translation;
           })
           .collect(Collectors.joining("\n"));
     }
