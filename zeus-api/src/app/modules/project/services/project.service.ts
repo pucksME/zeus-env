@@ -435,41 +435,43 @@ export class ProjectService {
       }
     }
 
-    for (const exportedServerDto of exportedProject.servers.servers) {
-      const serverArchivePath = `server-${exportedServerDto.name}/`;
-      archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.EXPRESS_TYPESCRIPT, serverArchivePath)
-      for (const exportedFileDto of exportedServerDto.exportedFileDtos) {
-        archive.append(exportedFileDto.code, {name: serverArchivePath + exportedFileDto.filename});
+    if (exportedProject.servers !== null) {
+      for (const exportedServerDto of exportedProject.servers.servers) {
+        const serverArchivePath = `server-${exportedServerDto.name}/`;
+        archive = ProjectUtils.buildExportProjectFramework(archive, ExportTarget.EXPRESS_TYPESCRIPT, serverArchivePath)
+        for (const exportedFileDto of exportedServerDto.exportedFileDtos) {
+          archive.append(exportedFileDto.code, { name: serverArchivePath + exportedFileDto.filename });
+        }
+
+        archive = ProjectUtils.buildExportProjectMonitorAdapter(archive, Monitor.BOOTS, serverArchivePath + 'adapters/')
+        archive = ProjectUtils.buildExportProjectMonitorAdapter(archive, Monitor.UMBRELLA, serverArchivePath + 'adapters/')
+
+        for (const bootsGeneratorFile of exportedServerDto.exportedBootsMonitorFilesDto) {
+          archive.append(bootsGeneratorFile.code, { name: `${serverArchivePath}boots-generators/${bootsGeneratorFile.filename}` })
+        }
       }
 
-      archive = ProjectUtils.buildExportProjectMonitorAdapter(archive, Monitor.BOOTS, serverArchivePath + 'adapters/')
-      archive = ProjectUtils.buildExportProjectMonitorAdapter(archive, Monitor.UMBRELLA, serverArchivePath + 'adapters/')
+      archive.append(exportedProject.servers.typingMiddleware.code, {
+        name: `middlewares/${exportedProject.servers.typingMiddleware.filename}`
+      });
 
-      for (const bootsGeneratorFile of exportedServerDto.exportedBootsMonitorFilesDto) {
-        archive.append(bootsGeneratorFile.code, {name: `${serverArchivePath}boots-generators/${bootsGeneratorFile.filename}`})
+      archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.BOOTS, 'monitors/boots/');
+      archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.UMBRELLA, 'monitors/umbrella/');
+
+      for (const umbrellaMonitorSpecification of exportedProject.servers.servers.flatMap(
+        server => server.umbrellaSpecifications
+      )) {
+        archive.append(umbrellaMonitorSpecification.code, {
+          name: `monitors/umbrella/src/main/java/zeus/specification/${umbrellaMonitorSpecification.filename}`
+        });
+
       }
-    }
 
-    archive.append(exportedProject.servers.typingMiddleware.code, {
-      name: `middlewares/${exportedProject.servers.typingMiddleware.filename}`
-    });
-
-    archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.BOOTS, 'monitors/boots/');
-    archive = ProjectUtils.buildExportProjectMonitor(archive, Monitor.UMBRELLA, 'monitors/umbrella/');
-
-    for (const umbrellaMonitorSpecification of exportedProject.servers.servers.flatMap(
-      server => server.umbrellaSpecifications
-    )) {
-      archive.append(umbrellaMonitorSpecification.code, {
-        name : `monitors/umbrella/src/main/java/zeus/specification/${umbrellaMonitorSpecification.filename}`
-      });
-
-    }
-
-    if (exportedProject.umbrellaSpecificationInitialization !== null) {
-      archive.append(exportedProject.umbrellaSpecificationInitialization.code, {
-        name: `monitors/umbrella/src/main/java/zeus/${exportedProject.umbrellaSpecificationInitialization.filename}`
-      });
+      if (exportedProject.umbrellaSpecificationInitialization !== null) {
+        archive.append(exportedProject.umbrellaSpecificationInitialization.code, {
+          name: `monitors/umbrella/src/main/java/zeus/${exportedProject.umbrellaSpecificationInitialization.filename}`
+        });
+      }
     }
 
     archive = ProjectUtils.buildExportProjectErrors(archive, exportedProject.errors)
