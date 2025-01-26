@@ -140,6 +140,10 @@ public class AccessFormula extends UnaryFormula {
       }
 
       thunderTypeOptional = requestCodeModuleOptional.get().evaluateOutputType(identifiers);
+
+      if (thunderTypeOptional.isEmpty()) {
+        return Optional.empty();
+      }
     }
 
     if (identifiers.get(0).equals("response")) {
