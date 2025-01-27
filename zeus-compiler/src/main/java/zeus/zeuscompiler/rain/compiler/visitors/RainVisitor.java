@@ -441,8 +441,8 @@ public class RainVisitor extends RainBaseVisitor<Object> {
       routeMethod = RouteMethod.POST;
     }
 
-    if (ctx.ROUTE_UPDATE() != null) {
-      routeMethod = RouteMethod.UPDATE;
+    if (ctx.ROUTE_PUT() != null) {
+      routeMethod = RouteMethod.PUT;
     }
 
     if (ctx.ROUTE_DELETE() != null) {

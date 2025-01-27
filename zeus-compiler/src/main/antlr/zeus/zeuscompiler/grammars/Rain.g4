@@ -122,7 +122,7 @@ umbrellaSpecification : UMBRELLA_SPECIFICATION BLOCK_START CODE BLOCK_END ;
 route : ROUTE (
                 ROUTE_GET
               | ROUTE_POST
-              | ROUTE_UPDATE
+              | ROUTE_PUT
               | ROUTE_DELETE
               ) ID BLOCK_START bootsSpecification? umbrellaSpecification? codeModules BLOCK_END ;
 server : '[' SERVER name=ID '@' (hostname=ID | ipAddress=SERVER_IP) (':' NUMBER)? ']' route+ ;
@@ -227,6 +227,6 @@ SERVER : 'server' ;
 ROUTE : 'route' ;
 ROUTE_GET : 'GET' ;
 ROUTE_POST : 'POST' ;
-ROUTE_UPDATE : 'UPDATE' ;
+ROUTE_PUT : 'PUT' ;
 ROUTE_DELETE : 'DELETE' ;
 ID : [A-Za-z0-9]+ ;

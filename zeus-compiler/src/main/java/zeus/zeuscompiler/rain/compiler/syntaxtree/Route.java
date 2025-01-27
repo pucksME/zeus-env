@@ -61,7 +61,7 @@ public class Route extends Node {
                 case DELETE -> "delete";
                 case GET -> "get";
                 case POST -> "post";
-                case UPDATE -> "update";
+                case PUT -> "put";
             };
         };
     }
