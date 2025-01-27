@@ -7,6 +7,7 @@ import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.ServerRouteSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.RequestCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ResponseCodeModule;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ListType;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnknownRoutingCodeModuleException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.exceptions.semanticanalysis.UnsupportedTypeException;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.formulas.binary.AccessListFormula;
@@ -291,7 +292,12 @@ public class AccessFormula extends UnaryFormula {
       if (quantifierVariableTypes.get().containsKey(this.id)) {
         return this.translateQuantifierVariableAccess();
       }
-      return this.translateQuantifierList();
+
+      Optional<zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type> typeOptional = this.evaluateThunderType();
+
+      if (typeOptional.isPresent() && typeOptional.get() instanceof ListType) {
+        return this.translateQuantifierList();
+      }
     }
 
     Optional<Type> typeOptional = this.evaluateType();
