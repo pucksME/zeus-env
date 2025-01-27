@@ -48,6 +48,7 @@ public class SpecificationService {
       return true;
     }
 
+    boolean block = false;
     for (Specification specification : Stream.concat(
       SpecificationService.specifications.getOrDefault(specificationIdentifier, new ArrayList<>()).stream(),
       SpecificationService.specifications.getOrDefault(specificationIdentifierGlobal, new ArrayList<>()).stream()
@@ -84,10 +85,10 @@ public class SpecificationService {
       }
 
       if (specification.getActions().contains(Action.BLOCK)) {
-        return false;
+        block = true;
       }
     }
 
-    return true;
+    return !block;
   }
 }
