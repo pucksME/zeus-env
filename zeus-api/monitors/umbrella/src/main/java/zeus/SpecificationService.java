@@ -57,15 +57,15 @@ public class SpecificationService {
         continue;
       }
 
-      boolean result;
+      boolean result = false;
       try {
         result = specification.verify(request);
       } catch (NoSuchElementException noSuchElementException) {
-        return false;
+        block = true;
       } catch (NumberFormatException numberFormatException) {
-        return false;
+        block = true;
       } catch (InvalidBooleanVariableValueException invalidBooleanVariableValueException) {
-        return false;
+        block = true;
       }
 
 
