@@ -57,18 +57,7 @@ public class SpecificationService {
         continue;
       }
 
-      boolean result = false;
-      try {
-        result = specification.verify(request);
-      } catch (NoSuchElementException noSuchElementException) {
-        block = true;
-      } catch (NumberFormatException numberFormatException) {
-        block = true;
-      } catch (InvalidBooleanVariableValueException invalidBooleanVariableValueException) {
-        block = true;
-      }
-
-
+      boolean result = specification.verify(request);
 
       if (specification.getActions().contains(Action.LOG)) {
         System.out.printf(

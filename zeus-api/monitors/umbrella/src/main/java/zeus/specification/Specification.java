@@ -16,6 +16,8 @@ public abstract class Specification {
   boolean accessesResponse;
   Map<String, JsonElement> state;
   boolean isFirstRequest;
+  boolean[] pre;
+  boolean[] now;
 
   public Specification(
     String serverName,

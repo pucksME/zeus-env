@@ -81,9 +81,6 @@ public class UmbrellaSpecification extends Node {
     code.add("import zeus.Request;");
     code.add("");
     code.add(String.format("public class Specification%s%s%s extends Specification {", serverName, routeId, this.id));
-    code.add(CompilerUtils.buildLinePadding(1) + "boolean[] pre;");
-    code.add(CompilerUtils.buildLinePadding(1) + "boolean[] now;");
-    code.add("");
     code.add(CompilerUtils.buildLinePadding(1) + String.format(
       "public Specification%s%s%s(String serverName, String routeId, String name, Context context, Set<Action> actions, boolean accessesResponse) {",
       serverName,
@@ -104,9 +101,10 @@ public class UmbrellaSpecification extends Node {
 
     for (int i = subFormulas.size() - 1; i >= 0; i--) {
       code.add(CompilerUtils.buildLinePadding(3) + String.format(
-        "pre[%s] = %s;",
+        "try { pre[%s] = %s; } catch (Exception e) { pre[%s] = false; }",
         i,
-        subFormulas.get(i).translatePre(subFormulas)
+        subFormulas.get(i).translatePre(subFormulas),
+        i
       ));
     }
 
@@ -117,9 +115,10 @@ public class UmbrellaSpecification extends Node {
 
     for (int i = subFormulas.size() - 1; i >= 0; i--) {
       code.add(CompilerUtils.buildLinePadding(2) + String.format(
-        "now[%s] = %s;",
+        "try { now[%s] = %s; } catch (Exception e) { now[%s] = false; }",
         i,
-        subFormulas.get(i).translateNow(subFormulas)
+        subFormulas.get(i).translateNow(subFormulas),
+        i
       ));
     }
 
