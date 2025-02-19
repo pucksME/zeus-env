@@ -93,10 +93,10 @@ public class TemporalBinaryFormula extends BinaryFormula {
   public String translateNow(List<Formula> subFormulas) {
     return switch (this.temporalBinaryFormulaType) {
       case SINCE -> String.format(
-        "pre[%s] || (pre[%s] && now[%s])",
+        "(pre[%s] && now[%s]) || now[%s]",
         subFormulas.indexOf(this),
-        subFormulas.indexOf(this.rightFormula),
-        subFormulas.indexOf(this.leftFormula)
+        subFormulas.indexOf(this.leftFormula),
+        subFormulas.indexOf(this.rightFormula)
       );
     };
   }
