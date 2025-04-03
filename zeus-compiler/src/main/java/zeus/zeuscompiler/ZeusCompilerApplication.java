@@ -3,6 +3,8 @@ package zeus.zeuscompiler;
 import org.antlr.v4.runtime.CharStreams;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -97,13 +99,13 @@ public class ZeusCompilerApplication {
   }
 
   @Operation(
-    summary = "Exports a project",
-    description = "Exports a project"
+    summary = "Translates a project",
+    description = "Translates a project"
   )
   @ApiResponses(value = {
     @ApiResponse(
       responseCode = "200",
-      description = "The project was exported successfully",
+      description = "The project was translated successfully",
       useReturnTypeSchema = true
     )
   })
@@ -138,5 +140,36 @@ public class ZeusCompilerApplication {
       ),
       new ArrayList<>()
     );
+  }
+
+  @Operation(
+    summary = "Verifies a code module",
+    description = "Verifies a code module"
+  )
+  @ApiResponses(value = {
+    @ApiResponse(
+      responseCode = "200",
+      description = "The project was verified",
+      useReturnTypeSchema = true
+    )
+  })
+  @PostMapping("/verifyCodeModule")
+  VerifiedCodeModuleDto verifyCodeModule(@RequestBody VerifyCodeModuleDto verifyCodeModuleDto) {
+    ServiceProvider.initialize();
+    ServiceProvider.register(new CompilerErrorService());
+    ServiceProvider.register(new SymbolTableService());
+
+    RainAnalyzer rainAnalyzer = new RainAnalyzer(CompilerPhase.TYPE_CHECKER);
+    Optional<Project> projectOptional = rainAnalyzer.analyze(CharStreams.fromString(verifyCodeModuleDto.code()));
+
+    if (projectOptional.isEmpty() || ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
+      return new VerifiedCodeModuleDto(
+        false,
+        ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
+      );
+    }
+
+    Project project = projectOptional.get();
+    return new VerifiedCodeModuleDto(true, new ArrayList<>());
   }
 }

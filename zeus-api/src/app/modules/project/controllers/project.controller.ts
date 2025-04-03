@@ -38,6 +38,8 @@ import { ExportProjectDto } from '../dtos/export-project.dto';
 import { ExportedProjectDto } from '../dtos/exported-project.dto';
 import { Public } from '../../../guards/public.decorator';
 import {ExportRainProjectDto} from "../dtos/export-rain-project.dto";
+import { VerifiedCodeModuleDto } from "../dtos/verified-code-module.dto";
+import { VerifyCodeModuleDto } from "../dtos/verify-code-module.dto";
 
 @ApiTags('Project')
 @ApiBearerAuth()
@@ -307,5 +309,22 @@ export class ProjectController {
     @Body(ValidationPipe) exportRainProjectDto: ExportRainProjectDto
   ): Promise<void> {
     (await this.projectService.packageRain(exportRainProjectDto)).pipe(res);
+  }
+
+  @ApiOperation({
+    summary: 'Verifies a code module',
+    description: 'Verifies a code module'
+  })
+  @ApiOkResponse({
+    type: VerifiedCodeModuleDto,
+    description: 'The code module was verified'
+  })
+  @ApiBadRequestResponse({ description: 'The sent payload was not valid (invalid JSON syntax, failed validation pipeline, ...)' })
+  @Public()
+  @Post('verifyCodeModule')
+  async verifyCodeModule(
+    @Body(ValidationPipe) verifyCodeModuleDto: VerifyCodeModuleDto
+  ): Promise<VerifiedCodeModuleDto> {
+    return await this.projectService.verifyCodeModule(verifyCodeModuleDto);
   }
 }

@@ -42,6 +42,9 @@ import { ExportRainProjectDto } from "../dtos/export-rain-project.dto";
 import { v4 as generateUuid } from "uuid";
 import { ExportTarget } from "../enums/export-target.enum";
 import { Monitor } from "../enums/monitor.enum";
+import { VerifyCodeModuleDto } from "../dtos/verify-code-module.dto";
+import { VerifiedCodeModuleDto } from "../dtos/verified-code-module.dto";
+import { CodeModuleUtils } from "../../visualizer/code-module.utils";
 
 @Injectable()
 export class ProjectService {
@@ -478,5 +481,16 @@ export class ProjectService {
 
     await archive.finalize();
     return archive;
+  }
+
+  async verifyCodeModule(verifyCodeModuleDto: VerifyCodeModuleDto): Promise<VerifiedCodeModuleDto> {
+    const verifiedCodeModule = (await this.thunderApplicationApi.verifyCodeModule({
+      code: verifyCodeModuleDto.code,
+      codeModuleName: verifyCodeModuleDto.codeModuleName
+    })).data;
+    return {
+      success: verifiedCodeModule.success,
+      errors: verifiedCodeModule.errors.map(CodeModuleUtils.buildErrorDto)
+    };
   }
 }
