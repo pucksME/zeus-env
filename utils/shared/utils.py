@@ -46,6 +46,13 @@ def parse_arguments(arguments: set[Argument]) -> dict[Argument, str]: #tuple[str
             required=True
         )
 
+    if Argument.CODE_MODULE_NAME in arguments:
+        argument_parser.add_argument(
+            '--code-module-name',
+            help='code module name',
+            required=True
+        )
+
     parsed_arguments = argument_parser.parse_args()
     return {argument : getattr(parsed_arguments, argument.value) for argument in arguments}
 

@@ -8,3 +8,4 @@ class Argument(enum.Enum):
     OUTPUT_FILE = 'output_file'
     EXTRACTION_DIRECTORY = 'extraction_directory'
     OUTPUT_DIRECTORY = 'output_directory'
+    CODE_MODULE_NAME = 'code_module_name'
