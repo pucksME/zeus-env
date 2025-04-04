@@ -82,7 +82,7 @@ public class RainAnalyzer extends Analyzer<Project> {
 
   public Optional<Project> analyze(ExportProjectDto exportProjectDto) {
     return switch (this.getCompilerPhase()) {
-      case LEXER, PARSER -> Optional.empty();
+      case LEXER, PARSER, VERIFIER -> Optional.empty();
       case TYPE_CHECKER -> {
         Project project = Project.fromDto(exportProjectDto);
         this.analyzeSemantic(project);

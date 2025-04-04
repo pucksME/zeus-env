@@ -18,6 +18,13 @@ public class CompilerError implements Convertable<ErrorDto> {
     this.compilerPhase = compilerPhase;
   }
 
+  public CompilerError(Exception exception, CompilerPhase compilerPhase) {
+    this.line = -1;
+    this.linePosition = -1;
+    this.exception = exception;
+    this.compilerPhase = compilerPhase;
+  }
+
   public String getMessage() {
     if (this.exception == null) {
       return ThunderUtils.buildErrorMessage("Error", this.line, this.linePosition);

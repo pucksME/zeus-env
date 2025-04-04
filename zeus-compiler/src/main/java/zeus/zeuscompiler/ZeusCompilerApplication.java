@@ -3,8 +3,6 @@ package zeus.zeuscompiler;
 import org.antlr.v4.runtime.CharStreams;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -170,6 +168,15 @@ public class ZeusCompilerApplication {
     }
 
     Project project = projectOptional.get();
+    project.verify(verifyCodeModuleDto.codeModuleName());
+
+    if (ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
+      return new VerifiedCodeModuleDto(
+        false,
+        ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
+      );
+    }
+
     return new VerifiedCodeModuleDto(true, new ArrayList<>());
   }
 }

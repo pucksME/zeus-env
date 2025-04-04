@@ -1,5 +1,6 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
+import com.google.gson.Gson;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
@@ -7,7 +8,9 @@ import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.Am
 import zeus.zeuscompiler.rain.dtos.*;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
+import zeus.zeuscompiler.symboltable.*;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.verification.UnknownCodeModuleException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Context;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
@@ -270,5 +273,54 @@ public class Project extends Node {
       exportProjectDto.exportViewDtos().stream().map(View::fromDto).toList(),
       new ArrayList<>()
     );
+  }
+
+  public Optional<CodeModule> findCodeModule(String codeModuleName) {
+    ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ClientSymbolTableIdentifier());
+
+    Optional<CodeModule> codeModuleOptional = (this.clientName == null)
+      ? Optional.empty()
+      : ServiceProvider
+        .provide(SymbolTableService.class).getContextSymbolTableProvider()
+        .provide(ClientSymbolTable.class).getCodeModules().getCodeModule(codeModuleName);
+
+    if (codeModuleOptional.isPresent()) {
+      return codeModuleOptional;
+    }
+
+    for (Server server : this.servers) {
+      for (Route route : server.routes) {
+        ServiceProvider.provide(SymbolTableService.class).setContextSymbolTable(new ServerRouteSymbolTableIdentifier(
+          server.name,
+          route.getId())
+        );
+
+        codeModuleOptional = ServiceProvider
+          .provide(SymbolTableService.class).getContextSymbolTableProvider()
+          .provide(SymbolTable.class).getCodeModules().getCodeModule(codeModuleName);
+
+        if (codeModuleOptional.isPresent()) {
+          return codeModuleOptional;
+        }
+      }
+    }
+
+    return Optional.empty();
+  }
+
+  public void verify(String codeModuleName) {
+    Optional<CodeModule> codeModuleOptional = this.findCodeModule(codeModuleName);
+
+    if (codeModuleOptional.isEmpty()) {
+      ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
+        new UnknownCodeModuleException(),
+        CompilerPhase.VERIFIER
+      ));
+      return;
+    }
+
+    Gson gson = new Gson();
+    String json = gson.toJson(codeModuleOptional.get());
+    System.out.println(json);
   }
 }
