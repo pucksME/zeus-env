@@ -1,18 +1,27 @@
 package zeus.zeusverifier.node;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
+import zeus.zeusverifier.utils.CodeModuleJsonDeserializer;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Optional;
 
 public abstract class Node {
+  private BufferedReader requestBufferedReader;
   protected boolean checkHeader(InputStream inputStream) {
-    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+    this.requestBufferedReader = new BufferedReader(new InputStreamReader(inputStream));
     boolean methodChecked = false;
     boolean contentTypeChecked = false;
     while (true) {
       try {
-        String line = bufferedReader.readLine();
+        String line = this.requestBufferedReader.readLine();
         if (!methodChecked) {
           if (!line.startsWith("POST")) {
             return false;
@@ -36,6 +45,30 @@ public abstract class Node {
       } catch (IOException ioException) {
         return false;
       }
+    }
+  }
+
+  protected Optional<ClientCodeModule> parseBody(InputStream inputStream) {
+    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+    StringBuilder stringBuilder = new StringBuilder();
+
+    try {
+      while (bufferedReader.ready()) {
+        stringBuilder.append((char) bufferedReader.read());
+      }
+    } catch (IOException ioException) {
+      return Optional.empty();
+    }
+
+    String codeModuleJson = stringBuilder.toString();
+    Gson gson = new GsonBuilder().registerTypeAdapter(Type.class, new CodeModuleJsonDeserializer()).create();
+
+    try {
+      ClientCodeModule codeModule = gson.fromJson(stringBuilder.toString(), ClientCodeModule.class);
+      return Optional.of(codeModule);
+    } catch (JsonParseException jsonParseException) {
+      System.out.printf("Could not deserialize \"%s\": parsing failed%n", codeModuleJson);
+      return Optional.empty();
     }
   }
 

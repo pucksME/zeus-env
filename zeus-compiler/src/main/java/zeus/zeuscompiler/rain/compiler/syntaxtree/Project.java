@@ -16,6 +16,10 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Context;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -322,5 +326,15 @@ public class Project extends Node {
     Gson gson = new Gson();
     String json = gson.toJson(codeModuleOptional.get());
     System.out.println(json);
+    try {
+      try (Socket socket = new Socket("localhost", 8081)) {
+        PrintWriter outputPrintWriter = new PrintWriter(socket.getOutputStream(), true);
+        outputPrintWriter.println(json);
+      }
+    }  catch (UnknownHostException unknownHostException) {
+      throw new RuntimeException("Could not send verifier request: unknown host");
+    } catch (IOException ioException) {
+      throw new RuntimeException("Could not send verifier request: io exception");
+    }
   }
 }
