@@ -3,7 +3,9 @@ package zeus.zeusverifier.node;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeusverifier.utils.CodeModuleJsonDeserializer;
 
@@ -61,7 +63,11 @@ public abstract class Node<T> {
     }
 
     String codeModuleJson = stringBuilder.toString();
-    Gson gson = new GsonBuilder().registerTypeAdapter(Type.class, new CodeModuleJsonDeserializer()).create();
+    Gson gson = new GsonBuilder()
+      .registerTypeAdapter(Type.class, new CodeModuleJsonDeserializer())
+      .registerTypeAdapter(BodyComponent.class, new CodeModuleJsonDeserializer())
+      .registerTypeAdapter(Expression.class, new CodeModuleJsonDeserializer())
+      .create();
 
     try {
       ClientCodeModule codeModule = gson.fromJson(stringBuilder.toString(), ClientCodeModule.class);
