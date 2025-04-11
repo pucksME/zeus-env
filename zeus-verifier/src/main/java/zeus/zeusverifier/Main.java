@@ -1,10 +1,12 @@
 package zeus.zeusverifier;
 
+import com.google.gson.Gson;
 import zeus.zeusverifier.node.ModelCheckingNode;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.node.RootNode;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.Optional;
@@ -52,7 +54,9 @@ public class Main {
         Socket socket = serverSocket.accept();
         executorService.submit(() -> {
           try {
-            nodeOptional.get().run(socket.getInputStream());
+            Object result = nodeOptional.get().run(socket.getInputStream());
+            PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+            printWriter.println(new Gson().toJson(result));
             socket.close();
           } catch (IOException ioException) {
             throw new RuntimeException(ioException);

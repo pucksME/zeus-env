@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Optional;
 
-public abstract class Node {
+public abstract class Node<T> {
   private BufferedReader requestBufferedReader;
   protected boolean checkHeader(InputStream inputStream) {
     this.requestBufferedReader = new BufferedReader(new InputStreamReader(inputStream));
@@ -72,5 +72,5 @@ public abstract class Node {
     }
   }
 
-  public abstract void run(InputStream inputStream);
+  public abstract T run(InputStream inputStream);
 }

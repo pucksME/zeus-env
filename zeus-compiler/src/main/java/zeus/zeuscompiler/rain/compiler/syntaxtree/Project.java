@@ -3,6 +3,7 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 import com.google.gson.Gson;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
+import zeus.zeuscompiler.rain.compiler.VerificationResult;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
 import zeus.zeuscompiler.rain.dtos.*;
@@ -16,7 +17,9 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Context;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -330,6 +333,11 @@ public class Project extends Node {
       try (Socket socket = new Socket("localhost", 8081)) {
         PrintWriter outputPrintWriter = new PrintWriter(socket.getOutputStream(), true);
         outputPrintWriter.println(json);
+        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+        VerificationResult verificationResult = new Gson().fromJson(
+          bufferedReader.readLine(),
+          VerificationResult.class
+        );
       }
     }  catch (UnknownHostException unknownHostException) {
       throw new RuntimeException("Could not send verifier request: unknown host");
