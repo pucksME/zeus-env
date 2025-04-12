@@ -346,6 +346,15 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
   }
 
   @Override
+  public Object visitAssertStatement(ThunderParser.AssertStatementContext ctx) {
+    return new AssertStatement(
+      ctx.getStart().getLine(),
+      ctx.getStart().getCharPositionInLine(),
+      (Expression) this.visit(ctx.expression())
+    );
+  }
+
+  @Override
   public IdentifierExpression visitIdentifierExpression(ThunderParser.IdentifierExpressionContext ctx) {
     return new IdentifierExpression(
       ctx.ID().getSymbol().getLine(),

@@ -27,6 +27,7 @@ statement : declarationTypeStatement
           | accessWriteObjectStatement
           | ifStatement
           | whileStatement
+          | assertStatement
           ;
 
 declarationTypeStatement : KEYWORD_PUBLIC? KEYWORD_TYPE ID OPERATOR_ASSIGNMENT type ';' ;
@@ -36,6 +37,7 @@ accessWriteStatement: expression LIST_START expression LIST_END OPERATOR_ASSIGNM
 accessWriteObjectStatement : expression OPERATOR_ACCESS ID OPERATOR_ASSIGNMENT expression ';' ;
 ifStatement : KEYWORD_IF expression BLOCK_START body BLOCK_END (KEYWORD_ELSE BLOCK_START body BLOCK_END)?;
 whileStatement : KEYWORD_WHILE expression BLOCK_START body BLOCK_END ;
+assertStatement : KEYWORD_ASSERT '(' expression ')' ';' ;
 
 expression : ID                                                        # IdentifierExpression
            | literal                                                   # LiteralExpression
@@ -105,6 +107,7 @@ KEYWORD_DECLARATION : 'var' ;
 KEYWORD_IF : 'if' ;
 KEYWORD_ELSE : 'else' ;
 KEYWORD_WHILE : 'while' ;
+KEYWORD_ASSERT : 'assert' ;
 KEYWORD_TYPE : 'type' ;
 KEYWORD_PUBLIC : 'public' ;
 
