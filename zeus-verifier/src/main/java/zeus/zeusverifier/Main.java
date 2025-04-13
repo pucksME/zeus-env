@@ -1,10 +1,18 @@
 package zeus.zeusverifier;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonParseException;
+import com.google.gson.stream.JsonReader;
+import zeus.zeusverifier.config.Config;
+import zeus.zeusverifier.config.NodeType;
 import zeus.zeusverifier.node.ModelCheckingNode;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.node.RootNode;
+import zeus.zeusverifier.utils.ConfigJsonDeserializer;
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -22,29 +30,47 @@ public class Main {
     }
   }
 
-  private static Optional<Node> parseType(String type) {
-    return Optional.ofNullable(switch (type) {
-      case "root" -> new RootNode();
-      case "model-checking" -> new ModelCheckingNode();
-      default -> null;
-    });
+  private static Node getNode(NodeType nodeType) {
+    return switch (nodeType) {
+      case ROOT_NODE -> new RootNode();
+      case MODEL_CHECKING_NODE -> new ModelCheckingNode();
+    };
+  }
+
+  private static Optional<Config> parseConfig(String path) {
+    try {
+      JsonReader jsonReader = new JsonReader(new FileReader(path));
+      Gson gson = new GsonBuilder().registerTypeAdapter(Config.class, new ConfigJsonDeserializer()).create();
+      return Optional.of(gson.fromJson(jsonReader, Config.class));
+    } catch (FileNotFoundException e) {
+      System.out.printf("Config file \"%s\" did not exist%n", path);
+      return Optional.empty();
+    } catch (JsonParseException jsonParseException) {
+      System.out.printf("Could not parse config file \"%s\"%n", path);
+      return Optional.empty();
+    }
   }
 
   public static void main(String[] args) throws IOException {
-    if (args.length != 2) {
-      System.out.println("invalid usage: <type> <port>");
+    if (args.length != 1) {
+      System.out.println("invalid usage: <config>");
       return;
     }
 
-    Optional<Node> nodeOptional = Main.parseType(args[0]);
-    if (nodeOptional.isEmpty()) {
-      System.out.printf("could not start node: invalid type \"%s\"%n", args[0]);
+    Optional<Config> configOptional = Main.parseConfig(args[0]);
+
+    if (configOptional.isEmpty()) {
       return;
     }
 
-    Optional<Integer> portOptional = Main.parsePort(args[1]);
+    Config config = configOptional.get();
+
+    Node node = Main.getNode(config.getNodeType());
+
+    Optional<Integer> portOptional = Main.parsePort(config.getPort());
+
     if (portOptional.isEmpty()) {
-      System.out.printf("could not start node: invalid port \"%s\"%n", args[1]);
+      System.out.printf("could not start node: invalid port \"%s\"%n", config.getPort());
       return;
     }
 
@@ -54,7 +80,7 @@ public class Main {
         Socket socket = serverSocket.accept();
         executorService.submit(() -> {
           try {
-            Object result = nodeOptional.get().run(socket.getInputStream());
+            Object result = node.run(socket.getInputStream());
             PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
             printWriter.println(new Gson().toJson(result));
             socket.close();

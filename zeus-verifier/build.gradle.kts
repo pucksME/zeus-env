@@ -32,15 +32,11 @@ tasks.register("start", JavaExec::class) {
     mainClass = "zeus.zeusverifier.Main"
     classpath = sourceSets["main"].runtimeClasspath
 
-    if (!project.hasProperty("type")) {
-        throw GradleException("Invalid usage: argument \"type\" is required")
+    if (!project.hasProperty("config")) {
+        throw GradleException("Invalid usage: argument \"config\" is required")
     }
 
-    if (!project.hasProperty("port")) {
-        throw GradleException("Invalid usage: argument \"port\" is required")
-    }
-
-    args = listOf(project.property("type").toString(), project.property("port").toString())
+    args = listOf(project.property("config").toString())
 }
 
 tasks.test {
