@@ -7,47 +7,22 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
+import zeus.zeusverifier.Main;
+import zeus.zeusverifier.config.Config;
 import zeus.zeusverifier.utils.CodeModuleJsonDeserializer;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-public abstract class Node<T> {
-  private BufferedReader requestBufferedReader;
-  protected boolean checkHeader(InputStream inputStream) {
-    this.requestBufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-    boolean methodChecked = false;
-    boolean contentTypeChecked = false;
-    while (true) {
-      try {
-        String line = this.requestBufferedReader.readLine();
-        if (!methodChecked) {
-          if (!line.startsWith("POST")) {
-            return false;
-          }
-          methodChecked = true;
-          continue;
-        }
+public abstract class Node {
+  Config config;
 
-        if (!contentTypeChecked) {
-          if (line.startsWith("Content-Type")) {
-            if (!line.endsWith("application/json")) {
-              return false;
-            }
-            contentTypeChecked = true;
-          }
-        }
-
-        if (line.isEmpty()) {
-          return true;
-        }
-      } catch (IOException ioException) {
-        return false;
-      }
-    }
+  public Node(Config config) {
+    this.config = config;
   }
 
   protected Optional<ClientCodeModule> parseBody(InputStream inputStream) {
@@ -78,5 +53,30 @@ public abstract class Node<T> {
     }
   }
 
-  public abstract T run(InputStream inputStream);
+  public abstract void run(Socket requestSocket) throws IOException;
+
+  public void start() throws IOException {
+    Optional<Integer> portOptional = Main.parsePort(this.config.getPort());
+
+    if (portOptional.isEmpty()) {
+      System.out.printf("could not start node: invalid port \"%s\"%n", this.config.getPort());
+      return;
+    }
+
+    while (true) {
+      try (
+        ServerSocket serverSocket = new ServerSocket(portOptional.get());
+        ExecutorService executorService = Executors.newCachedThreadPool()
+      ) {
+        Socket requestSocket = serverSocket.accept();
+        executorService.submit(() -> {
+          try {
+            this.run(requestSocket);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        });
+      }
+    }
+  }
 }

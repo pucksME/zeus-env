@@ -10,4 +10,8 @@ public class ModelCheckingNodeConfig extends Config {
   public ModelCheckingNodeConfig(String type, String host, String port, RootNode rootNode) {
     super(type, host, port);
   }
+
+  public RootNode getRootNode() {
+    return rootNode;
+  }
 }
