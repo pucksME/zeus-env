@@ -1,29 +1,51 @@
 package zeus.zeusverifier.node;
 
-import com.google.gson.Gson;
 import zeus.shared.message.Message;
+import zeus.shared.message.payload.RegisterModelCheckingNode;
+import zeus.shared.message.payload.RegisteredModelCheckingNode;
 import zeus.shared.message.payload.VerificationResult;
+import zeus.shared.message.utils.MessageUtils;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.rootnode.RootNodeConfig;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Optional;
 
-public class RootNode extends Node {
+public class RootNode extends Node<RootNodeConfig> {
   public RootNode(RootNodeConfig config) {
     super(config);
   }
 
+  private Message<VerificationResult> verifyRoute(Message<ClientCodeModule> message) {
+    System.out.println("(Root node) Running verify route");
+    return new Message<>(new VerificationResult(false));
+  }
+
+  private Message<RegisteredModelCheckingNode> registerModelCheckingNodeRoute(Message<RegisterModelCheckingNode> message) {
+    System.out.println("(Root node) Running registerModelCheckingNode route");
+    return new Message<>(new RegisteredModelCheckingNode());
+  }
+
   @Override
   public void run(Socket requestSocket) throws IOException {
-    Optional<Message<ClientCodeModule>> messageOptional = this.parseMessage(requestSocket.getInputStream());
+    System.out.println("(Root node) Received message");
+    String message = MessageUtils.readMessage(requestSocket.getInputStream());
+    Optional<Message<Object>> messageOptional = this.parseMessage(message);
 
-    System.out.println("running root node procedure");
+    if (messageOptional.isEmpty()) {
+      System.out.printf("(Root node) Warning: received invalid message \"%s\"%n", message);
+      return;
+    }
 
-    PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
-    printWriter.println(new Gson().toJson(new Message<>(new VerificationResult(false))));
-    requestSocket.close();
+    this.processMessage(
+      messageOptional.get(),
+      requestSocket,
+      Map.of(
+        ClientCodeModule.class, this::verifyRoute,
+        RegisterModelCheckingNode.class, this::registerModelCheckingNodeRoute
+      )
+    );
   }
 }

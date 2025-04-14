@@ -8,4 +8,8 @@ public class Message<T> {
     this.payload = payload;
     this.payloadClassName = payload.getClass().getName();
   }
+
+  public T getPayload() {
+    return payload;
+  }
 }

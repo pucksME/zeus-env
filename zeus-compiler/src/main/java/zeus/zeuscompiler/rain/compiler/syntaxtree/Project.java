@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.VerificationResult;
 import zeus.shared.message.utils.MessageJsonDeserializer;
+import zeus.shared.message.utils.MessageUtils;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
@@ -337,11 +338,10 @@ public class Project extends Node {
       try (Socket socket = new Socket("localhost", 8081)) {
         PrintWriter outputPrintWriter = new PrintWriter(socket.getOutputStream(), true);
         outputPrintWriter.println(json);
-        BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         Message<VerificationResult> response = new GsonBuilder()
           .registerTypeAdapter(Message.class, new MessageJsonDeserializer<VerificationResult>())
           .create().fromJson(
-            bufferedReader.readLine(),
+            MessageUtils.readMessage(socket.getInputStream()),
             Message.class
           );
       }
