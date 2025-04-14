@@ -1,9 +1,12 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import zeus.shared.message.Message;
+import zeus.shared.message.payload.VerificationResult;
+import zeus.shared.message.utils.MessageJsonDeserializer;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.providers.ServiceProvider;
-import zeus.zeuscompiler.rain.compiler.VerificationResult;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementException;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.exceptions.semanticanalysis.AmbiguousElementType;
 import zeus.zeuscompiler.rain.dtos.*;
@@ -327,17 +330,20 @@ public class Project extends Node {
     }
 
     Gson gson = new Gson();
-    String json = gson.toJson(codeModuleOptional.get());
+    Message<CodeModule> message = new Message<CodeModule>(codeModuleOptional.get());
+    String json = gson.toJson(message);
     System.out.println(json);
     try {
       try (Socket socket = new Socket("localhost", 8081)) {
         PrintWriter outputPrintWriter = new PrintWriter(socket.getOutputStream(), true);
         outputPrintWriter.println(json);
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-        VerificationResult verificationResult = new Gson().fromJson(
-          bufferedReader.readLine(),
-          VerificationResult.class
-        );
+        Message<VerificationResult> response = new GsonBuilder()
+          .registerTypeAdapter(Message.class, new MessageJsonDeserializer<VerificationResult>())
+          .create().fromJson(
+            bufferedReader.readLine(),
+            Message.class
+          );
       }
     }  catch (UnknownHostException unknownHostException) {
       throw new RuntimeException("Could not send verifier request: unknown host");

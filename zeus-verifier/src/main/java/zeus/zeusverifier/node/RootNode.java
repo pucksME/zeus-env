@@ -1,7 +1,8 @@
 package zeus.zeusverifier.node;
 
 import com.google.gson.Gson;
-import zeus.zeuscompiler.rain.compiler.VerificationResult;
+import zeus.shared.message.Message;
+import zeus.shared.message.payload.VerificationResult;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.rootnode.RootNodeConfig;
 
@@ -17,12 +18,12 @@ public class RootNode extends Node {
 
   @Override
   public void run(Socket requestSocket) throws IOException {
-    Optional<ClientCodeModule> clientCodeModuleOptional = this.parseBody(requestSocket.getInputStream());
+    Optional<Message<ClientCodeModule>> messageOptional = this.parseMessage(requestSocket.getInputStream());
 
     System.out.println("running root node procedure");
 
     PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
-    printWriter.println(new Gson().toJson(new VerificationResult(false)));
+    printWriter.println(new Gson().toJson(new Message<>(new VerificationResult(false))));
     requestSocket.close();
   }
 }

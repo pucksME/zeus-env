@@ -3,13 +3,15 @@ package zeus.zeusverifier.node;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+import zeus.shared.message.Message;
+import zeus.shared.message.utils.MessageJsonDeserializer;
+import zeus.shared.message.utils.ObjectJsonDeserializer;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeusverifier.Main;
 import zeus.zeusverifier.config.Config;
-import zeus.zeusverifier.utils.CodeModuleJsonDeserializer;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -25,7 +27,7 @@ public abstract class Node {
     this.config = config;
   }
 
-  protected Optional<ClientCodeModule> parseBody(InputStream inputStream) {
+  protected <T> Optional<Message<T>> parseMessage(InputStream inputStream) {
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
     StringBuilder stringBuilder = new StringBuilder();
 
@@ -39,14 +41,14 @@ public abstract class Node {
 
     String codeModuleJson = stringBuilder.toString();
     Gson gson = new GsonBuilder()
-      .registerTypeAdapter(Type.class, new CodeModuleJsonDeserializer())
-      .registerTypeAdapter(BodyComponent.class, new CodeModuleJsonDeserializer())
-      .registerTypeAdapter(Expression.class, new CodeModuleJsonDeserializer())
+      .registerTypeAdapter(Message.class, new MessageJsonDeserializer<Message<ClientCodeModule>>())
+      .registerTypeAdapter(Type.class, new ObjectJsonDeserializer<Type>())
+      .registerTypeAdapter(BodyComponent.class, new ObjectJsonDeserializer<BodyComponent>())
+      .registerTypeAdapter(Expression.class, new ObjectJsonDeserializer<Expression>())
       .create();
 
     try {
-      ClientCodeModule codeModule = gson.fromJson(stringBuilder.toString(), ClientCodeModule.class);
-      return Optional.of(codeModule);
+      return Optional.of(gson.fromJson(stringBuilder.toString(), Message.class));
     } catch (JsonParseException jsonParseException) {
       System.out.printf("Could not deserialize \"%s\": parsing failed%n", codeModuleJson);
       return Optional.empty();
