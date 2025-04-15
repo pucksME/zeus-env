@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public abstract class Node<T extends Config> {
@@ -47,19 +48,23 @@ public abstract class Node<T extends Config> {
   protected void processMessage(
     Message message,
     Socket requestSocket,
-    Map<Class<?>, Function<Message, Message>> routes
+    Map<Class<?>, BiFunction<Message, Socket, Message>> routes
   ) throws IOException {
     Class<?> payloadClass = message.getPayload().getClass();
-    Function<Message, Message> route = routes.get(payloadClass);
+    BiFunction<Message, Socket, Message> route = routes.get(payloadClass);
 
     if (route == null) {
       System.out.printf("(Root node) Warning: processed message with unsupported route \"%s\"%n", payloadClass);
       return;
     }
 
+    Message responseMessage = route.apply(message, requestSocket);
+    if (responseMessage == null) {
+      return;
+    }
+
     PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
-    printWriter.println(route.apply(message).toJsonString());
-    requestSocket.close();
+    printWriter.println(responseMessage.toJsonString());
   }
 
   public abstract void run(Socket requestSocket) throws IOException;

@@ -3,7 +3,7 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import zeus.shared.message.Message;
-import zeus.shared.message.payload.VerificationResult;
+import zeus.shared.message.payload.VerificationResponse;
 import zeus.shared.message.utils.MessageJsonDeserializer;
 import zeus.shared.message.utils.MessageUtils;
 import zeus.zeuscompiler.CompilerError;
@@ -21,9 +21,7 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Context;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -338,8 +336,8 @@ public class Project extends Node {
       try (Socket socket = new Socket("localhost", 8081)) {
         PrintWriter outputPrintWriter = new PrintWriter(socket.getOutputStream(), true);
         outputPrintWriter.println(json);
-        Message<VerificationResult> response = new GsonBuilder()
-          .registerTypeAdapter(Message.class, new MessageJsonDeserializer<VerificationResult>())
+        Message<VerificationResponse> response = new GsonBuilder()
+          .registerTypeAdapter(Message.class, new MessageJsonDeserializer<VerificationResponse>())
           .create().fromJson(
             MessageUtils.readMessage(socket.getInputStream()),
             Message.class

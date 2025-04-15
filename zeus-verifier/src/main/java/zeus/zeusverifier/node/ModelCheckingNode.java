@@ -1,19 +1,27 @@
 package zeus.zeusverifier.node;
 
-import com.google.gson.Gson;
 import zeus.shared.message.Message;
-import zeus.shared.message.payload.RegisterModelCheckingNode;
-import zeus.shared.message.payload.RegisteredModelCheckingNode;
+import zeus.shared.message.payload.*;
 import zeus.shared.message.utils.MessageUtils;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.Main;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
+  UUID uuid;
+  ClientCodeModule codeModule;
+
   public ModelCheckingNode(ModelCheckingNodeConfig config) {
     super(config);
   }
@@ -32,8 +40,10 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
     try (Socket socket = new Socket(this.config.getRootNode().getHost(), rootNodePortOptional.get())) {
       PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-      printWriter.println(new Message<>(new RegisterModelCheckingNode()).toJsonString());
-      Optional<Message<RegisteredModelCheckingNode>> messageOptional = this.parseMessage(MessageUtils.readMessage(socket.getInputStream()));
+      printWriter.println(new Message<>(new RegisterModelCheckingNodeRequest()).toJsonString());
+      Optional<Message<RegisterModelCheckingNodeResponse>> messageOptional = this.parseMessage(
+        MessageUtils.readMessage(socket.getInputStream())
+      );
 
       if (messageOptional.isEmpty()) {
         System.out.println("(Model checking node) Could not register model checking node: invalid response message");
@@ -41,14 +51,68 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
         return;
       }
 
-      System.out.println("(Model checking node) Successfully registered model checking node");
+      this.uuid = messageOptional.get().getPayload().uuid();
+
+      System.out.printf(
+        "(Model checking node) Successfully registered model checking node \"%s\"%n",
+        this.uuid
+      );
+
+      BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+      while (true) {
+        try (ExecutorService executorService = Executors.newCachedThreadPool()) {
+          String message = bufferedReader.readLine();
+
+          if (message == null) {
+            System.out.println("(Model checking node) Received empty message: stopping node");
+            break;
+          }
+
+          executorService.submit(() -> {
+            try {
+              this.run(message, socket);
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          });
+        }
+      }
+    }
+  }
+
+  private Message<SetCodeModuleResponse> setCodeModuleRoute(Message<ClientCodeModule> message, Socket socket) {
+    System.out.println("(Model checking node) Running setCodeModuleRoute route");
+    this.codeModule = message.getPayload();
+    return new Message<>(new SetCodeModuleResponse());
+  }
+
+  private Message<StartModelCheckingResponse> startModelCheckingRoute(
+    Message<StartModelCheckingRequest> message,
+    Socket requestSocket
+  ) {
+    System.out.println("(Model checking node) Running startModelChecking route");
+    return new Message<>(new StartModelCheckingResponse());
+  }
+
+  public void run(String message, Socket socket) throws IOException {
+    Optional<Message<Object>> messageOptional = this.parseMessage(message);
+
+    if (messageOptional.isEmpty()) {
+      System.out.printf("(Model checking node) Warning: received invalid message \"%s\"%n", message);
+      return;
     }
 
-    super.start();
+    this.processMessage(
+      messageOptional.get(),
+      socket,
+      Map.of(
+        ClientCodeModule.class, this::setCodeModuleRoute,
+        StartModelCheckingRequest.class, this::startModelCheckingRoute
+      )
+    );
   }
 
   @Override
-  public void run(Socket requestSocket) throws IOException {
-    System.out.println("running model checking node procedure");
+  public void run(Socket socket) throws IOException {
   }
 }
