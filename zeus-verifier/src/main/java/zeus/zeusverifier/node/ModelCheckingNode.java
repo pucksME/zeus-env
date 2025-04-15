@@ -32,7 +32,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
     try (Socket socket = new Socket(this.config.getRootNode().getHost(), rootNodePortOptional.get())) {
       PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-      printWriter.println(new Gson().toJson(new Message<>(new RegisterModelCheckingNode())));
+      printWriter.println(new Message<>(new RegisterModelCheckingNode()).toJsonString());
       Optional<Message<RegisteredModelCheckingNode>> messageOptional = this.parseMessage(MessageUtils.readMessage(socket.getInputStream()));
 
       if (messageOptional.isEmpty()) {

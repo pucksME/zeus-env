@@ -58,7 +58,7 @@ public abstract class Node<T extends Config> {
     }
 
     PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
-    printWriter.println(new Gson().toJson(route.apply(message)));
+    printWriter.println(route.apply(message).toJsonString());
     requestSocket.close();
   }
 

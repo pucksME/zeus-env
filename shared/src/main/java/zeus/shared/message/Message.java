@@ -1,5 +1,7 @@
 package zeus.shared.message;
 
+import com.google.gson.Gson;
+
 public class Message<T> {
   T payload;
   String payloadClassName;
@@ -11,5 +13,9 @@ public class Message<T> {
 
   public T getPayload() {
     return payload;
+  }
+
+  public String toJsonString() {
+    return new Gson().toJson(this);
   }
 }

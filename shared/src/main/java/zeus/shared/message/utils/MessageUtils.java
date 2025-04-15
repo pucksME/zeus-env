@@ -25,17 +25,10 @@ public abstract class MessageUtils {
 
   public static String readMessage(InputStream inputStream) {
     BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
-    StringBuilder stringBuilder = new StringBuilder();
-
     try {
-      while (bufferedReader.ready()) {
-        String line = bufferedReader.readLine();
-        stringBuilder.append(line);
-      }
+      return bufferedReader.readLine();
     } catch (IOException ioException) {
       return "";
     }
-
-    return stringBuilder.toString();
   }
 }

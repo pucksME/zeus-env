@@ -332,7 +332,7 @@ public class Project extends Node {
 
     Gson gson = new Gson();
     Message<CodeModule> message = new Message<CodeModule>(codeModuleOptional.get());
-    String json = gson.toJson(message);
+    String json = message.toJsonString();
     System.out.println(json);
     try {
       try (Socket socket = new Socket("localhost", 8081)) {
