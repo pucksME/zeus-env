@@ -46,7 +46,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       );
 
       if (messageOptional.isEmpty()) {
-        System.out.println("(Model checking node) Could not register model checking node: invalid response message");
+        System.out.println("Could not register model checking node: invalid response message");
         socket.close();
         return;
       }
@@ -54,7 +54,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       this.uuid = messageOptional.get().getPayload().uuid();
 
       System.out.printf(
-        "(Model checking node) Successfully registered model checking node \"%s\"%n",
+        "Successfully registered model checking node \"%s\"%n",
         this.uuid
       );
 
@@ -64,7 +64,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
           String message = bufferedReader.readLine();
 
           if (message == null) {
-            System.out.println("(Model checking node) Received empty message: stopping node");
+            System.out.println("Received empty message: stopping node");
             break;
           }
 
@@ -72,7 +72,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
             try {
               this.run(message, socket);
             } catch (IOException e) {
-              throw new RuntimeException(e);
+              System.out.println("Root node became unavailable: stopping node");
             }
           });
         }
@@ -81,7 +81,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   }
 
   private Message<SetCodeModuleResponse> setCodeModuleRoute(Message<ClientCodeModule> message, Socket socket) {
-    System.out.println("(Model checking node) Running setCodeModuleRoute route");
+    System.out.println("Running setCodeModuleRoute route");
     this.codeModule = message.getPayload();
     return new Message<>(new SetCodeModuleResponse());
   }
@@ -90,7 +90,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     Message<StartModelCheckingRequest> message,
     Socket requestSocket
   ) {
-    System.out.println("(Model checking node) Running startModelChecking route");
+    System.out.println("Running startModelChecking route");
     return new Message<>(new StartModelCheckingResponse());
   }
 
@@ -98,7 +98,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     Optional<Message<Object>> messageOptional = this.parseMessage(message);
 
     if (messageOptional.isEmpty()) {
-      System.out.printf("(Model checking node) Warning: received invalid message \"%s\"%n", message);
+      System.out.printf("Warning: received invalid message \"%s\"%n", message);
       return;
     }
 
@@ -110,9 +110,5 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
         StartModelCheckingRequest.class, this::startModelCheckingRoute
       )
     );
-  }
-
-  @Override
-  public void run(Socket socket) throws IOException {
   }
 }

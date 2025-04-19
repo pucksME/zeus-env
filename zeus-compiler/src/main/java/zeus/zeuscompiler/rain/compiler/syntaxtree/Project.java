@@ -328,8 +328,7 @@ public class Project extends Node {
       return;
     }
 
-    Gson gson = new Gson();
-    Message<CodeModule> message = new Message<CodeModule>(codeModuleOptional.get());
+    Message<CodeModule> message = new Message<>(codeModuleOptional.get());
     String json = message.toJsonString();
     System.out.println(json);
     try {
@@ -344,9 +343,9 @@ public class Project extends Node {
           );
       }
     }  catch (UnknownHostException unknownHostException) {
-      throw new RuntimeException("Could not send verifier request: unknown host");
+      throw new RuntimeException("Could not verify code module: unknown verifier host");
     } catch (IOException ioException) {
-      throw new RuntimeException("Could not send verifier request: io exception");
+      throw new RuntimeException("Could not verify code module: verifier unavailable");
     }
   }
 }
