@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
@@ -29,6 +31,11 @@ public class GreaterThanExpression extends BinaryExpression {
   @Override
   public Optional<Type> evaluateType() {
     return TypeCheckingUtils.evaluateTypeNumericExpression(this);
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    return context.mkGt(this.leftExpression.toFormula(context), this.rightExpression.toFormula(context));
   }
 
   @Override

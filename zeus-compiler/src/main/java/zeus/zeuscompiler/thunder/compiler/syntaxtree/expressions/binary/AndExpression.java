@@ -1,10 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.TypeCheckingUtils;
 
 import java.util.List;
@@ -29,6 +29,11 @@ public class AndExpression extends BinaryExpression {
   @Override
   public Optional<Type> evaluateType() {
     return TypeCheckingUtils.evaluateTypeLogicExpression(this);
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    return context.mkAnd(this.leftExpression.toFormula(context), this.rightExpression.toFormula(context));
   }
 
   @Override

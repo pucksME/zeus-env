@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -95,6 +97,11 @@ public class ObjectReadAccessExpression extends UnaryExpression {
     }
 
     return propertyTypeOptional;
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    throw new RuntimeException("Could not convert object read access expression to formula: not implemented yet");
   }
 
   @Override

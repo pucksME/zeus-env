@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType;
@@ -30,11 +32,25 @@ public class LiteralExpression extends Expression {
   }
 
   @Override
+  public Expr toFormula(Context context) {
+    return switch (this.type) {
+      case STRING -> context.mkString(this.getValue());
+      case FLOAT -> context.mkReal(this.getValue());
+      case BOOLEAN -> context.mkBool(this.getValueAsBoolean());
+      case INT -> context.mkInt(this.getValue());
+      default -> throw new RuntimeException(String.format(
+        "Could not convert literal expression to formula: type \"%s\" is not supported",
+        this.type
+      ));
+    };
+  }
+
+  @Override
   public String translate(int depth, ExportTarget exportTarget) {
     return switch (exportTarget) {
       case REACT_TYPESCRIPT -> switch (this.type) {
         case STRING -> String.format("'%s'", this.value);
-        case BOOLEAN -> (this.value.equals("true")) ? "true" : "false";
+        case BOOLEAN -> this.getValueAsBoolean() ? "true" : "false";
         case INT, FLOAT -> this.value;
         case NULL -> "null";
       };
@@ -43,5 +59,9 @@ public class LiteralExpression extends Expression {
 
   public String getValue() {
     return value;
+  }
+
+  public boolean getValueAsBoolean() {
+    return this.value.equals("true");
   }
 }

@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -59,6 +61,11 @@ public class MapExpression extends Expression {
     }
 
     return Optional.ofNullable(mapType);
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    throw new RuntimeException("Could not convert map expression to formula: not implemented yet");
   }
 
   @Override

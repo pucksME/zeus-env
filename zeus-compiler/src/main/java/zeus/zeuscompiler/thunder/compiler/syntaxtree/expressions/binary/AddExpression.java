@@ -1,13 +1,12 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.TypeCheckingUtils;
 
-import java.util.List;
 import java.util.Optional;
 
 public class AddExpression extends BinaryExpression {
@@ -29,6 +28,11 @@ public class AddExpression extends BinaryExpression {
   @Override
   public Optional<Type> evaluateType() {
     return TypeCheckingUtils.evaluateTypeNumericExpression(this);
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    return context.mkAdd(this.leftExpression.toFormula(context), this.rightExpression.toFormula(context));
   }
 
   @Override

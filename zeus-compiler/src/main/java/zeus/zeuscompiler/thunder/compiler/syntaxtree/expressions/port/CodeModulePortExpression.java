@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
@@ -53,5 +55,10 @@ public abstract class CodeModulePortExpression extends Expression {
 
   public String getCodeModuleId() {
     return codeModuleId;
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    throw new RuntimeException("Could not convert code module port expression to formula: not implemented yet");
   }
 }

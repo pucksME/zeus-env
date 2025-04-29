@@ -3,7 +3,6 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.port;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Input;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownCodeModulePortException;
@@ -11,7 +10,6 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
 import java.util.Optional;
 
 public class CodeModuleInputExpression extends CodeModulePortExpression {

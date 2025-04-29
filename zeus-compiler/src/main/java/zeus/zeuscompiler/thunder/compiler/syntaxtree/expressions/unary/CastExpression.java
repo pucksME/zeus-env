@@ -1,9 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
@@ -52,6 +53,11 @@ public class CastExpression extends UnaryExpression {
     }
 
     return Optional.of(this.type);
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    return this.expression.toFormula(context);
   }
 
   @Override

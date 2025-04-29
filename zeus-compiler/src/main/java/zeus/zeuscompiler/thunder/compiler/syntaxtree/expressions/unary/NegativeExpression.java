@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -48,6 +50,11 @@ public class NegativeExpression extends UnaryExpression {
     }
 
     return Optional.of(expressionType);
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    return context.mkMul(this.expression.toFormula(context), context.mkInt(-1));
   }
 
   @Override

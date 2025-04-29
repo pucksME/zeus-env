@@ -1,5 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -8,6 +10,7 @@ import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownVariableException;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
@@ -54,6 +57,35 @@ public class IdentifierExpression extends Expression {
     }
 
     return Optional.of(variableInformationOptional.get().getType());
+  }
+
+  @Override
+  public Expr toFormula(Context context) {
+    Optional<Type> typeOptional = this.evaluateType();
+
+    if (typeOptional.isEmpty()) {
+      throw new RuntimeException("Could not convert identifier expression to formula: type evaluation failed");
+    }
+
+    Type type = typeOptional.get();
+
+    if (!(type instanceof PrimitiveType)) {
+      throw new RuntimeException(String.format(
+        "Could not convert identifier expression to formula: unsupported type \"%s\"",
+        type
+      ));
+    }
+
+    return switch (((PrimitiveType) type).getType()) {
+      case INT -> context.mkIntConst(this.id);
+      case FLOAT -> context.mkRealConst(this.id);
+      case BOOLEAN -> context.mkBoolConst(this.id);
+      case STRING -> context.mkConst(this.id, context.mkStringSort());
+      default -> throw new RuntimeException(String.format(
+        "Could not convert identifier expression to formula: unsupported primitive type \"%s\"",
+        ((PrimitiveType) type).getType()
+      ));
+    };
   }
 
   @Override
