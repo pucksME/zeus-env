@@ -1,15 +1,12 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
+import zeus.shared.formula.binary.SubtractFormula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.TypeCheckingUtils;
 
-import java.util.List;
 import java.util.Optional;
 
 public class SubtractExpression extends BinaryExpression {
@@ -34,8 +31,8 @@ public class SubtractExpression extends BinaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
-    return context.mkSub(this.leftExpression.toFormula(context), this.rightExpression.toFormula(context));
+  public Formula toFormula() {
+    return new SubtractFormula(this.leftExpression.toFormula(), this.rightExpression.toFormula());
   }
 
   @Override

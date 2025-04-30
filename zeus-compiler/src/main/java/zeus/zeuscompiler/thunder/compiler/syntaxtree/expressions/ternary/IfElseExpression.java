@@ -1,9 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.ternary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
+import zeus.shared.formula.binary.AndFormula;
+import zeus.shared.formula.binary.OrFormula;
+import zeus.shared.formula.unary.NotFormula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 
 public class IfElseExpression extends TernaryExpression {
@@ -31,10 +32,10 @@ public class IfElseExpression extends TernaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
-    Expr condition = this.firstExpression.toFormula(context);
-    return context.mkOr(
-      context.mkAnd(condition, this.secondExpression.toFormula(context)),
-      context.mkAnd(context.mkNot(condition), this.thirdExpression.toFormula(context)));
+  public Formula toFormula() {
+    Formula condition = this.firstExpression.toFormula();
+    return new OrFormula(
+      new AndFormula(condition, this.secondExpression.toFormula()),
+      new AndFormula(new NotFormula(condition), this.thirdExpression.toFormula()));
   }
 }

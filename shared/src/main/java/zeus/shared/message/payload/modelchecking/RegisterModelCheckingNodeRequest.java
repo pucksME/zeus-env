@@ -1,4 +1,4 @@
-package zeus.shared.message.payload;
+package zeus.shared.message.payload.modelchecking;
 
 public record RegisterModelCheckingNodeRequest() {
 }

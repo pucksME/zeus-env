@@ -1,7 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -56,8 +55,8 @@ public class CastExpression extends UnaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
-    return this.expression.toFormula(context);
+  public Formula toFormula() {
+    return this.expression.toFormula();
   }
 
   @Override

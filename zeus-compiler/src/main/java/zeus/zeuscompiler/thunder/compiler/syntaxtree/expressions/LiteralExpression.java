@@ -1,14 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.*;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 
-import java.util.List;
 import java.util.Optional;
 
 public class LiteralExpression extends Expression {
@@ -32,12 +28,12 @@ public class LiteralExpression extends Expression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
+  public Formula toFormula() {
     return switch (this.type) {
-      case STRING -> context.mkString(this.getValue());
-      case FLOAT -> context.mkReal(this.getValue());
-      case BOOLEAN -> context.mkBool(this.getValueAsBoolean());
-      case INT -> context.mkInt(this.getValue());
+      case STRING -> new StringLiteralFormula(this.getValue());
+      case FLOAT -> new FloatLiteralFormula(Float.parseFloat(this.getValue()));
+      case BOOLEAN -> new BooleanLiteralFormula(this.getValueAsBoolean());
+      case INT -> new IntegerLiteralFormula(Integer.parseInt(this.getValue()));
       default -> throw new RuntimeException(String.format(
         "Could not convert literal expression to formula: type \"%s\" is not supported",
         this.type

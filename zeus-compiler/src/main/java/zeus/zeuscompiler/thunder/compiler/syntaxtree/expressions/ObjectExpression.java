@@ -1,9 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
@@ -45,7 +43,7 @@ public class ObjectExpression extends Expression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
+  public Formula toFormula() {
     throw new RuntimeException("Could not convert object expression to formula: not implemented yet");
   }
 

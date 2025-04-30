@@ -1,12 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.*;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownVariableException;
@@ -60,7 +58,7 @@ public class IdentifierExpression extends Expression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
+  public Formula toFormula() {
     Optional<Type> typeOptional = this.evaluateType();
 
     if (typeOptional.isEmpty()) {
@@ -77,10 +75,10 @@ public class IdentifierExpression extends Expression {
     }
 
     return switch (((PrimitiveType) type).getType()) {
-      case INT -> context.mkIntConst(this.id);
-      case FLOAT -> context.mkRealConst(this.id);
-      case BOOLEAN -> context.mkBoolConst(this.id);
-      case STRING -> context.mkConst(this.id, context.mkStringSort());
+      case INT -> new IntegerVariableFormula(this.id);
+      case FLOAT -> new FloatVariableFormula(this.id);
+      case BOOLEAN -> new BooleanVariableFormula(this.id);
+      case STRING -> new StringVariableFormula(this.id);
       default -> throw new RuntimeException(String.format(
         "Could not convert identifier expression to formula: unsupported primitive type \"%s\"",
         ((PrimitiveType) type).getType()

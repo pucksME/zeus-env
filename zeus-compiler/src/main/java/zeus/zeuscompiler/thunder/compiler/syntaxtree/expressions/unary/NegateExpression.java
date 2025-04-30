@@ -1,11 +1,10 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
+import zeus.shared.formula.unary.NotFormula;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
@@ -14,7 +13,6 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
 import java.util.Optional;
 
 public class NegateExpression extends UnaryExpression {
@@ -51,8 +49,8 @@ public class NegateExpression extends UnaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
-    return context.mkNot(this.expression.toFormula(context));
+  public Formula toFormula() {
+    return new NotFormula(this.expression.toFormula());
   }
 
   @Override

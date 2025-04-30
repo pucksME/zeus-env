@@ -1,11 +1,9 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
@@ -54,7 +52,7 @@ public class SizeExpression extends UnaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
+  public Formula toFormula() {
     throw new RuntimeException("Could not convert size expression to formula: not implemented yet");
   }
 

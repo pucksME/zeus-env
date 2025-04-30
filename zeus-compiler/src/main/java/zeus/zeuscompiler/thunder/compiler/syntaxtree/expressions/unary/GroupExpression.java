@@ -1,9 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
@@ -29,8 +27,8 @@ public class GroupExpression extends UnaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
-    return this.expression.toFormula(context);
+  public Formula toFormula() {
+    return this.expression.toFormula();
   }
 
   @Override

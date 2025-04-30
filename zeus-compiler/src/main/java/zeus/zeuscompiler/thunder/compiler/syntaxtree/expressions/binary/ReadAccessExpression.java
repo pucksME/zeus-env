@@ -1,7 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
@@ -96,7 +95,7 @@ public class ReadAccessExpression extends BinaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
+  public Formula toFormula() {
     throw new RuntimeException("Could not convert read access expression to formula: not implemented yet");
   }
 

@@ -1,9 +1,8 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
+import zeus.shared.formula.binary.NotEqualFormula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
@@ -34,8 +33,8 @@ public class CompareNegatedExpression extends BinaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
-    return context.mkNot(context.mkEq(this.leftExpression.toFormula(context), this.rightExpression.toFormula(context)));
+  public Formula toFormula() {
+    return new NotEqualFormula(this.leftExpression.toFormula(), this.rightExpression.toFormula());
   }
 
   @Override

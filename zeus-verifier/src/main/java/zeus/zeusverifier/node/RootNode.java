@@ -2,6 +2,7 @@ package zeus.zeusverifier.node;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.*;
+import zeus.shared.message.payload.modelchecking.*;
 import zeus.shared.message.utils.MessageUtils;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.Main;

@@ -1,7 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
+import zeus.shared.formula.Formula;
+import zeus.shared.formula.binary.EqualFormula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
@@ -31,8 +31,8 @@ public class CompareExpression extends BinaryExpression {
   }
 
   @Override
-  public Expr toFormula(Context context) {
-    return context.mkEq(this.leftExpression.toFormula(context), this.rightExpression.toFormula(context));
+  public Formula toFormula() {
+    return new EqualFormula(this.leftExpression.toFormula(), this.rightExpression.toFormula());
   }
 
   @Override
