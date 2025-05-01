@@ -1,11 +1,12 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.shared.message.payload.modelchecking.Location;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Body;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Component;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
@@ -18,6 +19,7 @@ import zeus.zeuscompiler.utils.CompilerUtils;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class IfStatement extends Statement {
   Expression conditionExpression;
@@ -97,5 +99,24 @@ public class IfStatement extends Statement {
           : ""
       );
     };
+  }
+
+  @Override
+  public Optional<Component> findComponent(Location location) {
+    Optional<Component> componentOptional = super.findComponent(location);
+    if (componentOptional.isPresent()) {
+      return componentOptional;
+    }
+
+    for (BodyComponent bodyComponent : Stream.concat(
+      this.thenBody.getBodyComponents().stream(),
+      this.elseBody.getBodyComponents().stream()
+    ).toList()) {
+      componentOptional = bodyComponent.findComponent(location);
+      if (componentOptional.isPresent()) {
+        return componentOptional;
+      }
+    }
+    return Optional.empty();
   }
 }

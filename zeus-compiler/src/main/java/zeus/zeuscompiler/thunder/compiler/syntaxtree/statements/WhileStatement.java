@@ -1,11 +1,12 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.statements;
 
+import zeus.shared.message.payload.modelchecking.Location;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Body;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Component;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
@@ -71,5 +72,21 @@ public class WhileStatement extends Statement {
         ).collect(Collectors.joining("\n" + CompilerUtils.buildLinePadding(depth + 2)))
       );
     };
+  }
+
+  @Override
+  public Optional<Component> findComponent(Location location) {
+    Optional<Component> componentOptional = super.findComponent(location);
+    if (componentOptional.isPresent()) {
+      return componentOptional;
+    }
+
+    for (BodyComponent bodyComponent : this.body.getBodyComponents()) {
+      componentOptional = bodyComponent.findComponent(location);
+      if (componentOptional.isPresent()) {
+        return componentOptional;
+      }
+    }
+    return Optional.empty();
   }
 }

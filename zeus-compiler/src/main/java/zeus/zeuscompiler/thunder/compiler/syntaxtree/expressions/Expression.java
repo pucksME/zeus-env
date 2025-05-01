@@ -1,12 +1,13 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
 import zeus.shared.formula.Formula;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
+import zeus.zeuscompiler.Translatable;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.TypeCheckableNode;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 
 import java.util.Optional;
 
-public abstract class Expression extends BodyComponent {
+public abstract class Expression extends TypeCheckableNode implements Translatable {
   public Expression(int line, int linePosition) {
     super(line, linePosition);
   }

@@ -1,8 +1,7 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
+import zeus.shared.message.payload.modelchecking.Location;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationTypeStatement;
 import zeus.zeuscompiler.thunder.dtos.ClientCodeModuleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleDto;
@@ -14,6 +13,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ClientCodeModule extends CodeModule {
   Head head;
@@ -134,6 +134,19 @@ public class ClientCodeModule extends CodeModule {
         )
       );
     };
+  }
+
+  public Optional<Component> findComponent(Location location) {
+    for (Component component : Stream.concat(
+      this.head.getHeadComponents().stream(),
+      this.body.getBodyComponents().stream()
+    ).toList()) {
+      Optional<Component> componentOptional = component.findComponent(location);
+      if (componentOptional.isPresent()) {
+        return componentOptional;
+      }
+    }
+    return Optional.empty();
   }
 
   public void setHead(Head head) {

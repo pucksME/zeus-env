@@ -12,9 +12,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,7 +47,10 @@ public class RootNode extends Node<RootNodeConfig> {
     UUID nodeUuid = this.modelCheckingNodes.keys().nextElement();
     try {
       PrintWriter printWriter = new PrintWriter(this.modelCheckingNodes.get(nodeUuid).getOutputStream(), true);
-      printWriter.println(new Message<>(new StartModelCheckingRequest()).toJsonString());
+      printWriter.println(new Message<>(new StartModelCheckingRequest(new Path(
+        new ArrayList<>(),
+        new HashSet<>()
+      ))).toJsonString());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }

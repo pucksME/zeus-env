@@ -3,6 +3,7 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Head {
   Map<String, Input> inputs;
@@ -18,5 +19,12 @@ public class Head {
 
   public boolean isEmpty() {
     return this.inputs.isEmpty() && this.outputs.isEmpty() && this.configs.isEmpty();
+  }
+
+  public List<HeadComponent> getHeadComponents() {
+    return Stream.concat(
+      Stream.concat(this.inputs.values().stream(), this.outputs.values().stream()),
+      this.configs.values().stream()
+    ).collect(Collectors.toList());
   }
 }

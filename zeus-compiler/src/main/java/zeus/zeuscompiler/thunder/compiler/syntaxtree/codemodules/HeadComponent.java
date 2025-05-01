@@ -1,10 +1,9 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.Translatable;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.TypeCheckableNode;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 
-public abstract class HeadComponent extends TypeCheckableNode implements Translatable {
+public abstract class HeadComponent extends Component implements Translatable {
   String id;
   Type type;
 

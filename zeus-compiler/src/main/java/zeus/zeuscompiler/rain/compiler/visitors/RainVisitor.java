@@ -5,6 +5,7 @@ import zeus.zeuscompiler.bootsspecification.compiler.syntaxtree.BootsSpecificati
 import zeus.zeuscompiler.grammars.RainParser;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.*;
+import zeus.zeuscompiler.rain.compiler.syntaxtree.Component;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ComponentMutation;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.mutations.ShapeMutation;
 import zeus.zeuscompiler.rain.compiler.syntaxtree.shapes.*;
