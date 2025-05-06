@@ -6,7 +6,6 @@ import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Body;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Component;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
@@ -14,10 +13,14 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.thunder.compiler.utils.ComponentSearchResult;
+import zeus.zeuscompiler.thunder.compiler.utils.ParentStatement;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Queue;
 import java.util.stream.Collectors;
 
 public class WhileStatement extends Statement {
@@ -75,16 +78,19 @@ public class WhileStatement extends Statement {
   }
 
   @Override
-  public Optional<Component> findComponent(Location location) {
-    Optional<Component> componentOptional = super.findComponent(location);
-    if (componentOptional.isPresent()) {
-      return componentOptional;
+  public Optional<ComponentSearchResult> searchComponent(Location location, int index, Queue<ParentStatement> parents) {
+    Optional<ComponentSearchResult> componentSearchResultOptional = super.searchComponent(location, index, parents);
+    if (componentSearchResultOptional.isPresent()) {
+      return componentSearchResultOptional;
     }
 
-    for (BodyComponent bodyComponent : this.body.getBodyComponents()) {
-      componentOptional = bodyComponent.findComponent(location);
-      if (componentOptional.isPresent()) {
-        return componentOptional;
+    List<BodyComponent> bodyComponents = this.body.getBodyComponents();
+    for (int i = 0; i < bodyComponents.size(); i++) {
+      parents = new LinkedList<>(parents);
+      parents.add(new ParentStatement(this, index));
+      componentSearchResultOptional = bodyComponents.get(i).searchComponent(location, i, parents);
+      if (componentSearchResultOptional.isPresent()) {
+        return componentSearchResultOptional;
       }
     }
     return Optional.empty();

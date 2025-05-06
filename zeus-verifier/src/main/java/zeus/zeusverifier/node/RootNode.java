@@ -7,15 +7,15 @@ import zeus.shared.message.utils.MessageUtils;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.Main;
 import zeus.zeusverifier.config.rootnode.RootNodeConfig;
+import zeus.zeusverifier.routing.NodeAction;
+import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class RootNode extends Node<RootNodeConfig> {
   ConcurrentHashMap<UUID, Socket> modelCheckingNodes;
@@ -27,12 +27,12 @@ public class RootNode extends Node<RootNodeConfig> {
     this.modelCheckingNodesExecutorService = Executors.newCachedThreadPool();
   }
 
-  private Message<VerificationResponse> verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
+  private RouteResult verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
     System.out.println("Running verify route");
 
     if (this.modelCheckingNodes.isEmpty()) {
       System.out.println("Could not verify code module: no model checking nodes available");
-      return new Message<>(new VerificationResponse(false));
+      return new RouteResult(new Message<>(new VerificationResponse(false)));
     }
 
     this.modelCheckingNodes.forEach((uuid, socket) -> {
@@ -54,23 +54,29 @@ public class RootNode extends Node<RootNodeConfig> {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    return new Message<>(new VerificationResponse(false));
+    return new RouteResult(new Message<>(new VerificationResponse(false)));
   }
 
-  private Message processSetCodeModuleResponseRoute(Message<SetCodeModuleResponse> message, Socket requestSocket) {
+  private RouteResult processSetCodeModuleResponseRoute(Message<SetCodeModuleResponse> message, Socket requestSocket) {
     System.out.println("Running processSetCodeModuleResponse route");
-    return null;
+    return new RouteResult();
   }
 
-  private Message processStartModelCheckingResponseRoute(
+  private RouteResult processStartModelCheckingResponseRoute(
     Message<StartModelCheckingResponse> message,
     Socket requestSocket
   ) {
     System.out.println("Running processStartModelCheckingResponseRoute route");
-    return null;
+    return new RouteResult();
   }
 
-  private Message<RegisterModelCheckingNodeResponse> registerModelCheckingNodeRoute(
+  private RouteResult processCalibrationFailedRoute(Message<CalibrationFailed> message, Socket requestSocket) {
+    System.out.println("Model checking node \"%s\" could not calibrate path:");
+    System.out.println(message.getPayload().path());
+    return new RouteResult(NodeAction.TERMINATE);
+  }
+
+  private RouteResult registerModelCheckingNodeRoute(
     Message<RegisterModelCheckingNodeRequest> message,
     Socket requestSocket
   ) {
@@ -90,10 +96,10 @@ public class RootNode extends Node<RootNodeConfig> {
       }
     });
 
-    return new Message<>(new RegisterModelCheckingNodeResponse(uuid));
+    return new RouteResult(new Message<>(new RegisterModelCheckingNodeResponse(uuid)));
   }
 
-  public void run(Socket requestSocket) throws IOException {
+  public NodeAction run(Socket requestSocket) throws IOException {
     String message = MessageUtils.readMessage(requestSocket.getInputStream());
 
     if (message == null) {
@@ -105,17 +111,18 @@ public class RootNode extends Node<RootNodeConfig> {
 
     if (messageOptional.isEmpty()) {
       System.out.printf("Warning: received invalid message \"%s\"%n", message);
-      return;
+      return NodeAction.TERMINATE;
     }
 
-    this.processMessage(
+    return this.processMessage(
       messageOptional.get(),
       requestSocket,
       Map.of(
         ClientCodeModule.class, this::verifyRoute,
         RegisterModelCheckingNodeRequest.class, this::registerModelCheckingNodeRoute,
         SetCodeModuleResponse.class, this::processSetCodeModuleResponseRoute,
-        StartModelCheckingResponse.class, this::processStartModelCheckingResponseRoute
+        StartModelCheckingResponse.class, this::processStartModelCheckingResponseRoute,
+        CalibrationFailed.class, this::processCalibrationFailedRoute
       )
     );
   }
@@ -137,9 +144,23 @@ public class RootNode extends Node<RootNodeConfig> {
         Socket requestSocket = serverSocket.accept();
         executorService.submit(() -> {
           try {
-            this.run(requestSocket);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
+            NodeAction nodeAction = this.run(requestSocket);
+
+            if (nodeAction == NodeAction.NONE) {
+              return;
+            }
+
+            if (nodeAction == NodeAction.TERMINATE) {
+              this.terminate(serverSocket, executorService);
+            }
+          } catch (IOException ioException) {
+            ioException.printStackTrace();
+
+            try {
+              this.terminate(serverSocket, executorService);
+            } catch (IOException terminateIoException) {
+              throw new RuntimeException(terminateIoException);
+            }
           }
         });
       }

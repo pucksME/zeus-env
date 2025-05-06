@@ -3,15 +3,13 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 import zeus.shared.message.payload.modelchecking.Location;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationTypeStatement;
+import zeus.zeuscompiler.thunder.compiler.utils.ComponentSearchResult;
 import zeus.zeuscompiler.thunder.dtos.ClientCodeModuleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModuleType;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -136,17 +134,25 @@ public class ClientCodeModule extends CodeModule {
     };
   }
 
-  public Optional<Component> findComponent(Location location) {
-    for (Component component : Stream.concat(
-      this.head.getHeadComponents().stream(),
-      this.body.getBodyComponents().stream()
-    ).toList()) {
-      Optional<Component> componentOptional = component.findComponent(location);
+  public Optional<ComponentSearchResult> searchComponent(Location location) {
+    List<Component> components = this.getComponents();
+
+    for (int i = 0; i < components.size(); i++) {
+      Component component = components.get(i);
+      Optional<ComponentSearchResult> componentOptional = component.searchComponent(location, i, null);
       if (componentOptional.isPresent()) {
         return componentOptional;
       }
     }
     return Optional.empty();
+  }
+
+  public Optional<ComponentSearchResult> getFirstComponent() {
+    if (this.getComponents().isEmpty()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(new ComponentSearchResult(0, new LinkedList<>()));
   }
 
   public void setHead(Head head) {
@@ -175,5 +181,12 @@ public class ClientCodeModule extends CodeModule {
 
   public Collection<Config> getConfigs() {
     return this.head.configs.values();
+  }
+
+  public List<Component> getComponents() {
+    return Stream.concat(
+      this.head.getHeadComponents().stream(),
+      this.body.getBodyComponents().stream()
+    ).toList();
   }
 }

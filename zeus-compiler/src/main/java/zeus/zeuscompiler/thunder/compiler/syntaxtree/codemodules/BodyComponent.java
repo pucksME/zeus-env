@@ -1,8 +1,6 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
-import zeus.zeuscompiler.Translatable;
-
-public abstract class BodyComponent extends Component implements Translatable {
+public abstract class BodyComponent extends Component {
   public BodyComponent(int line, int linePosition) {
     super(line, linePosition);
   }

@@ -7,7 +7,7 @@ import com.google.gson.stream.JsonReader;
 import zeus.zeusverifier.config.Config;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
 import zeus.zeusverifier.config.rootnode.RootNodeConfig;
-import zeus.zeusverifier.node.ModelCheckingNode;
+import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.node.RootNode;
 import zeus.zeusverifier.utils.ConfigJsonDeserializer;

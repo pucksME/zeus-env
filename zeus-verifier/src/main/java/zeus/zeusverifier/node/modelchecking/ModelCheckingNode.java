@@ -1,4 +1,4 @@
-package zeus.zeusverifier.node;
+package zeus.zeusverifier.node.modelchecking;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.modelchecking.*;
@@ -6,6 +6,9 @@ import zeus.shared.message.utils.MessageUtils;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.Main;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
+import zeus.zeusverifier.node.Node;
+import zeus.zeusverifier.routing.NodeAction;
+import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,7 +31,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
   @Override
   public void start() throws IOException {
-    String rootNodePort = this.config.getRootNode().getPort();
+    String rootNodePort = this.getConfig().getRootNode().getPort();
     Optional<Integer> rootNodePortOptional = Main.parsePort(rootNodePort);
 
     if (rootNodePortOptional.isEmpty()) {
@@ -38,7 +41,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       ));
     }
 
-    try (Socket socket = new Socket(this.config.getRootNode().getHost(), rootNodePortOptional.get())) {
+    try (Socket socket = new Socket(this.getConfig().getRootNode().getHost(), rootNodePortOptional.get())) {
       PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
       printWriter.println(new Message<>(new RegisterModelCheckingNodeRequest()).toJsonString());
       Optional<Message<RegisterModelCheckingNodeResponse>> messageOptional = this.parseMessage(
@@ -70,9 +73,22 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
           executorService.submit(() -> {
             try {
-              this.run(message, socket);
-            } catch (IOException e) {
+              NodeAction nodeAction = this.run(message, socket);
+
+              if (nodeAction == NodeAction.NONE) {
+                return;
+              }
+
+              if (nodeAction == NodeAction.TERMINATE) {
+                this.terminate(socket, executorService);
+              }
+            } catch (IOException ioException) {
               System.out.println("Root node became unavailable: stopping node");
+              try {
+                this.terminate(socket, executorService);
+              } catch (IOException terminateIoException) {
+                throw new RuntimeException(terminateIoException);
+              }
             }
           });
         }
@@ -80,29 +96,35 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     }
   }
 
-  private Message<SetCodeModuleResponse> setCodeModuleRoute(Message<ClientCodeModule> message, Socket socket) {
+  private RouteResult setCodeModuleRoute(Message<ClientCodeModule> message, Socket socket) {
     System.out.println("Running setCodeModuleRoute route");
     this.codeModule = message.getPayload();
-    return new Message<>(new SetCodeModuleResponse());
+    return new RouteResult(new Message<>(new SetCodeModuleResponse()));
   }
 
-  private Message<StartModelCheckingResponse> startModelCheckingRoute(
+  private RouteResult startModelCheckingRoute(
     Message<StartModelCheckingRequest> message,
     Socket requestSocket
   ) {
     System.out.println("Running startModelChecking route");
-    return new Message<>(new StartModelCheckingResponse());
+
+    CodeModuleIterator codeModuleIterator = new CodeModuleIterator(this.codeModule);
+    if (codeModuleIterator.calibrate(message.getPayload().path())) {
+      return new RouteResult(new Message<>(new CalibrationFailed(message.getPayload().path())), NodeAction.TERMINATE);
+    }
+
+    return new RouteResult(new Message<>(new StartModelCheckingResponse()));
   }
 
-  public void run(String message, Socket socket) throws IOException {
+  public NodeAction run(String message, Socket socket) throws IOException {
     Optional<Message<Object>> messageOptional = this.parseMessage(message);
 
     if (messageOptional.isEmpty()) {
       System.out.printf("Warning: received invalid message \"%s\"%n", message);
-      return;
+      return NodeAction.TERMINATE;
     }
 
-    this.processMessage(
+    return this.processMessage(
       messageOptional.get(),
       socket,
       Map.of(

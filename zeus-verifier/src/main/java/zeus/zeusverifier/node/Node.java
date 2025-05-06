@@ -10,11 +10,14 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeusverifier.config.Config;
+import zeus.zeusverifier.routing.NodeAction;
+import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.*;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.function.BiFunction;
 
 public abstract class Node<T extends Config> {
@@ -40,27 +43,38 @@ public abstract class Node<T extends Config> {
     }
   }
 
-  protected void processMessage(
+  protected NodeAction processMessage(
     Message message,
     Socket requestSocket,
-    Map<Class<?>, BiFunction<Message, Socket, Message>> routes
+    Map<Class<?>, BiFunction<Message, Socket, RouteResult>> routes
   ) throws IOException {
     Class<?> payloadClass = message.getPayload().getClass();
-    BiFunction<Message, Socket, Message> route = routes.get(payloadClass);
+    BiFunction<Message, Socket, RouteResult> route = routes.get(payloadClass);
 
     if (route == null) {
       System.out.printf("(Root node) Warning: processed message with unsupported route \"%s\"%n", payloadClass);
-      return;
+      return NodeAction.TERMINATE;
     }
 
-    Message responseMessage = route.apply(message, requestSocket);
-    if (responseMessage == null) {
-      return;
+    RouteResult routeResult = route.apply(message, requestSocket);
+    Optional<Message<?>> responseMessageOptional = routeResult.getResponseMessage();
+
+    if (responseMessageOptional.isPresent()) {
+      PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
+      printWriter.println(responseMessageOptional.get().toJsonString());
     }
 
-    PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
-    printWriter.println(responseMessage.toJsonString());
+    return routeResult.getNodeAction();
   }
 
   public abstract void start() throws IOException;
+
+  public void terminate(Closeable socket, ExecutorService executorService) throws IOException {
+    socket.close();
+    executorService.shutdown();
+  }
+
+  public T getConfig() {
+    return config;
+  }
 }
