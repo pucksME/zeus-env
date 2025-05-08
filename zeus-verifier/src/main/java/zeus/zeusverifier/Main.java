@@ -6,10 +6,12 @@ import com.google.gson.JsonParseException;
 import com.google.gson.stream.JsonReader;
 import zeus.zeusverifier.config.Config;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
+import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
 import zeus.zeusverifier.config.rootnode.RootNodeConfig;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.node.RootNode;
+import zeus.zeusverifier.node.modelchecking.ModelCheckingGatewayNode;
 import zeus.zeusverifier.utils.ConfigJsonDeserializer;
 
 import java.io.FileNotFoundException;
@@ -29,6 +31,7 @@ public class Main {
   private static Node getNode(Config config) {
     return switch (config.getNodeType()) {
       case ROOT_NODE -> new RootNode((RootNodeConfig) config);
+      case MODEL_CHECKING_GATEWAY_NODE -> new ModelCheckingGatewayNode((ModelCheckingGatewayNodeConfig) config);
       case MODEL_CHECKING_NODE -> new ModelCheckingNode((ModelCheckingNodeConfig) config);
     };
   }

@@ -3,6 +3,7 @@ package zeus.zeusverifier.utils;
 import com.google.gson.*;
 import zeus.zeusverifier.config.Config;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
+import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
 import zeus.zeusverifier.config.rootnode.RootNodeConfig;
 
 import java.lang.reflect.Type;
@@ -34,6 +35,7 @@ public class ConfigJsonDeserializer implements JsonDeserializer<Config> {
 
     return switch (nodeType) {
       case "root-node" -> jsonDeserializationContext.deserialize(jsonElement, RootNodeConfig.class);
+      case "model-checking-gateway-node" -> jsonDeserializationContext.deserialize(jsonElement, ModelCheckingGatewayNodeConfig.class);
       case "model-checking-node" -> jsonDeserializationContext.deserialize(jsonElement, ModelCheckingNodeConfig.class);
       default -> throw new RuntimeException(String.format(
         "Could not deserialize config: unsupported type \"%s\"",

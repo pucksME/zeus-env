@@ -1,0 +1,9 @@
+{
+  "root-node": {
+    "host": "localhost",
+    "port": "8081"
+  },
+  "type": "model-checking-gateway-node",
+  "host": "localhost",
+  "port": "8082"
+}
