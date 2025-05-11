@@ -1,4 +1,4 @@
 package zeus.shared.message.payload;
 
-public record RegisterNode() {
+public record RegisterNode(NodeType type) {
 }

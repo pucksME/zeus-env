@@ -1,6 +1,6 @@
 package zeus.zeusverifier.config.modelcheckingnode;
 
-public class RootNode {
+public class GatewayNode {
   String host;
   String port;
 

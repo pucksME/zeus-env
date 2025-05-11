@@ -2,11 +2,11 @@ package zeus.zeusverifier.config.rootnode;
 
 import zeus.zeusverifier.config.Config;
 
-public class RootNodeConfig extends Config {
+public class GatewayNodeConfig extends Config {
   String host;
   String port;
 
-  public RootNodeConfig(String type, String host, String port) {
+  public GatewayNodeConfig(String type, String host, String port) {
     super(type);
     this.host = host;
     this.port = port;

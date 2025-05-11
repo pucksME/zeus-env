@@ -6,13 +6,11 @@ import zeus.shared.message.payload.VerificationResponse;
 import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
-import zeus.zeusverifier.config.rootnode.RootNodeConfig;
 import zeus.zeusverifier.node.GatewayNode;
 import zeus.zeusverifier.routing.NodeAction;
 import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.*;
 
@@ -29,25 +27,14 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
       return new RouteResult(new Message<>(new VerificationResponse(false)));
     }
 
-    this.getNodes().forEach((uuid, socket) -> {
-      try {
-        PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
-        printWriter.println(new Message<>(message.getPayload()).toJsonString());
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    });
+    this.sendBroadcastMessage(new Message<>(message.getPayload()));
 
     UUID nodeUuid = this.getNodes().keys().nextElement();
-    try {
-      PrintWriter printWriter = new PrintWriter(this.getNodes().get(nodeUuid).getOutputStream(), true);
-      printWriter.println(new Message<>(new StartModelCheckingRequest(new Path(
-        new ArrayList<>(),
-        new HashSet<>()
-      ))).toJsonString());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    this.sendMessage(
+      new Message<>(new StartModelCheckingRequest(new Path(new ArrayList<>(), new HashSet<>()))),
+      this.getNodes().get(nodeUuid)
+    );
+
     return new RouteResult(new Message<>(new VerificationResponse(false)));
   }
 
@@ -77,8 +64,6 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
       requestSocket,
       Map.of(
         RegisterNode.class, this::registerNodeRoute,
-        ClientCodeModule.class, this::verifyRoute,
-//        RegisterModelCheckingNodeRequest.class, this::registerModelCheckingNodeRoute,
         SetCodeModuleResponse.class, this::processSetCodeModuleResponseRoute,
         StartModelCheckingResponse.class, this::processStartModelCheckingResponseRoute,
         CalibrationFailed.class, this::processCalibrationFailedRoute
@@ -91,7 +76,9 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     return this.processMessage(
       message,
       requestSocket,
-      Map.of()
+      Map.of(
+        ClientCodeModule.class, this::verifyRoute
+      )
     );
   }
 

@@ -1,10 +1,10 @@
 package zeus.zeusverifier.node;
 
 import zeus.shared.message.Message;
-import zeus.shared.message.payload.modelchecking.RegisterModelCheckingNodeRequest;
+import zeus.shared.message.payload.RegisterNode;
 import zeus.shared.message.payload.RegisterNodeResponse;
 import zeus.zeusverifier.Main;
-import zeus.zeusverifier.config.rootnode.RootNodeConfig;
+import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.routing.NodeAction;
 import zeus.zeusverifier.routing.RouteResult;
 
@@ -18,7 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class GatewayNode<T extends RootNodeConfig> extends Node<T>{
+public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
   ConcurrentHashMap<UUID, Socket> nodes;
   ExecutorService nodesExecutorService;
 
@@ -38,8 +38,11 @@ public abstract class GatewayNode<T extends RootNodeConfig> extends Node<T>{
       return;
     }
 
+    int port = portOptional.get();
+    System.out.printf("Gateway server running at port %s%n", port);
+
     try (
-      ServerSocket serverSocket = new ServerSocket(portOptional.get());
+      ServerSocket serverSocket = new ServerSocket(port);
       ExecutorService executorService = Executors.newCachedThreadPool()
     ) {
       while (true) {
@@ -101,12 +104,16 @@ public abstract class GatewayNode<T extends RootNodeConfig> extends Node<T>{
   }
 
   public RouteResult registerNodeRoute(
-    Message<RegisterModelCheckingNodeRequest> message,
+    Message<RegisterNode> message,
     Socket requestSocket
   ) {
     System.out.println("Running registerNode route");
     UUID uuid = this.registerNode(requestSocket, this.nodes, this.nodesExecutorService);
     return new RouteResult(new Message<>(new RegisterNodeResponse(uuid)));
+  }
+
+  public void sendBroadcastMessage(Message<?> message) {
+    this.nodes.forEach((UUID uuid, Socket socket) -> this.sendMessage(message, socket));
   }
 
   public ConcurrentHashMap<UUID, Socket> getNodes() {

@@ -2,9 +2,8 @@ package zeus.zeusverifier.node;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.*;
-import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
-import zeus.zeusverifier.config.rootnode.RootNodeConfig;
+import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.routing.NodeAction;
 import zeus.zeusverifier.routing.RouteResult;
 
@@ -13,21 +12,21 @@ import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
 
-public class RootNode extends GatewayNode<RootNodeConfig> {
+public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket modelCheckingGatewayNodeSocket;
   ExecutorService gatewayNodesExecutorService;
 
-  public RootNode(RootNodeConfig config) {
+  public RootNode(GatewayNodeConfig config) {
     super(config);
     this.modelCheckingGatewayNodeSocket = null;
     this.gatewayNodesExecutorService = Executors.newCachedThreadPool();
   }
 
-  private RouteResult registerGatewayNodeRoute(Message<RegisterGatewayNode> message, Socket requestSocket) {
+  private RouteResult registerGatewayNodeRoute(Message<RegisterNode> message, Socket requestSocket) {
     System.out.println("Running registerGatewayNodeRoute");
 
     switch (message.getPayload().type()) {
-      case MODEL_CHECKING -> {
+      case MODEL_CHECKING_GATEWAY -> {
         this.modelCheckingGatewayNodeSocket = requestSocket;
       }
     };
@@ -36,7 +35,8 @@ public class RootNode extends GatewayNode<RootNodeConfig> {
   }
 
   private RouteResult verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
-    throw new UnsupportedOperationException("Not implemented yet");
+    this.sendMessage(message, this.modelCheckingGatewayNodeSocket);
+    return new RouteResult(new Message<>(new VerificationResponse(false)));
   }
 
   @Override
@@ -45,7 +45,7 @@ public class RootNode extends GatewayNode<RootNodeConfig> {
       message,
       requestSocket,
       Map.of(
-        RegisterGatewayNode.class, this::registerGatewayNodeRoute,
+        RegisterNode.class, this::registerGatewayNodeRoute,
         ClientCodeModule.class, this::verifyRoute
 //        RegisterModelCheckingNodeRequest.class, this::registerModelCheckingNodeRoute,
 //        SetCodeModuleResponse.class, this::processSetCodeModuleResponseRoute,

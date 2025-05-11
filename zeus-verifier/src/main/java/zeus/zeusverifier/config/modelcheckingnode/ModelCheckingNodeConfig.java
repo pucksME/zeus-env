@@ -5,13 +5,13 @@ import zeus.zeusverifier.config.Config;
 
 public class ModelCheckingNodeConfig extends Config {
   @SerializedName("root-node")
-  RootNode rootNode;
+  GatewayNode gatewayNode;
 
-  public ModelCheckingNodeConfig(String type, RootNode rootNode) {
+  public ModelCheckingNodeConfig(String type, GatewayNode gatewayNode) {
     super(type);
   }
 
-  public RootNode getRootNode() {
-    return rootNode;
+  public GatewayNode getRootNode() {
+    return gatewayNode;
   }
 }

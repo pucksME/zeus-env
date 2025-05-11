@@ -5,5 +5,5 @@
   },
   "type": "model-checking-gateway-node",
   "host": "localhost",
-  "port": "8082"
+  "port": "9081"
 }

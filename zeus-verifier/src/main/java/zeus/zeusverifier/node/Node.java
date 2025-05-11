@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import zeus.shared.message.Message;
-import zeus.shared.message.payload.GatewayNodeType;
-import zeus.shared.message.payload.RegisterGatewayNode;
+import zeus.shared.message.payload.NodeType;
+import zeus.shared.message.payload.RegisterNode;
 import zeus.shared.message.payload.RegisterNodeResponse;
 import zeus.shared.message.utils.MessageJsonDeserializer;
 import zeus.shared.message.utils.MessageUtils;
@@ -15,7 +15,9 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeusverifier.Main;
 import zeus.zeusverifier.config.Config;
-import zeus.zeusverifier.config.modelcheckingnode.RootNode;
+import zeus.zeusverifier.config.modelcheckingnode.GatewayNode;
+import zeus.zeusverifier.node.modelchecking.ModelCheckingGatewayNode;
+import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
 import zeus.zeusverifier.routing.NodeAction;
 import zeus.zeusverifier.routing.RouteResult;
 
@@ -76,9 +78,26 @@ public abstract class Node<T extends Config> {
     return this.getMessage(requestSocket, null, executorService);
   }
 
+  public void sendMessage(Message<?> message, Socket socket) {
+    try {
+      PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
+      printWriter.println(message.toJsonString());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   private boolean registerOnGateway(Socket gatewaySocket) throws IOException {
     PrintWriter printWriter = new PrintWriter(gatewaySocket.getOutputStream(), true);
-    printWriter.println(new Message<>(new RegisterGatewayNode(GatewayNodeType.MODEL_CHECKING)).toJsonString());
+    printWriter.println(new Message<>(new RegisterNode(switch (this) {
+      case ModelCheckingGatewayNode _ -> NodeType.MODEL_CHECKING_GATEWAY;
+      case ModelCheckingNode _ -> NodeType.MODEL_CHECKING;
+      default -> throw new RuntimeException(String.format(
+        "Could not register node on gateway: unsupported node type \"%s\"",
+        this.getClass().getSimpleName()
+      ));
+    })).toJsonString());
+
     Optional<Message<RegisterNodeResponse>> messageOptional = this.parseMessage(
       MessageUtils.readMessage(gatewaySocket.getInputStream())
     );
@@ -98,8 +117,8 @@ public abstract class Node<T extends Config> {
     return true;
   }
 
-  public void startGatewayListener(RootNode rootNode) throws IOException {
-    String rootNodePort = rootNode.getPort();
+  public void startGatewayListener(GatewayNode gatewayNode) throws IOException {
+    String rootNodePort = gatewayNode.getPort();
     Optional<Integer> rootNodePortOptional = Main.parsePort(rootNodePort);
 
     if (rootNodePortOptional.isEmpty()) {
@@ -109,38 +128,37 @@ public abstract class Node<T extends Config> {
       ));
     }
 
-    try (Socket socket = new Socket(rootNode.getHost(), rootNodePortOptional.get())) {
+    try (
+      Socket socket = new Socket(gatewayNode.getHost(), rootNodePortOptional.get());
+      ExecutorService executorService = Executors.newCachedThreadPool()
+    ) {
       this.registerOnGateway(socket);
       while (true) {
-        try (ExecutorService executorService = Executors.newCachedThreadPool()) {
-
-          executorService.submit(() -> {
-            try {
-              Optional<Message<Object>> messageOptional = this.getMessage(socket, executorService);
-
-              if (messageOptional.isEmpty()) {
-                return;
-              }
-
-              NodeAction nodeAction = this.handleGatewayRequest(messageOptional.get(), socket);
-
-              if (nodeAction == NodeAction.NONE) {
-                return;
-              }
-
-              if (nodeAction == NodeAction.TERMINATE) {
-                this.terminate(socket, executorService);
-              }
-            } catch (IOException ioException) {
-              System.out.println("Root node became unavailable: stopping node");
-              try {
-                this.terminate(socket, executorService);
-              } catch (IOException terminateIoException) {
-                throw new RuntimeException(terminateIoException);
-              }
+        Optional<Message<Object>> messageOptional = this.getMessage(socket, executorService);
+        executorService.submit(() -> {
+          try {
+            if (messageOptional.isEmpty()) {
+              return;
             }
-          });
-        }
+
+            NodeAction nodeAction = this.handleGatewayRequest(messageOptional.get(), socket);
+
+            if (nodeAction == NodeAction.NONE) {
+              return;
+            }
+
+            if (nodeAction == NodeAction.TERMINATE) {
+              this.terminate(socket, executorService);
+            }
+          } catch (IOException ioException) {
+            System.out.println("Gateway node became unavailable: stopping node");
+            try {
+              this.terminate(socket, executorService);
+            } catch (IOException terminateIoException) {
+              throw new RuntimeException(terminateIoException);
+            }
+          }
+        });
       }
     }
   }
@@ -154,7 +172,7 @@ public abstract class Node<T extends Config> {
     BiFunction<Message, Socket, RouteResult> route = routes.get(payloadClass);
 
     if (route == null) {
-      System.out.printf("(Root node) Warning: processed message with unsupported route \"%s\"%n", payloadClass);
+      System.out.printf("Warning: processed message with unsupported route \"%s\"%n", payloadClass);
       return NodeAction.TERMINATE;
     }
 
