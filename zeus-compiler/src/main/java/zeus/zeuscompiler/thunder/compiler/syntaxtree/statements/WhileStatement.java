@@ -23,13 +23,11 @@ import java.util.Optional;
 import java.util.Queue;
 import java.util.stream.Collectors;
 
-public class WhileStatement extends Statement {
-  Expression conditionExpression;
+public class WhileStatement extends ControlStatement {
   Body body;
 
   public WhileStatement(int line, int linePosition, Expression conditionExpression, Body body) {
-    super(line, linePosition);
-    this.conditionExpression = conditionExpression;
+    super(line, linePosition, conditionExpression);
     this.body = body;
   }
 
@@ -80,19 +78,26 @@ public class WhileStatement extends Statement {
   @Override
   public Optional<ComponentSearchResult> searchComponent(Location location, int index, Queue<ParentStatement> parents) {
     Optional<ComponentSearchResult> componentSearchResultOptional = super.searchComponent(location, index, parents);
+
     if (componentSearchResultOptional.isPresent()) {
       return componentSearchResultOptional;
     }
 
     List<BodyComponent> bodyComponents = this.body.getBodyComponents();
+
     for (int i = 0; i < bodyComponents.size(); i++) {
       parents = new LinkedList<>(parents);
-      parents.add(new ParentStatement(this, index));
+      parents.add(new ParentStatement(this, bodyComponents, index));
       componentSearchResultOptional = bodyComponents.get(i).searchComponent(location, i, parents);
       if (componentSearchResultOptional.isPresent()) {
         return componentSearchResultOptional;
       }
     }
+
     return Optional.empty();
+  }
+
+  public Body getBody() {
+    return body;
   }
 }

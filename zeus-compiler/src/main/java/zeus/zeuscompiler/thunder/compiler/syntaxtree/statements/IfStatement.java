@@ -24,15 +24,13 @@ import java.util.Queue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class IfStatement extends Statement {
-  Expression conditionExpression;
+public class IfStatement extends ControlStatement {
   Body thenBody;
   // null if there is no else
   Body elseBody;
 
   public IfStatement(int line, int linePosition, Expression conditionExpression, Body thenBody, Body elseBody) {
-    super(line, linePosition);
-    this.conditionExpression = conditionExpression;
+    super(line, linePosition, conditionExpression);
     this.thenBody = thenBody;
     this.elseBody = elseBody;
   }
@@ -107,6 +105,7 @@ public class IfStatement extends Statement {
   @Override
   public Optional<ComponentSearchResult> searchComponent(Location location, int index, Queue<ParentStatement> parents) {
     Optional<ComponentSearchResult> componentSearchResultOptional = super.searchComponent(location, index, parents);
+
     if (componentSearchResultOptional.isPresent()) {
       return componentSearchResultOptional;
     }
@@ -118,12 +117,29 @@ public class IfStatement extends Statement {
 
     for (int i = 0; i < bodyComponents.size(); i++) {
       parents = new LinkedList<>(parents);
-      parents.add(new ParentStatement(this, index));
+      parents.add(new ParentStatement(
+        this,
+        (i < this.thenBody.getBodyComponents().size())
+          ? this.thenBody.getBodyComponents()
+          : this.elseBody.getBodyComponents(),
+        i
+      ));
+
       componentSearchResultOptional = bodyComponents.get(i).searchComponent(location, i, parents);
+
       if (componentSearchResultOptional.isPresent()) {
         return componentSearchResultOptional;
       }
     }
+
     return Optional.empty();
+  }
+
+  public Body getThenBody() {
+    return thenBody;
+  }
+
+  public Body getElseBody() {
+    return elseBody;
   }
 }

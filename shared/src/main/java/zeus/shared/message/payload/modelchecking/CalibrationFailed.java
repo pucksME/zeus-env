@@ -1,4 +1,6 @@
 package zeus.shared.message.payload.modelchecking;
 
-public record CalibrationFailed(Path path) {
+import java.util.UUID;
+
+public record CalibrationFailed(UUID uuid, Path path) {
 }

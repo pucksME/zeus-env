@@ -1,5 +1,4 @@
 {
   "type": "root-node",
-  "host": "localhost",
-  "port": "8081"
+  "port": "3000"
 }

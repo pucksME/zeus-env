@@ -33,7 +33,10 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
     CodeModuleIterator codeModuleIterator = new CodeModuleIterator(this.codeModule);
     if (!codeModuleIterator.calibrate(message.getPayload().path())) {
-      return new RouteResult(new Message<>(new CalibrationFailed(message.getPayload().path())), NodeAction.TERMINATE);
+      return new RouteResult(new Message<>(new CalibrationFailed(
+        this.getUuid(),
+        message.getPayload().path()
+      )), NodeAction.TERMINATE);
     }
 
     return new RouteResult(new Message<>(new StartModelCheckingResponse()));

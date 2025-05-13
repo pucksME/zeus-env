@@ -139,11 +139,13 @@ public class ClientCodeModule extends CodeModule {
 
     for (int i = 0; i < components.size(); i++) {
       Component component = components.get(i);
-      Optional<ComponentSearchResult> componentOptional = component.searchComponent(location, i, null);
+      Optional<ComponentSearchResult> componentOptional = component.searchComponent(location, i, new LinkedList<>());
+
       if (componentOptional.isPresent()) {
         return componentOptional;
       }
     }
+
     return Optional.empty();
   }
 

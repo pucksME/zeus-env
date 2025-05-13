@@ -52,8 +52,11 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
   }
 
   private RouteResult processCalibrationFailedRoute(Message<CalibrationFailed> message, Socket requestSocket) {
-    System.out.println("Model checking node \"%s\" could not calibrate path:");
-    System.out.println(message.getPayload().path());
+    System.out.println(String.format(
+      "Model checking node \"%s\" could not calibrate path \"%s\"",
+      message.getPayload().uuid(),
+      message.getPayload().path()
+    ));
     return new RouteResult(NodeAction.TERMINATE);
   }
 

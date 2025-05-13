@@ -62,6 +62,7 @@ public abstract class Node<T extends Config> {
     if (message == null) {
       System.out.println("Received empty message: closing socket");
       requestSocket.close();
+      return Optional.empty();
     }
 
     Optional<Message<T>> messageOptional = this.parseMessage(message);
@@ -199,5 +200,9 @@ public abstract class Node<T extends Config> {
 
   public T getConfig() {
     return config;
+  }
+
+  public UUID getUuid() {
+    return uuid;
   }
 }

@@ -1,18 +1,29 @@
 package zeus.zeuscompiler.thunder.compiler.utils;
 
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.Statement;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.BodyComponent;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Component;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.ControlStatement;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ParentStatement {
-  Statement statement;
+  ControlStatement controlStatement;
   int index;
+  List<BodyComponent> bodyComponents;
 
-  public ParentStatement(Statement statement, int index) {
-    this.statement = statement;
+  public ParentStatement(ControlStatement controlStatement, List<BodyComponent> bodyComponents, int index) {
+    this.controlStatement = controlStatement;
+    this.bodyComponents = bodyComponents;
     this.index = index;
   }
 
-  public Statement getStatement() {
-    return statement;
+  public ControlStatement getControlStatement() {
+    return controlStatement;
+  }
+
+  public List<Component> getComponents() {
+    return new ArrayList<>(this.bodyComponents);
   }
 
   public int getIndex() {

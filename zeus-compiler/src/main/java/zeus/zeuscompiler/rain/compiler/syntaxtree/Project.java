@@ -332,7 +332,7 @@ public class Project extends Node {
     String json = message.toJsonString();
     System.out.println(json);
     try {
-      try (Socket socket = new Socket("localhost", 8081)) {
+      try (Socket socket = new Socket("localhost", 3000)) {
         PrintWriter outputPrintWriter = new PrintWriter(socket.getOutputStream(), true);
         outputPrintWriter.println(json);
         Message<VerificationResponse> response = new GsonBuilder()

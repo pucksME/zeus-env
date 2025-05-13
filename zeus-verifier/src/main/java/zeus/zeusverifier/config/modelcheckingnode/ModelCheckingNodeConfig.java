@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import zeus.zeusverifier.config.Config;
 
 public class ModelCheckingNodeConfig extends Config {
-  @SerializedName("root-node")
+  @SerializedName("gateway-node")
   GatewayNode gatewayNode;
 
   public ModelCheckingNodeConfig(String type, GatewayNode gatewayNode) {
