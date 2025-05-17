@@ -1,14 +1,14 @@
-package zeus.zeusverifier.config.modelcheckingnode;
+package zeus.zeusverifier.config.abstractionnode;
 
 import com.google.gson.annotations.SerializedName;
 import zeus.zeusverifier.config.Config;
 import zeus.zeusverifier.config.GatewayNode;
 
-public class ModelCheckingNodeConfig extends Config {
+public class AbstractionNodeConfig extends Config {
   @SerializedName("gateway-node")
   GatewayNode gatewayNode;
 
-  public ModelCheckingNodeConfig(String type, GatewayNode gatewayNode) {
+  public AbstractionNodeConfig(String type, GatewayNode gatewayNode) {
     super(type);
   }
 

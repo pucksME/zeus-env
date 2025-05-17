@@ -1,4 +1,4 @@
-package zeus.zeusverifier.config.modelcheckingnode;
+package zeus.zeusverifier.config;
 
 public class GatewayNode {
   String host;

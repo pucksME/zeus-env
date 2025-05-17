@@ -122,7 +122,7 @@ public class IfStatement extends ControlStatement {
         (i < this.thenBody.getBodyComponents().size())
           ? this.thenBody.getBodyComponents()
           : this.elseBody.getBodyComponents(),
-        i
+        index
       ));
 
       componentSearchResultOptional = bodyComponents.get(i).searchComponent(location, i, parents);

@@ -31,7 +31,7 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
 
     UUID nodeUuid = this.getNodes().keys().nextElement();
     this.sendMessage(
-      new Message<>(new StartModelCheckingRequest(new Path(new ArrayList<>(), new HashSet<>()))),
+      new Message<>(new StartModelCheckingRequest(new Path(new ArrayList<>()))),
       this.getNodes().get(nodeUuid)
     );
 

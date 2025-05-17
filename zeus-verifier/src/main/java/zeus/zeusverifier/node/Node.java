@@ -15,7 +15,9 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeusverifier.Main;
 import zeus.zeusverifier.config.Config;
-import zeus.zeusverifier.config.modelcheckingnode.GatewayNode;
+import zeus.zeusverifier.config.GatewayNode;
+import zeus.zeusverifier.node.abstraction.AbstractionGatewayNode;
+import zeus.zeusverifier.node.abstraction.AbstractionNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingGatewayNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
 import zeus.zeusverifier.routing.NodeAction;
@@ -93,6 +95,8 @@ public abstract class Node<T extends Config> {
     printWriter.println(new Message<>(new RegisterNode(switch (this) {
       case ModelCheckingGatewayNode _ -> NodeType.MODEL_CHECKING_GATEWAY;
       case ModelCheckingNode _ -> NodeType.MODEL_CHECKING;
+      case AbstractionGatewayNode _ -> NodeType.ABSTRACTION_GATEWAY;
+      case AbstractionNode _ -> NodeType.ABSTRACTION;
       default -> throw new RuntimeException(String.format(
         "Could not register node on gateway: unsupported node type \"%s\"",
         this.getClass().getSimpleName()

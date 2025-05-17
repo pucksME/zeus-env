@@ -14,11 +14,13 @@ import java.util.concurrent.*;
 
 public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket modelCheckingGatewayNodeSocket;
+  Socket abstractionGatewayNodeSocket;
   ExecutorService gatewayNodesExecutorService;
 
   public RootNode(GatewayNodeConfig config) {
     super(config);
     this.modelCheckingGatewayNodeSocket = null;
+    this.abstractionGatewayNodeSocket = null;
     this.gatewayNodesExecutorService = Executors.newCachedThreadPool();
   }
 
@@ -28,6 +30,9 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     switch (message.getPayload().type()) {
       case MODEL_CHECKING_GATEWAY -> {
         this.modelCheckingGatewayNodeSocket = requestSocket;
+      }
+      case ABSTRACTION_GATEWAY -> {
+        this.abstractionGatewayNodeSocket = requestSocket;
       }
     };
 

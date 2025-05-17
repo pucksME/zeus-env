@@ -11,6 +11,7 @@ import zeus.zeusverifier.routing.RouteResult;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
+import java.util.Set;
 
 public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   ClientCodeModule codeModule;
@@ -31,12 +32,16 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   ) {
     System.out.println("Running startModelChecking route");
 
-    CodeModuleIterator codeModuleIterator = new CodeModuleIterator(this.codeModule);
+    CodeModuleIterator codeModuleIterator = new CodeModuleIterator(this.codeModule, this);
     if (!codeModuleIterator.calibrate(message.getPayload().path())) {
       return new RouteResult(new Message<>(new CalibrationFailed(
         this.getUuid(),
         message.getPayload().path()
       )), NodeAction.TERMINATE);
+    }
+
+    while(codeModuleIterator.hasNext()) {
+      Set<Path> paths = codeModuleIterator.next();
     }
 
     return new RouteResult(new Message<>(new StartModelCheckingResponse()));
