@@ -1,18 +1,23 @@
 package zeus.zeusverifier.node.abstraction;
 
 import zeus.shared.message.Message;
+import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.zeusverifier.config.abstractionnode.AbstractionGatewayNodeConfig;
 import zeus.zeusverifier.node.GatewayNode;
 import zeus.zeusverifier.routing.NodeAction;
+import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 public class AbstractionGatewayNode extends GatewayNode<AbstractionGatewayNodeConfig> {
   public AbstractionGatewayNode(AbstractionGatewayNodeConfig config) {
-    super(config);
+    super(config, NodeType.ABSTRACTION);
   }
 
   @Override
@@ -26,12 +31,23 @@ public class AbstractionGatewayNode extends GatewayNode<AbstractionGatewayNodeCo
     );
   }
 
+  private RouteResult processAbstractRequestRoute(Message<AbstractRequest> message, Socket requestSocket) {
+    Optional<UUID> uuidOptional = this.sendMessageToNode(message);
+    if (uuidOptional.isEmpty()) {
+      System.out.println("Could not send abstract request: sending message to an abstraction node failed");
+      return new RouteResult(NodeAction.TERMINATE);
+    }
+    return new RouteResult();
+  }
+
   @Override
   public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) throws IOException {
     return this.processMessage(
       message,
       requestSocket,
-      Map.of()
+      Map.of(
+        AbstractRequest.class, this::processAbstractRequestRoute
+      )
     );
   }
 

@@ -2,6 +2,7 @@ package zeus.zeusverifier.node;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.*;
+import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.routing.NodeAction;
@@ -36,12 +37,28 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       }
     };
 
+    try {
+      this.registerNode(requestSocket, this.nodes, this.nodesExecutorService);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     return new RouteResult(new Message<>(new RegisterNodeResponse(UUID.randomUUID())));
   }
 
   private RouteResult verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
     this.sendMessage(message, this.modelCheckingGatewayNodeSocket);
     return new RouteResult(new Message<>(new VerificationResponse(false)));
+  }
+
+  private RouteResult processVerificationResponseRoute(Message<VerificationResponse> message, Socket requestSocket) {
+    System.out.println("Running processVerificationResponseRoute");
+    return new RouteResult();
+  }
+
+  private RouteResult processAbstractRequestRoute(Message<AbstractRequest> message, Socket requestSocket) {
+    System.out.println("Running processAbstractRequestRoute");
+    this.sendMessage(message, this.abstractionGatewayNodeSocket);
+    return new RouteResult();
   }
 
   @Override
@@ -51,11 +68,9 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       requestSocket,
       Map.of(
         RegisterNode.class, this::registerGatewayNodeRoute,
-        ClientCodeModule.class, this::verifyRoute
-//        RegisterModelCheckingNodeRequest.class, this::registerModelCheckingNodeRoute,
-//        SetCodeModuleResponse.class, this::processSetCodeModuleResponseRoute,
-//        StartModelCheckingResponse.class, this::processStartModelCheckingResponseRoute,
-//        CalibrationFailed.class, this::processCalibrationFailedRoute
+        ClientCodeModule.class, this::verifyRoute,
+        AbstractRequest.class, this::processAbstractRequestRoute,
+        VerificationResponse.class, this::processVerificationResponseRoute
       )
     );
   }

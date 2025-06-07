@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
 import zeus.shared.message.Message;
+import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.RegisterNode;
 import zeus.shared.message.payload.RegisterNodeResponse;
@@ -25,16 +26,19 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.function.BiFunction;
 
 public abstract class Node<T extends Config> {
   T config;
   UUID uuid;
+  Socket gatewayNodeSocket;
 
   public Node(T config) {
     this.config = config;
@@ -58,27 +62,28 @@ public abstract class Node<T extends Config> {
     }
   }
 
-  protected <T> Optional<Message<T>> getMessage(Socket requestSocket, Closeable serverSocket, ExecutorService executorService) throws IOException {
-    String message = MessageUtils.readMessage(requestSocket.getInputStream());
+  protected <T> Optional<Message<T>> getMessage(Socket requestSocket) throws IOException {
+    try {
+      String message = MessageUtils.readMessage(requestSocket.getInputStream());
+      if (message == null) {
+        System.out.println("Received empty message: closing socket");
+        this.terminate();
+        return Optional.empty();
+      }
 
-    if (message == null) {
-      System.out.println("Received empty message: closing socket");
-      requestSocket.close();
+      Optional<Message<T>> messageOptional = this.parseMessage(message);
+
+      if (messageOptional.isEmpty()) {
+        System.out.printf("Warning: received invalid message \"%s\"%n", message);
+        this.terminate();
+      }
+
+      return messageOptional;
+    } catch (SocketException socketException) {
+      this.terminate();
       return Optional.empty();
     }
 
-    Optional<Message<T>> messageOptional = this.parseMessage(message);
-
-    if (messageOptional.isEmpty()) {
-      System.out.printf("Warning: received invalid message \"%s\"%n", message);
-      this.terminate(serverSocket, executorService);
-    }
-
-    return messageOptional;
-  }
-
-  protected <T> Optional<Message<T>> getMessage(Socket requestSocket, ExecutorService executorService) throws IOException {
-    return this.getMessage(requestSocket, null, executorService);
   }
 
   public void sendMessage(Message<?> message, Socket socket) {
@@ -88,6 +93,18 @@ public abstract class Node<T extends Config> {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  public void sendMessageToGateway(Message<?> message) {
+    this.sendMessage(message, this.gatewayNodeSocket);
+  }
+
+  public void sendMessage(Message<?> message) {
+    if (message.getRecipient().isEmpty()) {
+      System.out.println("Could not send message: no receiver specified");
+      return;
+    }
+    this.sendMessageToGateway(message);
   }
 
   private boolean registerOnGateway(Socket gatewaySocket) throws IOException {
@@ -108,7 +125,7 @@ public abstract class Node<T extends Config> {
     );
 
     if (messageOptional.isEmpty()) {
-      System.out.println("Could not node: invalid response message");
+      System.out.println("Could not register node: invalid response message");
       gatewaySocket.close();
       return false;
     }
@@ -120,6 +137,90 @@ public abstract class Node<T extends Config> {
       this.uuid
     );
     return true;
+  }
+
+  public boolean handleMessageWithRecipient(Message<?> message) {
+    if (message.getRecipient().isEmpty()) {
+      return false;
+    }
+
+    Recipient recipient = message.getRecipient().get();
+
+    if (this instanceof RootNode) {
+      switch (recipient.nodeType()) {
+        case MODEL_CHECKING_GATEWAY:
+        case MODEL_CHECKING:
+          this.sendMessage(message, ((RootNode) this).modelCheckingGatewayNodeSocket);
+          break;
+        case ABSTRACTION_GATEWAY:
+        case ABSTRACTION:
+          this.sendMessage(message, ((RootNode) this).abstractionGatewayNodeSocket);
+          break;
+      }
+      return true;
+    }
+
+    if ((recipient.nodeType() == NodeType.MODEL_CHECKING_GATEWAY && this instanceof ModelCheckingGatewayNode) ||
+      (recipient.nodeType() == NodeType.ABSTRACTION_GATEWAY && this instanceof AbstractionGatewayNode)) {
+      return false;
+    }
+
+    if (this instanceof zeus.zeusverifier.node.GatewayNode) {
+      if (recipient.nodeType() == ((zeus.zeusverifier.node.GatewayNode<?>) this).getGatewayTo()) {
+        switch (recipient.nodeSelection()) {
+          case ANY -> ((zeus.zeusverifier.node.GatewayNode<?>) this).sendMessageToNode(message);
+          case ALL -> ((zeus.zeusverifier.node.GatewayNode<?>) this).sendBroadcastMessage(message);
+        }
+        return true;
+      }
+
+      Optional<Socket> gatewayNodeSocketOptional = this.getGatewayNodeSocket();
+      if (gatewayNodeSocketOptional.isPresent()) {
+        this.sendMessageToGateway(message);
+      }
+
+      return true;
+    }
+
+    return false;
+  }
+
+  void processRequest(
+    Socket socket,
+    Optional<Message<Object>> messageOptional,
+    ExecutorService executorService,
+    BiFunction<Message<?>, Socket, NodeAction> requestHandler
+  ) throws RejectedExecutionException {
+    executorService.submit(() -> {
+      if (messageOptional.isEmpty()) {
+        this.terminate();
+        return;
+      }
+
+      Message<?> message = messageOptional.get();
+      if (this.handleMessageWithRecipient(message)) {
+        return;
+      }
+
+      NodeAction nodeAction = requestHandler.apply(message, socket);
+      if (nodeAction == NodeAction.NONE) {
+        return;
+      }
+
+      if (nodeAction == NodeAction.TERMINATE) {
+        this.terminate();
+      }
+    });
+  }
+
+  void processRequests(
+    Socket socket,
+    ExecutorService executorService,
+    BiFunction<Message<?>, Socket, NodeAction> requestHandler
+  ) throws IOException, RejectedExecutionException {
+    while (true) {
+      this.processRequest(socket, this.getMessage(socket), executorService, requestHandler);
+    }
   }
 
   public void startGatewayListener(GatewayNode gatewayNode) throws IOException {
@@ -137,34 +238,18 @@ public abstract class Node<T extends Config> {
       Socket socket = new Socket(gatewayNode.getHost(), rootNodePortOptional.get());
       ExecutorService executorService = Executors.newCachedThreadPool()
     ) {
-      this.registerOnGateway(socket);
-      while (true) {
-        Optional<Message<Object>> messageOptional = this.getMessage(socket, executorService);
-        executorService.submit(() -> {
-          try {
-            if (messageOptional.isEmpty()) {
-              return;
-            }
-
-            NodeAction nodeAction = this.handleGatewayRequest(messageOptional.get(), socket);
-
-            if (nodeAction == NodeAction.NONE) {
-              return;
-            }
-
-            if (nodeAction == NodeAction.TERMINATE) {
-              this.terminate(socket, executorService);
-            }
-          } catch (IOException ioException) {
-            System.out.println("Gateway node became unavailable: stopping node");
-            try {
-              this.terminate(socket, executorService);
-            } catch (IOException terminateIoException) {
-              throw new RuntimeException(terminateIoException);
-            }
-          }
-        });
+      if (!this.registerOnGateway(socket)) {
+        return;
       }
+
+      this.gatewayNodeSocket = socket;
+      this.processRequests(socket, executorService, (Message<?> message, Socket messageSocket) -> {
+        try {
+          return this.handleGatewayRequest(message, messageSocket);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      });
     }
   }
 
@@ -194,12 +279,8 @@ public abstract class Node<T extends Config> {
 
   public abstract void start() throws IOException;
 
-  public void terminate(Closeable socket, ExecutorService executorService) throws IOException {
-    if (socket != null) {
-      socket.close();
-    }
-
-    executorService.shutdown();
+  public void terminate() {
+    System.exit(1);
   }
 
   public T getConfig() {
@@ -208,5 +289,9 @@ public abstract class Node<T extends Config> {
 
   public UUID getUuid() {
     return uuid;
+  }
+
+  public Optional<Socket> getGatewayNodeSocket() {
+    return Optional.ofNullable(gatewayNodeSocket);
   }
 }

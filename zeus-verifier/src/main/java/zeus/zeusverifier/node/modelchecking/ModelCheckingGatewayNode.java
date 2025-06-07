@@ -1,8 +1,10 @@
 package zeus.zeusverifier.node.modelchecking;
 
 import zeus.shared.message.Message;
+import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.RegisterNode;
 import zeus.shared.message.payload.VerificationResponse;
+import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
@@ -16,7 +18,7 @@ import java.util.*;
 
 public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNodeConfig> {
   public ModelCheckingGatewayNode(ModelCheckingGatewayNodeConfig config) {
-    super(config);
+    super(config, NodeType.MODEL_CHECKING);
   }
 
   private RouteResult verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
@@ -60,6 +62,12 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     return new RouteResult(NodeAction.TERMINATE);
   }
 
+  private RouteResult processAbstractRequestRoute(Message<AbstractRequest> message, Socket requestSocket) {
+    System.out.println("Running processAbstractRequestRoute route");
+    this.sendMessageToGateway(message);
+    return new RouteResult();
+  }
+
   @Override
   public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
     return this.processMessage(
@@ -69,7 +77,8 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
         RegisterNode.class, this::registerNodeRoute,
         SetCodeModuleResponse.class, this::processSetCodeModuleResponseRoute,
         StartModelCheckingResponse.class, this::processStartModelCheckingResponseRoute,
-        CalibrationFailed.class, this::processCalibrationFailedRoute
+        CalibrationFailed.class, this::processCalibrationFailedRoute,
+        AbstractRequest.class, this::processAbstractRequestRoute
       )
     );
   }

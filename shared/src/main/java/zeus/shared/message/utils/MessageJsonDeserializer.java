@@ -2,6 +2,7 @@ package zeus.shared.message.utils;
 
 import com.google.gson.*;
 import zeus.shared.message.Message;
+import zeus.shared.message.Recipient;
 
 import java.lang.reflect.Type;
 
@@ -23,6 +24,12 @@ public class MessageJsonDeserializer<T> implements JsonDeserializer<Message<T>> 
       throw new RuntimeException(String.format("Could not deserialize \"%s\": no payload", jsonElement));
     }
 
-    return new Message<T>(jsonDeserializationContext.deserialize(jsonObject.get("payload"), MessageUtils.getClass(jsonObject, "payloadClassName")));
+    return new Message<T>(
+      jsonDeserializationContext.deserialize(
+        jsonObject.get("payload"),
+        MessageUtils.getClass(jsonObject, "payloadClassName")
+      ),
+      jsonDeserializationContext.deserialize(jsonObject.get("recipient"), Recipient.class)
+    );
   }
 }
