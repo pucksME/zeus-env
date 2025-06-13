@@ -18,10 +18,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   ClientCodeModule codeModule;
@@ -79,7 +76,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       return new RouteResult(new Message<>(new CalibrationFailed(
         this.getUuid(),
         message.getPayload().path()
-      )), NodeAction.TERMINATE);
+      ), new Recipient(NodeType.ROOT, NodeSelection.ANY)), NodeAction.NONE);
     }
 
     codeModuleModelChecker.check();

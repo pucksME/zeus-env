@@ -148,6 +148,8 @@ public abstract class Node<T extends Config> {
 
     if (this instanceof RootNode) {
       switch (recipient.nodeType()) {
+        case ROOT:
+          return false;
         case MODEL_CHECKING_GATEWAY:
         case MODEL_CHECKING:
           this.sendMessage(message, ((RootNode) this).modelCheckingGatewayNodeSocket);

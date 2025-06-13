@@ -1,6 +1,7 @@
 package zeus.shared.message.payload;
 
 public enum NodeType {
+  ROOT,
   MODEL_CHECKING_GATEWAY,
   MODEL_CHECKING,
   ABSTRACTION_GATEWAY,

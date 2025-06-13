@@ -46,10 +46,7 @@ public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
     int port = portOptional.get();
     System.out.printf("Gateway server running at port %s%n", port);
 
-    try (
-      ServerSocket serverSocket = new ServerSocket(port);
-      ExecutorService executorService = Executors.newCachedThreadPool()
-    ) {
+    try (ServerSocket serverSocket = new ServerSocket(port)) {
       while (!serverSocket.isClosed()) {
         Socket requestSocket = serverSocket.accept();
         Optional<Message<Object>> messageOptional = this.getMessage(requestSocket);
