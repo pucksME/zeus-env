@@ -2,6 +2,7 @@ package zeus.zeusverifier.node;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.*;
+import zeus.shared.message.payload.abstraction.AbstractionFailedMissingPredicateValuation;
 import zeus.shared.message.payload.modelchecking.CalibrationFailed;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
@@ -65,6 +66,19 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
+  private RouteResult processAbstractionFailedMissingPredicateValuationRoute(
+    Message<AbstractionFailedMissingPredicateValuation> message,
+    Socket requestSocket
+  ) {
+    System.out.printf(
+      "Abstraction node \"%s\" could not perform abstraction: missing valuation for predicate \"%s\"%n",
+      message.getPayload().nodeUuid(),
+      message.getPayload().predicateUuid()
+    );
+    this.terminate();
+    return new RouteResult();
+  }
+
   @Override
   public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
     return this.processMessage(
@@ -74,7 +88,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         RegisterNode.class, this::registerGatewayNodeRoute,
         ClientCodeModule.class, this::verifyRoute,
         VerificationResponse.class, this::processVerificationResponseRoute,
-        CalibrationFailed.class, this::processCalibrationFailedRoute
+        CalibrationFailed.class, this::processCalibrationFailedRoute,
+        AbstractionFailedMissingPredicateValuation.class, this::processAbstractionFailedMissingPredicateValuationRoute
       )
     );
   }

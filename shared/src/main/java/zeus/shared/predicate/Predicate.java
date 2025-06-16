@@ -12,4 +12,8 @@ public abstract class Predicate {
     this.uuid = uuid;
     this.formula = formula;
   }
+
+  public Formula getFormula() {
+    return formula;
+  }
 }

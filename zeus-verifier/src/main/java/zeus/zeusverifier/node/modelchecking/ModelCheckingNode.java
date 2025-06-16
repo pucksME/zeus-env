@@ -1,5 +1,6 @@
 package zeus.zeusverifier.node.modelchecking;
 
+import zeus.shared.formula.BooleanLiteralFormula;
 import zeus.shared.message.Message;
 import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
@@ -16,6 +17,7 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -40,7 +42,10 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   CompletableFuture<AbstractionLiteral> sendAbstractRequest() {
     System.out.println("Running sendAbstractRequest route");
     UUID uuid = UUID.randomUUID();
-    this.sendMessage(new Message<>(new AbstractRequest(uuid), new Recipient(NodeType.ABSTRACTION, NodeSelection.ANY)));
+    this.sendMessage(new Message<>(
+      new AbstractRequest(uuid, new HashMap<>(), new HashMap<>(), new BooleanLiteralFormula(true)),
+      new Recipient(NodeType.ABSTRACTION, NodeSelection.ANY)
+    ));
     CompletableFuture<AbstractionLiteral> completableFuture = new CompletableFuture<>();
     this.pendingAbstractionRequests.put(uuid, completableFuture);
     return completableFuture;
