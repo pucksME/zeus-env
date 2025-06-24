@@ -7,6 +7,7 @@ import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.TypeInformation;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownObjectPropertyException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.UnknownTypeException;
@@ -17,7 +18,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class ObjectReadAccessExpression extends UnaryExpression {
@@ -98,7 +99,7 @@ public class ObjectReadAccessExpression extends UnaryExpression {
   }
 
   @Override
-  public Formula toFormula() {
+  public Formula toFormula(Map<String, VariableInformation> variables) {
     throw new RuntimeException("Could not convert object read access expression to formula: not implemented yet");
   }
 

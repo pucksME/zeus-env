@@ -3,6 +3,7 @@ package zeus.zeusverifier.node;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
+import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
@@ -52,6 +53,7 @@ public abstract class Node<T extends Config> {
       .registerTypeAdapter(Type.class, new ObjectJsonDeserializer<Type>())
       .registerTypeAdapter(BodyComponent.class, new ObjectJsonDeserializer<BodyComponent>())
       .registerTypeAdapter(Expression.class, new ObjectJsonDeserializer<Expression>())
+      .registerTypeAdapter(Formula.class, new ObjectJsonDeserializer<Formula>())
       .create();
 
     try {
@@ -147,7 +149,7 @@ public abstract class Node<T extends Config> {
     Recipient recipient = message.getRecipient().get();
 
     if (this instanceof RootNode) {
-      switch (recipient.nodeType()) {
+      switch (recipient.getNodeType()) {
         case ROOT:
           return false;
         case MODEL_CHECKING_GATEWAY:
@@ -162,14 +164,14 @@ public abstract class Node<T extends Config> {
       return true;
     }
 
-    if ((recipient.nodeType() == NodeType.MODEL_CHECKING_GATEWAY && this instanceof ModelCheckingGatewayNode) ||
-      (recipient.nodeType() == NodeType.ABSTRACTION_GATEWAY && this instanceof AbstractionGatewayNode)) {
+    if ((recipient.getNodeType() == NodeType.MODEL_CHECKING_GATEWAY && this instanceof ModelCheckingGatewayNode) ||
+      (recipient.getNodeType() == NodeType.ABSTRACTION_GATEWAY && this instanceof AbstractionGatewayNode)) {
       return false;
     }
 
     if (this instanceof zeus.zeusverifier.node.GatewayNode) {
-      if (recipient.nodeType() == ((zeus.zeusverifier.node.GatewayNode<?>) this).getGatewayTo()) {
-        switch (recipient.nodeSelection()) {
+      if (recipient.getNodeType() == ((zeus.zeusverifier.node.GatewayNode<?>) this).getGatewayTo()) {
+        switch (recipient.getNodeSelection()) {
           case ANY -> ((zeus.zeusverifier.node.GatewayNode<?>) this).sendMessageToNode(message);
           case ALL -> ((zeus.zeusverifier.node.GatewayNode<?>) this).sendBroadcastMessage(message);
         }

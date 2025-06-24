@@ -2,11 +2,11 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.unary;
 
 import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class GroupExpression extends UnaryExpression {
@@ -27,8 +27,8 @@ public class GroupExpression extends UnaryExpression {
   }
 
   @Override
-  public Formula toFormula() {
-    return this.expression.toFormula();
+  public Formula toFormula(Map<String, VariableInformation> variables) {
+    return this.expression.toFormula(variables);
   }
 
   @Override

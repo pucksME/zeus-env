@@ -5,6 +5,7 @@ import zeus.shared.formula.unary.NegativeFormula;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.LiteralType;
@@ -14,6 +15,7 @@ import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class NegativeExpression extends UnaryExpression {
@@ -52,8 +54,8 @@ public class NegativeExpression extends UnaryExpression {
   }
 
   @Override
-  public Formula toFormula() {
-    return new NegativeFormula(this.toFormula());
+  public Formula toFormula(Map<String, VariableInformation> variables) {
+    return new NegativeFormula(this.toFormula(variables));
   }
 
   @Override

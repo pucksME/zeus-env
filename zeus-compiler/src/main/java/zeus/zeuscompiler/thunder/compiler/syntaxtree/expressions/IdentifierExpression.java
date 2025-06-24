@@ -13,7 +13,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class IdentifierExpression extends Expression {
@@ -58,14 +58,14 @@ public class IdentifierExpression extends Expression {
   }
 
   @Override
-  public Formula toFormula() {
-    Optional<Type> typeOptional = this.evaluateType();
+  public Formula toFormula(Map<String, VariableInformation> variables) {
+    VariableInformation variableInformation = variables.get(this.id);
 
-    if (typeOptional.isEmpty()) {
+    if (variableInformation == null) {
       throw new RuntimeException("Could not convert identifier expression to formula: type evaluation failed");
     }
 
-    Type type = typeOptional.get();
+    Type type = variableInformation.getType();
 
     if (!(type instanceof PrimitiveType)) {
       throw new RuntimeException(String.format(

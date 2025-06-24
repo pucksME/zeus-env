@@ -2,10 +2,10 @@ package zeus.zeuscompiler.symboltable;
 
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public abstract class SymbolTable {
   Map<String, List<TypeInformation>> publicTypes;
@@ -107,6 +107,17 @@ public abstract class SymbolTable {
     if (!this.variables.containsKey(this.currentCodeModule)) {
       this.variables.put(this.currentCodeModule, new HashMap<>());
     }
+  }
+
+  public Map<String, VariableInformation> exportVariables(CodeModule codeModule) {
+    Map<String, List<VariableInformation>> variables = this.variables.get(codeModule);
+    if (variables == null) {
+      return new HashMap<>();
+    }
+
+    return variables.entrySet().stream()
+      .map(variableEntry -> Map.entry(variableEntry.getKey(), variableEntry.getValue().getFirst()))
+      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   public void setCodeModules(CodeModules codeModules) {

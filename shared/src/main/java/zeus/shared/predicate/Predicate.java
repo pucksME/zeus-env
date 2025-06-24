@@ -13,6 +13,16 @@ public abstract class Predicate {
     this.formula = formula;
   }
 
+  @Override
+  public int hashCode() {
+    return this.uuid.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof Predicate && uuid.equals(((Predicate) obj).uuid);
+  }
+
   public Formula getFormula() {
     return formula;
   }

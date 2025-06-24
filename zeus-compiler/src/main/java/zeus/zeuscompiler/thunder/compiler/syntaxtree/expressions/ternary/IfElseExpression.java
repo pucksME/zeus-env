@@ -5,7 +5,10 @@ import zeus.shared.formula.binary.AndFormula;
 import zeus.shared.formula.binary.OrFormula;
 import zeus.shared.formula.unary.NotFormula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
+
+import java.util.Map;
 
 public class IfElseExpression extends TernaryExpression {
   public IfElseExpression(
@@ -32,10 +35,10 @@ public class IfElseExpression extends TernaryExpression {
   }
 
   @Override
-  public Formula toFormula() {
-    Formula condition = this.firstExpression.toFormula();
+  public Formula toFormula(Map<String, VariableInformation> variables) {
+    Formula condition = this.firstExpression.toFormula(variables);
     return new OrFormula(
-      new AndFormula(condition, this.secondExpression.toFormula()),
-      new AndFormula(new NotFormula(condition), this.thirdExpression.toFormula()));
+      new AndFormula(condition, this.secondExpression.toFormula(variables)),
+      new AndFormula(new NotFormula(condition), this.thirdExpression.toFormula(variables)));
   }
 }

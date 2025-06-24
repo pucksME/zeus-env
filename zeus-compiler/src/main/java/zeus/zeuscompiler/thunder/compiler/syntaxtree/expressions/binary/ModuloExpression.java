@@ -3,12 +3,12 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.binary;
 import zeus.shared.formula.Formula;
 import zeus.shared.formula.binary.ModuloFormula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.TypeCheckingUtils;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class ModuloExpression extends BinaryExpression {
@@ -33,8 +33,8 @@ public class ModuloExpression extends BinaryExpression {
   }
 
   @Override
-  public Formula toFormula() {
-    return new ModuloFormula(this.leftExpression.toFormula(), this.rightExpression.toFormula());
+  public Formula toFormula(Map<String, VariableInformation> variables) {
+    return new ModuloFormula(this.leftExpression.toFormula(variables), this.rightExpression.toFormula(variables));
   }
 
   @Override

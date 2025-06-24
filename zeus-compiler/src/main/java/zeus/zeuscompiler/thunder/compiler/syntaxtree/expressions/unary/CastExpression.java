@@ -4,13 +4,14 @@ import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 public class CastExpression extends UnaryExpression {
@@ -55,8 +56,8 @@ public class CastExpression extends UnaryExpression {
   }
 
   @Override
-  public Formula toFormula() {
-    return this.expression.toFormula();
+  public Formula toFormula(Map<String, VariableInformation> variables) {
+    return this.expression.toFormula(variables);
   }
 
   @Override

@@ -20,4 +20,8 @@ public class PredicateValuation {
   public boolean equals(Object obj) {
     return (obj instanceof PredicateValuation) && this.predicateUuid.equals(((PredicateValuation) obj).predicateUuid);
   }
+
+  public boolean getValue() {
+    return value;
+  }
 }

@@ -9,4 +9,8 @@ public abstract class ControlStatement extends Statement {
     super(line, linePosition);
     this.conditionExpression = conditionExpression;
   }
+
+  public Expression getConditionExpression() {
+    return conditionExpression;
+  }
 }

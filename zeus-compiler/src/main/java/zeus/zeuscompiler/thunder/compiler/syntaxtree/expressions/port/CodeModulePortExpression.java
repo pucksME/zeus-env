@@ -5,6 +5,7 @@ import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.symboltable.SymbolTable;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleCodeModuleException;
@@ -13,6 +14,7 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
+import java.util.Map;
 import java.util.Optional;
 
 public abstract class CodeModulePortExpression extends Expression {
@@ -57,7 +59,7 @@ public abstract class CodeModulePortExpression extends Expression {
   }
 
   @Override
-  public Formula toFormula() {
+  public Formula toFormula(Map<String, VariableInformation> variables) {
     throw new RuntimeException("Could not convert code module port expression to formula: not implemented yet");
   }
 }

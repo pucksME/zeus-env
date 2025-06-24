@@ -1,6 +1,5 @@
 package zeus.zeuscompiler.rain.compiler.syntaxtree;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.VerificationResponse;
@@ -328,7 +327,12 @@ public class Project extends Node {
       return;
     }
 
-    Message<CodeModule> message = new Message<>(codeModuleOptional.get());
+    CodeModule codeModule = codeModuleOptional.get();
+    codeModule.setVariables(ServiceProvider
+      .provide(SymbolTableService.class).getContextSymbolTableProvider()
+      .provide(SymbolTable.class).exportVariables(codeModule));
+    Message<CodeModule> message = new Message<>(codeModule);
+
     String json = message.toJsonString();
     System.out.println(json);
     try {

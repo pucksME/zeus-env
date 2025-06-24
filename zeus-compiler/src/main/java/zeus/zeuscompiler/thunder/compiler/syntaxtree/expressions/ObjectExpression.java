@@ -2,9 +2,9 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
 import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ObjectType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 
 import java.util.HashMap;
 import java.util.List;
@@ -43,7 +43,7 @@ public class ObjectExpression extends Expression {
   }
 
   @Override
-  public Formula toFormula() {
+  public Formula toFormula(Map<String, VariableInformation> variables) {
     throw new RuntimeException("Could not convert object expression to formula: not implemented yet");
   }
 

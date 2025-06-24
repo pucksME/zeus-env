@@ -4,6 +4,8 @@ import zeus.shared.message.Message;
 import zeus.shared.message.payload.*;
 import zeus.shared.message.payload.abstraction.AbstractionFailedMissingPredicateValuation;
 import zeus.shared.message.payload.modelchecking.CalibrationFailed;
+import zeus.shared.message.payload.modelchecking.ExpressionVariableInformationNotPresent;
+import zeus.shared.message.payload.modelchecking.UnsupportedComponent;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.routing.NodeAction;
@@ -79,6 +81,27 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
+  private RouteResult processUnsupportedComponentRoute(Message<UnsupportedComponent> message, Socket requestSocket) {
+    System.out.printf(
+      "Model checking node \"%s\" could not perform model checking: unsupported component type \"%s\"%n",
+      message.getPayload().nodeUuid(),
+      message.getPayload().componentName()
+    );
+    this.terminate();
+    return new RouteResult();
+  }
+
+  private RouteResult processExpressionVariableInformationNotPresentRoute(Message<ExpressionVariableInformationNotPresent> message, Socket requestSocket) {
+    System.out.printf(
+      "Model checking node \"%s\" could not perform model checking: variable information for expression at %s:%s not present%n",
+      message.getPayload().nodeUuid(),
+      message.getPayload().line(),
+      message.getPayload().linePosition()
+    );
+    this.terminate();
+    return new RouteResult();
+  }
+
   @Override
   public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
     return this.processMessage(
@@ -89,7 +112,9 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         ClientCodeModule.class, this::verifyRoute,
         VerificationResponse.class, this::processVerificationResponseRoute,
         CalibrationFailed.class, this::processCalibrationFailedRoute,
-        AbstractionFailedMissingPredicateValuation.class, this::processAbstractionFailedMissingPredicateValuationRoute
+        AbstractionFailedMissingPredicateValuation.class, this::processAbstractionFailedMissingPredicateValuationRoute,
+        UnsupportedComponent.class, this::processUnsupportedComponentRoute,
+        ExpressionVariableInformationNotPresent.class, this::processExpressionVariableInformationNotPresentRoute
       )
     );
   }

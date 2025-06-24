@@ -1,14 +1,15 @@
 package zeus.zeusverifier.node.modelchecking;
 
-import zeus.shared.formula.BooleanLiteralFormula;
+import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.abstraction.AbstractResponse;
-import zeus.shared.message.payload.abstraction.AbstractionLiteral;
+import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.modelchecking.*;
+import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
 import zeus.zeusverifier.node.Node;
@@ -24,7 +25,7 @@ import java.util.concurrent.*;
 
 public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   ClientCodeModule codeModule;
-  ConcurrentHashMap<UUID, CompletableFuture<AbstractionLiteral>> pendingAbstractionRequests;
+  ConcurrentHashMap<UUID, CompletableFuture<AbstractLiteral>> pendingAbstractionRequests;
   ExecutorService modelCheckingExecutor;
 
   public ModelCheckingNode(ModelCheckingNodeConfig config) {
@@ -39,21 +40,25 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     return new RouteResult(new Message<>(new SetCodeModuleResponse()));
   }
 
-  CompletableFuture<AbstractionLiteral> sendAbstractRequest() {
+  CompletableFuture<AbstractLiteral> sendAbstractRequest(
+    HashMap<UUID, Predicate> predicates,
+    HashMap<UUID, PredicateValuation> predicateValuations,
+    Formula expression
+  ) {
     System.out.println("Running sendAbstractRequest route");
     UUID uuid = UUID.randomUUID();
     this.sendMessage(new Message<>(
-      new AbstractRequest(uuid, new HashMap<>(), new HashMap<>(), new BooleanLiteralFormula(true)),
+      new AbstractRequest(uuid, predicates, predicateValuations, expression),
       new Recipient(NodeType.ABSTRACTION, NodeSelection.ANY)
     ));
-    CompletableFuture<AbstractionLiteral> completableFuture = new CompletableFuture<>();
+    CompletableFuture<AbstractLiteral> completableFuture = new CompletableFuture<>();
     this.pendingAbstractionRequests.put(uuid, completableFuture);
     return completableFuture;
   }
 
   private RouteResult processAbstractResponseRoute(Message<AbstractResponse> message, Socket requestSocket) {
     System.out.println("Running setAbstractResponse route");
-    CompletableFuture<AbstractionLiteral> completableFuture = this.pendingAbstractionRequests.get(
+    CompletableFuture<AbstractLiteral> completableFuture = this.pendingAbstractionRequests.get(
       message.getPayload().uuid()
     );
 
@@ -66,7 +71,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     }
 
     this.pendingAbstractionRequests.remove(message.getPayload().uuid());
-    completableFuture.complete(message.getPayload().abstractionLiteral());
+    completableFuture.complete(message.getPayload().abstractLiteral());
     return new RouteResult();
   }
 
@@ -81,7 +86,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       return new RouteResult(new Message<>(new CalibrationFailed(
         this.getUuid(),
         message.getPayload().path()
-      ), new Recipient(NodeType.ROOT, NodeSelection.ANY)), NodeAction.NONE);
+      ), new Recipient(NodeType.ROOT)), NodeAction.NONE);
     }
 
     codeModuleModelChecker.check();

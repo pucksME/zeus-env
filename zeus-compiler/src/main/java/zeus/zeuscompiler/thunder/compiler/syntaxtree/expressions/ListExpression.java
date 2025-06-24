@@ -4,6 +4,7 @@ import zeus.shared.formula.Formula;
 import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.typechecking.IncompatibleTypeException;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.ListType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
@@ -11,6 +12,7 @@ import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -56,7 +58,7 @@ public class ListExpression extends Expression {
   }
 
   @Override
-  public Formula toFormula() {
+  public Formula toFormula(Map<String, VariableInformation> variables) {
     throw new RuntimeException("Could not convert list expression to formula: not implemented yet");
   }
 

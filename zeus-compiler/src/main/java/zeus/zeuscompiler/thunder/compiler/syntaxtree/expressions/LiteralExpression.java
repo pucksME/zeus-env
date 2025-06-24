@@ -2,9 +2,11 @@ package zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions;
 
 import zeus.shared.formula.*;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
+import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.PrimitiveType;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class LiteralExpression extends Expression {
@@ -28,7 +30,7 @@ public class LiteralExpression extends Expression {
   }
 
   @Override
-  public Formula toFormula() {
+  public Formula toFormula(Map<String, VariableInformation> variables) {
     return switch (this.type) {
       case STRING -> new StringLiteralFormula(this.getValue());
       case FLOAT -> new FloatLiteralFormula(Float.parseFloat(this.getValue()));

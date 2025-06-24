@@ -11,7 +11,8 @@ import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.abstraction.AbstractResponse;
 import zeus.shared.message.payload.abstraction.AbstractionFailedMissingPredicateValuation;
-import zeus.shared.message.payload.abstraction.AbstractionLiteral;
+import zeus.shared.message.payload.abstraction.AbstractLiteral;
+import zeus.shared.message.payload.modelchecking.PredicateValuation;
 import zeus.shared.predicate.Predicate;
 import zeus.zeusverifier.config.abstractionnode.AbstractionNodeConfig;
 import zeus.zeusverifier.node.Node;
@@ -32,7 +33,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
   }
 
   private boolean prove(List<Expr> formulas, Solver solver, Context context) {
-    return solver.check(context.mkAnd(formulas.toArray(Expr[]::new))) == Status.UNSATISFIABLE;
+    return solver.check(context.mkNot(context.mkAnd(formulas.toArray(Expr[]::new)))) == Status.UNSATISFIABLE;
   }
 
   private boolean prove(List<Expr> formular, Expr expression, Solver solver, Context context) {
@@ -47,7 +48,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
       List<Expr> formulas = new ArrayList<>();
 
       for (Map.Entry<UUID, Predicate> uuidPredicate : message.getPayload().predicates().entrySet()) {
-        Boolean predicateValuation = message.getPayload().predicateValuations().get(uuidPredicate.getKey());
+        PredicateValuation predicateValuation = message.getPayload().predicateValuations().get(uuidPredicate.getKey());
 
         if (predicateValuation == null) {
           System.out.printf(
@@ -56,11 +57,11 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
           );
           return new RouteResult(new Message<>(
             new AbstractionFailedMissingPredicateValuation(this.getUuid(), uuidPredicate.getKey()),
-            new Recipient(NodeType.ROOT, NodeSelection.ANY)
+            new Recipient(NodeType.ROOT)
           ));
         }
 
-        formulas.add((predicateValuation)
+        formulas.add((predicateValuation.getValue())
           ? uuidPredicate.getValue().getFormula().toFormula(context)
           : context.mkNot(uuidPredicate.getValue().getFormula().toFormula(context)));
       }
@@ -69,14 +70,14 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
 
       if (this.prove(formulas, expression, solver, context)) {
         return new RouteResult(new Message<>(
-          new AbstractResponse(message.getPayload().uuid(), AbstractionLiteral.TRUE),
+          new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.TRUE),
           new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
         ));
       }
 
       if (this.prove(formulas, context.mkNot(expression), solver, context)) {
         return new RouteResult(new Message<>(
-          new AbstractResponse(message.getPayload().uuid(), AbstractionLiteral.FALSE),
+          new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.FALSE),
           new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
         ));
       }
@@ -84,7 +85,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
     }
 
     return new RouteResult(new Message<>(
-      new AbstractResponse(message.getPayload().uuid(), AbstractionLiteral.NON_DETERMINISTIC),
+      new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.NON_DETERMINISTIC),
       new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
     ));
   }
