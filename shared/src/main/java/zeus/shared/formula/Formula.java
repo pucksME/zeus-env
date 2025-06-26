@@ -3,6 +3,8 @@ package zeus.shared.formula;
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 
+import java.util.Set;
+
 public abstract class Formula {
   final String className;
 
@@ -11,4 +13,6 @@ public abstract class Formula {
   }
 
   public abstract Expr toFormula(Context context);
+
+  public abstract Set<String> getReferencedVariables();
 }

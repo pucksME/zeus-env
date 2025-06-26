@@ -1,15 +1,13 @@
 package zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules;
 
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.Convertable;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.expressions.Expression;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationVariableStatement;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
-import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.dtos.PortDto;
 
-import java.util.List;
+import java.util.Optional;
 
 public class Output extends HeadComponent implements Convertable<PortDto> {
   // null for outputs without initial assignment
@@ -62,5 +60,9 @@ public class Output extends HeadComponent implements Convertable<PortDto> {
   @Override
   public String translate(int depth, ExportTarget exportTarget) {
     return "";
+  }
+
+  public Optional<Expression> getDeclarationExpression() {
+    return Optional.ofNullable(declarationExpression);
   }
 }

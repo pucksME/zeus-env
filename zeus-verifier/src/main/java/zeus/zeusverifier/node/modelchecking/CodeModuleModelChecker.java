@@ -1,5 +1,6 @@
 package zeus.zeusverifier.node.modelchecking;
 
+import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
@@ -18,6 +19,7 @@ import zeus.shared.message.payload.abstraction.AbstractLiteral;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class CodeModuleModelChecker {
   ClientCodeModule codeModule;
@@ -157,6 +159,27 @@ public class CodeModuleModelChecker {
     this.currentIndex = parentStatement.getIndex() + 1;
   }
 
+  private void handleAssignment(String variable, Expression expression) {
+    Optional<Map<String, VariableInformation>> variablesOptional = this.codeModule.getVariables();
+    if (variablesOptional.isEmpty()) {
+      this.modelCheckingNode.sendMessage(new Message<>(
+        new ExpressionVariableInformationNotPresent(
+          this.modelCheckingNode.getUuid(),
+          expression.getLine(),
+          expression.getLinePosition()
+        ),
+        new Recipient(NodeType.ROOT)));
+      return;
+    }
+
+    Formula expressionFormula = expression.toFormula(variablesOptional.get());
+    Set<String> expressionRelevantPredicates = expressionFormula.getReferencedVariables();
+    Set<Predicate> relevantPredicates = this.predicates.values().stream()
+      .filter(predicate -> predicate.getFormula().getReferencedVariables().stream()
+        .anyMatch(expressionRelevantPredicates::contains))
+      .collect(Collectors.toSet());
+  }
+
   public Optional<Path> check() {
     while (true) {
       if (this.currentIndex >= this.currentComponents.size()) {
@@ -184,13 +207,23 @@ public class CodeModuleModelChecker {
           this.handleControlStatement(controlStatement, abstractionLiteralOptional.get());
           continue;
         }
-        case Input input -> {}
-        case Output output -> {}
+        // case Input input -> {}
+        case Output output -> {
+          output.getDeclarationExpression().ifPresent(expression -> this.handleAssignment(
+            output.getId(),
+            expression
+          ));
+        }
         case DeclarationVariableStatement declarationVariableStatement -> {
           System.out.println("declaration statement");
+          declarationVariableStatement.getDeclarationExpression().ifPresent(expression -> this.handleAssignment(
+            declarationVariableStatement.getId(),
+            expression
+          ));
         }
         case AssignmentStatement assignmentStatement -> {
           System.out.println("assignment statement");
+          this.handleAssignment(assignmentStatement.getId(), assignmentStatement.getAssignExpression());
         }
         case AssertStatement assertStatement -> {
           System.out.println("assert statement");

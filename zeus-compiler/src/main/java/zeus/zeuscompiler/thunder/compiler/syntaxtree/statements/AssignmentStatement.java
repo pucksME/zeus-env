@@ -4,7 +4,6 @@ import zeus.zeuscompiler.providers.ServiceProvider;
 import zeus.zeuscompiler.rain.dtos.ExportTarget;
 import zeus.zeuscompiler.services.CompilerErrorService;
 import zeus.zeuscompiler.services.SymbolTableService;
-import zeus.zeuscompiler.symboltable.ClientSymbolTable;
 import zeus.zeuscompiler.symboltable.SymbolTable;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.symboltable.VariableType;
@@ -16,7 +15,6 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.types.Type;
 import zeus.zeuscompiler.CompilerError;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
 
-import java.util.List;
 import java.util.Optional;
 
 public class AssignmentStatement extends Statement {
@@ -90,5 +88,13 @@ public class AssignmentStatement extends Statement {
         this.assignExpression.translate(depth, exportTarget)
       );
     };
+  }
+
+  public String getId() {
+    return id;
+  }
+
+  public Expression getAssignExpression() {
+    return assignExpression;
   }
 }

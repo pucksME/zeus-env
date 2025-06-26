@@ -68,4 +68,12 @@ public class DeclarationVariableStatement extends Statement {
       );
     };
   }
+
+  public String getId() {
+    return id;
+  }
+
+  public Optional<Expression> getDeclarationExpression() {
+    return Optional.ofNullable(declarationExpression);
+  }
 }
