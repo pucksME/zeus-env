@@ -13,4 +13,9 @@ public class AddFormula extends BinaryFormula {
   public Expr toFormula(Context context) {
     return context.mkAdd(this.leftFormula.toFormula(context), this.rightFormula.toFormula(context));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new AddFormula(this.leftFormula.replace(variable, formula), rightFormula.replace(variable, formula));
+  }
 }

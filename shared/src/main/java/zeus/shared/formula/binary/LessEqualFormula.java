@@ -13,4 +13,9 @@ public class LessEqualFormula extends BinaryFormula {
   public Expr toFormula(Context context) {
     return context.mkLe(this.leftFormula.toFormula(context), this.rightFormula.toFormula(context));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new LessEqualFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
+  }
 }

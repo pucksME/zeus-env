@@ -13,4 +13,9 @@ public class NotFormula extends UnaryFormula {
   public Expr toFormula(Context context) {
     return context.mkNot(this.formula.toFormula(context));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new NotFormula(this.formula.replace(variable, formula));
+  }
 }

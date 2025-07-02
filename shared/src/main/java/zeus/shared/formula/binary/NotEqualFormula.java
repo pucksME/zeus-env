@@ -13,4 +13,9 @@ public class NotEqualFormula extends BinaryFormula {
   public Expr toFormula(Context context) {
     return context.mkNot(context.mkEq(this.leftFormula.toFormula(context), this.rightFormula.toFormula(context)));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new NotEqualFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
+  }
 }

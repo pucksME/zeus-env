@@ -15,4 +15,6 @@ public abstract class Formula {
   public abstract Expr toFormula(Context context);
 
   public abstract Set<String> getReferencedVariables();
+
+  public abstract Formula replace(String variable, Formula formula);
 }

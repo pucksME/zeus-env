@@ -12,4 +12,9 @@ public class FloatVariableFormula extends VariableFormula {
   public Expr toFormula(Context context) {
     return context.mkRealConst(this.id);
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new FloatVariableFormula(this.id);
+  }
 }

@@ -12,4 +12,9 @@ public class StringVariableFormula extends VariableFormula {
   public Expr toFormula(Context context) {
     return context.mkConst(this.id, context.mkStringSort());
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new StringVariableFormula(this.id);
+  }
 }

@@ -12,4 +12,9 @@ public class BooleanVariableFormula extends VariableFormula {
   public Expr toFormula(Context context) {
     return context.mkBoolConst(this.id);
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new BooleanVariableFormula(this.id);
+  }
 }

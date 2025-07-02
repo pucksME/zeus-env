@@ -13,4 +13,9 @@ public class EqualFormula extends BinaryFormula {
   public Expr toFormula(Context context) {
     return context.mkEq(this.leftFormula.toFormula(context), this.rightFormula.toFormula(context));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new EqualFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
+  }
 }

@@ -13,4 +13,9 @@ public class NegativeFormula extends UnaryFormula {
   public Expr toFormula(Context context) {
     return context.mkMul(this.formula.toFormula(context), context.mkInt(-1));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new NegativeFormula(this.formula.replace(variable, formula));
+  }
 }

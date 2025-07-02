@@ -12,4 +12,9 @@ public class StringLiteralFormula extends LiteralFormula<String> {
   public Expr toFormula(Context context) {
     return context.mkString(this.value);
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new StringLiteralFormula(this.value);
+  }
 }

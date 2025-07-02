@@ -12,4 +12,9 @@ public class IntegerVariableFormula extends VariableFormula {
   public Expr toFormula(Context context) {
     return context.mkIntConst(this.id);
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new IntegerVariableFormula(this.id);
+  }
 }

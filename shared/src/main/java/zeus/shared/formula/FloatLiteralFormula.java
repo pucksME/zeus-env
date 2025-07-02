@@ -12,4 +12,9 @@ public class FloatLiteralFormula extends LiteralFormula<Float> {
   public Expr toFormula(Context context) {
     return context.mkReal(this.value.toString());
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new FloatLiteralFormula(this.value);
+  }
 }

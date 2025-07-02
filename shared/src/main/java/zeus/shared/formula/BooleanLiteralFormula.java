@@ -12,4 +12,9 @@ public class BooleanLiteralFormula extends LiteralFormula<Boolean> {
   public Expr toFormula(Context context) {
     return context.mkBool(this.value);
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new BooleanLiteralFormula(this.value);
+  }
 }

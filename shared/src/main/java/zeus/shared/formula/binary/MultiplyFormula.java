@@ -13,4 +13,9 @@ public class MultiplyFormula extends BinaryFormula {
   public Expr toFormula(Context context) {
     return context.mkMul(this.leftFormula.toFormula(context), this.rightFormula.toFormula(context));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new MultiplyFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
+  }
 }

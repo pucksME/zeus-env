@@ -4,7 +4,7 @@ import zeus.shared.formula.Formula;
 
 import java.util.UUID;
 
-public abstract class Predicate {
+public class Predicate {
   UUID uuid;
   Formula formula;
 
@@ -21,6 +21,10 @@ public abstract class Predicate {
   @Override
   public boolean equals(Object obj) {
     return obj instanceof Predicate && uuid.equals(((Predicate) obj).uuid);
+  }
+
+  public UUID getUuid() {
+    return uuid;
   }
 
   public Formula getFormula() {

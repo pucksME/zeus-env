@@ -178,6 +178,20 @@ public class CodeModuleModelChecker {
       .filter(predicate -> predicate.getFormula().getReferencedVariables().stream()
         .anyMatch(expressionRelevantPredicates::contains))
       .collect(Collectors.toSet());
+
+    Set<Predicate> relevantPredicatesWeakestPrecondition = relevantPredicates.stream()
+      .map(predicate -> new Predicate(
+        predicate.getUuid(),
+        predicate.getFormula().replace(variable, expressionFormula)
+      ))
+      .collect(Collectors.toSet());
+
+    Set<CompletableFuture<AbstractLiteral>> completableFutures = relevantPredicatesWeakestPrecondition.stream()
+      .map(predicate -> this.modelCheckingNode.sendAbstractRequest(
+        this.predicates,
+        this.predicateValuations,
+        predicate.getFormula()))
+      .collect(Collectors.toSet());
   }
 
   public Optional<Path> check() {

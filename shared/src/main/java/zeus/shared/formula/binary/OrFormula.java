@@ -13,4 +13,9 @@ public class OrFormula extends BinaryFormula {
   public Expr toFormula(Context context) {
     return context.mkOr(this.leftFormula.toFormula(context), this.rightFormula.toFormula(context));
   }
+
+  @Override
+  public Formula replace(String variable, Formula formula) {
+    return new OrFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
+  }
 }
