@@ -21,6 +21,10 @@ public class PredicateValuation {
     return (obj instanceof PredicateValuation) && this.predicateUuid.equals(((PredicateValuation) obj).predicateUuid);
   }
 
+  public void setValue(boolean value) {
+    this.value = value;
+  }
+
   public boolean getValue() {
     return value;
   }

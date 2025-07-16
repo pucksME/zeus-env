@@ -3,6 +3,7 @@ package zeus.zeusverifier.node;
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.*;
 import zeus.shared.message.payload.abstraction.AbstractionFailedMissingPredicateValuation;
+import zeus.shared.message.payload.modelchecking.AbstractionFailed;
 import zeus.shared.message.payload.modelchecking.CalibrationFailed;
 import zeus.shared.message.payload.modelchecking.ExpressionVariableInformationNotPresent;
 import zeus.shared.message.payload.modelchecking.UnsupportedComponent;
@@ -102,6 +103,16 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
+  private RouteResult processAbstractionFailedRoute(Message<AbstractionFailed> message, Socket requestSocket) {
+    System.out.printf(
+      "Model checking node \"%s\" could not perform model checking: abstraction failed (%s)%n",
+      message.getPayload().nodeUuid(),
+      message.getPayload().message()
+    );
+    this.terminate();
+    return new RouteResult();
+  }
+
   @Override
   public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
     return this.processMessage(
@@ -114,7 +125,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         CalibrationFailed.class, this::processCalibrationFailedRoute,
         AbstractionFailedMissingPredicateValuation.class, this::processAbstractionFailedMissingPredicateValuationRoute,
         UnsupportedComponent.class, this::processUnsupportedComponentRoute,
-        ExpressionVariableInformationNotPresent.class, this::processExpressionVariableInformationNotPresentRoute
+        ExpressionVariableInformationNotPresent.class, this::processExpressionVariableInformationNotPresentRoute,
+        AbstractionFailed.class, this::processAbstractionFailedRoute
       )
     );
   }

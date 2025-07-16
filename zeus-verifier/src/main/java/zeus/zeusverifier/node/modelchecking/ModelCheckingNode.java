@@ -18,7 +18,6 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.*;
@@ -41,8 +40,8 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   }
 
   CompletableFuture<AbstractLiteral> sendAbstractRequest(
-    HashMap<UUID, Predicate> predicates,
-    HashMap<UUID, PredicateValuation> predicateValuations,
+    Map<UUID, Predicate> predicates,
+    Map<UUID, PredicateValuation> predicateValuations,
     Formula expression
   ) {
     System.out.println("Running sendAbstractRequest route");

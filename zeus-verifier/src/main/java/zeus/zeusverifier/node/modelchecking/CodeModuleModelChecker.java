@@ -4,10 +4,7 @@ import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.modelchecking.ExpressionVariableInformationNotPresent;
-import zeus.shared.message.payload.modelchecking.Path;
-import zeus.shared.message.payload.modelchecking.PredicateValuation;
-import zeus.shared.message.payload.modelchecking.UnsupportedComponent;
+import zeus.shared.message.payload.modelchecking.*;
 import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
@@ -20,6 +17,8 @@ import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class CodeModuleModelChecker {
   ClientCodeModule codeModule;
@@ -31,7 +30,7 @@ public class CodeModuleModelChecker {
   boolean assertionViolationReached;
   ExecutorService abstractionExecutorService;
   HashMap<UUID, Predicate> predicates;
-  HashMap<UUID, PredicateValuation> predicateValuations;
+  Map<UUID, PredicateValuation> predicateValuations;
 
   public CodeModuleModelChecker(ClientCodeModule codeModule, ModelCheckingNode modelCheckingNode) {
     this.codeModule = codeModule;
@@ -186,12 +185,84 @@ public class CodeModuleModelChecker {
       ))
       .collect(Collectors.toSet());
 
-    Set<CompletableFuture<AbstractLiteral>> completableFutures = relevantPredicatesWeakestPrecondition.stream()
-      .map(predicate -> this.modelCheckingNode.sendAbstractRequest(
-        this.predicates,
-        this.predicateValuations,
-        predicate.getFormula()))
-      .collect(Collectors.toSet());
+    Map<UUID, CompletableFuture<AbstractLiteral>> predicateCompletableFutures = relevantPredicatesWeakestPrecondition.stream()
+      .map(predicate -> Map.entry(
+        predicate.getUuid(), this.modelCheckingNode.sendAbstractRequest(
+          this.predicates,
+          this.predicateValuations,
+          predicate.getFormula())))
+      .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    Map<UUID, AbstractLiteral> predicateAbstractLiteral = new HashMap<>();
+
+    HashMap<UUID, PredicateValuation> deterministicPredicateValuations = new HashMap<>();
+    List<UUID> nonDeterministicPredicateValuations = new ArrayList<>();
+    for (Map.Entry<UUID, CompletableFuture<AbstractLiteral>> predicateCompletableFuture : predicateCompletableFutures.entrySet()) {
+      try {
+        AbstractLiteral abstractLiteral = predicateCompletableFuture.getValue().get();
+        predicateAbstractLiteral.put(predicateCompletableFuture.getKey(), abstractLiteral);
+        PredicateValuation predicateValuation = this.predicateValuations.get(predicateCompletableFuture.getKey());
+        switch (abstractLiteral) {
+          case TRUE -> {
+            predicateValuation.setValue(true);
+            deterministicPredicateValuations.put(
+              predicateCompletableFuture.getKey(),
+              new PredicateValuation(predicateCompletableFuture.getKey(), true)
+            );
+          }
+          case FALSE -> {
+            predicateValuation.setValue(false);
+            deterministicPredicateValuations.put(
+              predicateCompletableFuture.getKey(),
+              new PredicateValuation(predicateCompletableFuture.getKey(), false)
+            );
+          }
+          case NON_DETERMINISTIC -> nonDeterministicPredicateValuations.add(predicateCompletableFuture.getKey());
+        }
+      } catch (InterruptedException | ExecutionException e) {
+        this.modelCheckingNode.sendMessage(new Message<>(
+          new AbstractionFailed(this.modelCheckingNode.getUuid(), "abstraction request failed"),
+          new Recipient(NodeType.ROOT)
+        ));
+        break;
+      }
+    }
+
+    List<Map<UUID, PredicateValuation>> predicateValuations = new ArrayList<>();
+    for (int i = 0; i < Math.pow(2, nonDeterministicPredicateValuations.size()); i++) {
+      String valuation = Integer.toBinaryString(i);
+      String valuationBits = "0".repeat(nonDeterministicPredicateValuations.size() - valuation.length()) + valuation;
+      Map<UUID, PredicateValuation> newPredicateValuations = Stream.concat(
+        deterministicPredicateValuations.entrySet().stream(),
+        IntStream.range(0, nonDeterministicPredicateValuations.size())
+          .mapToObj(index -> Map.entry(
+            nonDeterministicPredicateValuations.get(index),
+            new PredicateValuation(
+              nonDeterministicPredicateValuations.get(index),
+              valuationBits.charAt(index) == '1'
+            )
+          ))
+      ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      predicateValuations.add(newPredicateValuations);
+    }
+
+    if (predicateValuations.isEmpty()) {
+      this.modelCheckingNode.sendMessage(new Message<>(
+        new AbstractionFailed(
+          this.modelCheckingNode.getUuid(),
+          "model checking assignment resulted in empty predicate valuations"
+        ),
+        new Recipient(NodeType.ROOT)
+      ));
+      return;
+    }
+
+    this.predicateValuations = predicateValuations.getFirst();
+    predicateValuations.removeFirst();
+
+    for (Map<UUID, PredicateValuation> predicateValuation : predicateValuations) {
+      // TODO: distribute
+    }
   }
 
   public Optional<Path> check() {
