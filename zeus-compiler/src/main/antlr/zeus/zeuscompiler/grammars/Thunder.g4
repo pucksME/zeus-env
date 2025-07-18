@@ -19,6 +19,7 @@ output : KEYWORD_OUTPUT declaration ;
 config: KEYWORD_CONFIG declaration ;
 
 body : (statement | expression)* ;
+controlStatementBody : (statement | expression)* ;
 
 statement : declarationTypeStatement
           | declarationVariableStatement
@@ -35,8 +36,8 @@ declarationVariableStatement : KEYWORD_DECLARATION declaration ;
 assignmentStatement: ID OPERATOR_ASSIGNMENT expression ';' ;
 accessWriteStatement: expression LIST_START expression LIST_END OPERATOR_ASSIGNMENT expression ';' ;
 accessWriteObjectStatement : expression OPERATOR_ACCESS ID OPERATOR_ASSIGNMENT expression ';' ;
-ifStatement : KEYWORD_IF expression BLOCK_START body BLOCK_END (KEYWORD_ELSE BLOCK_START body BLOCK_END)?;
-whileStatement : KEYWORD_WHILE expression BLOCK_START body BLOCK_END ;
+ifStatement : KEYWORD_IF expression BLOCK_START controlStatementBody BLOCK_END (KEYWORD_ELSE BLOCK_START controlStatementBody BLOCK_END)?;
+whileStatement : KEYWORD_WHILE expression BLOCK_START controlStatementBody BLOCK_END ;
 assertStatement : KEYWORD_ASSERT '(' expression ')' ';' ;
 
 expression : ID                                                        # IdentifierExpression

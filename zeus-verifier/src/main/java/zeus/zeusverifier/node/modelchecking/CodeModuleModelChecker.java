@@ -31,6 +31,7 @@ public class CodeModuleModelChecker {
   ExecutorService abstractionExecutorService;
   HashMap<UUID, Predicate> predicates;
   Map<UUID, PredicateValuation> predicateValuations;
+  Path path;
 
   public CodeModuleModelChecker(ClientCodeModule codeModule, ModelCheckingNode modelCheckingNode) {
     this.codeModule = codeModule;
@@ -42,6 +43,7 @@ public class CodeModuleModelChecker {
     this.abstractionExecutorService = Executors.newSingleThreadExecutor();
     this.predicates = new HashMap<>();
     this.predicateValuations = new HashMap<>();
+    this.path = new Path(new ArrayList<>());
   }
 
   private void updateCurrentComponents() {
@@ -64,6 +66,7 @@ public class CodeModuleModelChecker {
     this.currentIndex = this.codeModuleSearchIndex;
     this.currentStatementParents = componentSearchResult.getParents();
     this.updateCurrentComponents();
+    this.path = path;
     return true;
   }
 
@@ -126,8 +129,21 @@ public class CodeModuleModelChecker {
         this.updateCurrentComponents();
       }
       case NON_DETERMINISTIC -> {
-        // TODO: distribute one
-        //this.handleControlStatement(controlStatement, AbstractionLiteral.TRUE);
+        List<BodyComponent> bodyComponents = (controlStatement instanceof WhileStatement)
+          ? ((WhileStatement) controlStatement).getBody().getBodyComponents()
+          : ((IfStatement) controlStatement).getThenBody().getBodyComponents();
+
+        BodyComponent bodyComponent = bodyComponents.getFirst();
+
+        this.modelCheckingNode.sendMessage(new Message<>(new DistributeModelCheckingRequest(
+          new Path(Stream.concat(
+            this.path.states().stream(),
+            Stream.of(new State(new Location(bodyComponent.getLine(), bodyComponent.getLinePosition())))
+          ).toList()),
+          this.predicates,
+          new ArrayList<>(List.of(this.predicateValuations))
+        )));
+
         this.handleControlStatement(controlStatement, AbstractLiteral.FALSE);
       }
     }
@@ -259,10 +275,10 @@ public class CodeModuleModelChecker {
 
     this.predicateValuations = predicateValuations.getFirst();
     predicateValuations.removeFirst();
-
-    for (Map<UUID, PredicateValuation> predicateValuation : predicateValuations) {
-      // TODO: distribute
-    }
+    this.modelCheckingNode.sendMessage(new Message<>(
+      new DistributeModelCheckingRequest(this.path, this.predicates, predicateValuations),
+      new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+    ));
   }
 
   public Optional<Path> check() {
@@ -277,6 +293,7 @@ public class CodeModuleModelChecker {
       }
 
       Component component = this.currentComponents.get(this.currentIndex);
+      this.path.states().add(new State(new Location(component.getLine(), component.getLinePosition())));
 
       switch (component) {
         case ControlStatement controlStatement -> {

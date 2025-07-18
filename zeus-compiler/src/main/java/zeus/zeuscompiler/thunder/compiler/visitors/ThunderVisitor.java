@@ -330,8 +330,8 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       ctx.KEYWORD_IF().getSymbol().getLine(),
       ctx.KEYWORD_IF().getSymbol().getCharPositionInLine(),
       (Expression) visit(ctx.expression()),
-      (Body) visit(ctx.body(0)),
-      (ctx.KEYWORD_ELSE() != null) ? (Body) visit(ctx.body(1)) : null
+      (Body) visit(ctx.controlStatementBody(0)),
+      (ctx.KEYWORD_ELSE() != null) ? (Body) visit(ctx.controlStatementBody(1)) : null
     );
   }
 
@@ -341,7 +341,7 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
       ctx.KEYWORD_WHILE().getSymbol().getLine(),
       ctx.KEYWORD_WHILE().getSymbol().getCharPositionInLine(),
       (Expression) visit(ctx.expression()),
-      (Body) visit(ctx.body())
+      (Body) visit(ctx.controlStatementBody())
     );
   }
 
