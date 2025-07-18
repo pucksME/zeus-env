@@ -20,6 +20,8 @@ import zeus.zeusverifier.config.Config;
 import zeus.zeusverifier.config.GatewayNode;
 import zeus.zeusverifier.node.abstraction.AbstractionGatewayNode;
 import zeus.zeusverifier.node.abstraction.AbstractionNode;
+import zeus.zeusverifier.node.counterexampleanalysis.CounterexampleAnalysisGatewayNode;
+import zeus.zeusverifier.node.counterexampleanalysis.CounterexampleAnalysisNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingGatewayNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
 import zeus.zeusverifier.routing.NodeAction;
@@ -116,6 +118,8 @@ public abstract class Node<T extends Config> {
       case ModelCheckingNode _ -> NodeType.MODEL_CHECKING;
       case AbstractionGatewayNode _ -> NodeType.ABSTRACTION_GATEWAY;
       case AbstractionNode _ -> NodeType.ABSTRACTION;
+      case CounterexampleAnalysisGatewayNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY;
+      case CounterexampleAnalysisNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS;
       default -> throw new RuntimeException(String.format(
         "Could not register node on gateway: unsupported node type \"%s\"",
         this.getClass().getSimpleName()

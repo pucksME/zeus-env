@@ -7,11 +7,15 @@ import com.google.gson.stream.JsonReader;
 import zeus.zeusverifier.config.Config;
 import zeus.zeusverifier.config.abstractionnode.AbstractionGatewayNodeConfig;
 import zeus.zeusverifier.config.abstractionnode.AbstractionNodeConfig;
+import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysisGatewayNodeConfig;
+import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysisNodeConfig;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.node.abstraction.AbstractionGatewayNode;
 import zeus.zeusverifier.node.abstraction.AbstractionNode;
+import zeus.zeusverifier.node.counterexampleanalysis.CounterexampleAnalysisGatewayNode;
+import zeus.zeusverifier.node.counterexampleanalysis.CounterexampleAnalysisNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.node.RootNode;
@@ -39,6 +43,8 @@ public class Main {
       case MODEL_CHECKING_NODE -> new ModelCheckingNode((ModelCheckingNodeConfig) config);
       case ABSTRACTION_GATEWAY_NODE -> new AbstractionGatewayNode((AbstractionGatewayNodeConfig) config);
       case ABSTRACTION_NODE -> new AbstractionNode((AbstractionNodeConfig) config);
+      case COUNTER_EXAMPLE_GATEWAY_NODE -> new CounterexampleAnalysisGatewayNode((CounterExampleAnalysisGatewayNodeConfig) config);
+      case COUNTER_EXAMPLE_NODE -> new CounterexampleAnalysisNode((CounterExampleAnalysisNodeConfig) config);
     };
   }
 

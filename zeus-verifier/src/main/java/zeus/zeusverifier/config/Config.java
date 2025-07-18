@@ -14,6 +14,8 @@ public abstract class Config {
       case "model-checking-gateway-node" -> NodeType.MODEL_CHECKING_GATEWAY_NODE;
       case "abstraction-gateway-node" -> NodeType.ABSTRACTION_GATEWAY_NODE;
       case "abstraction-node" -> NodeType.ABSTRACTION_NODE;
+      case "counterexample-analysis-node" -> NodeType.COUNTER_EXAMPLE_NODE;
+      case "counterexample-analysis-gateway-node" -> NodeType.COUNTER_EXAMPLE_GATEWAY_NODE;
       default -> throw new RuntimeException(String.format(
         "Could not get node type: unknown node type \"%s\"",
         this.type
