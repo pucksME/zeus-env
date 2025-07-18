@@ -268,6 +268,13 @@ public class ThunderVisitor extends ThunderBaseVisitor<Object> {
   }
 
   @Override
+  public Body visitControlStatementBody(ThunderParser.ControlStatementBodyContext ctx) {
+    return new Body(ctx.children.stream()
+      .map(child -> (BodyComponent) visit(child))
+      .collect(Collectors.toList()));
+  }
+
+  @Override
   public Statement visitStatement(ThunderParser.StatementContext ctx) {
     return (Statement) visitChildren(ctx);
   }

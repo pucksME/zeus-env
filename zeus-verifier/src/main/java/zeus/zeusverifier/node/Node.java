@@ -164,12 +164,17 @@ public abstract class Node<T extends Config> {
         case ABSTRACTION:
           this.sendMessage(message, ((RootNode) this).abstractionGatewayNodeSocket);
           break;
+        case COUNTEREXAMPLE_ANALYSIS_GATEWAY:
+        case COUNTEREXAMPLE_ANALYSIS:
+          this.sendMessage(message, ((RootNode) this).counterexampleAnalysisGatewayNodeSocket);
+          break;
       }
       return true;
     }
 
     if ((recipient.getNodeType() == NodeType.MODEL_CHECKING_GATEWAY && this instanceof ModelCheckingGatewayNode) ||
-      (recipient.getNodeType() == NodeType.ABSTRACTION_GATEWAY && this instanceof AbstractionGatewayNode)) {
+      (recipient.getNodeType() == NodeType.ABSTRACTION_GATEWAY && this instanceof AbstractionGatewayNode) ||
+      (recipient.getNodeType() == NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY && this instanceof CounterexampleAnalysisGatewayNode)) {
       return false;
     }
 

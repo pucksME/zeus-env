@@ -7,6 +7,7 @@ import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleResponse;
 import zeus.shared.message.payload.modelchecking.Path;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysisNodeConfig;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.routing.NodeAction;
@@ -18,8 +19,17 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeConfig> {
+  ClientCodeModule clientCodeModule;
+
   public CounterexampleAnalysisNode(CounterExampleAnalysisNodeConfig config) {
     super(config);
+    this.clientCodeModule = null;
+  }
+
+  private RouteResult processClientCodeModuleRoute(Message<ClientCodeModule> message, Socket requestSocket) {
+    System.out.println("Running processClientCodeModuleRoute");
+    this.clientCodeModule = message.getPayload();
+    return new RouteResult();
   }
 
   private RouteResult processAnalyzeCounterexampleRequestRoute(
@@ -40,6 +50,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
       message,
       requestSocket,
       Map.of(
+        ClientCodeModule.class, this::processClientCodeModuleRoute,
         AbstractRequest.class, this::processAnalyzeCounterexampleRequestRoute
       )
     );

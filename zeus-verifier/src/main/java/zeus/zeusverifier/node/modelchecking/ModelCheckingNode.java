@@ -34,7 +34,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   }
 
   private RouteResult processClientCodeModuleRoute(Message<ClientCodeModule> message, Socket socket) {
-    System.out.println("Running setCodeModuleRoute route");
+    System.out.println("Running processClientCodeModuleRoute route");
     this.codeModule = message.getPayload();
     return new RouteResult(new Message<>(new SetCodeModuleResponse()));
   }

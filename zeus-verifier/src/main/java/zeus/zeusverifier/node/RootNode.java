@@ -1,6 +1,8 @@
 package zeus.zeusverifier.node;
 
 import zeus.shared.message.Message;
+import zeus.shared.message.NodeSelection;
+import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.*;
 import zeus.shared.message.payload.abstraction.AbstractionFailedMissingPredicateValuation;
 import zeus.shared.message.payload.modelchecking.AbstractionFailed;
@@ -56,6 +58,10 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
   private RouteResult verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
     this.sendMessage(message, this.modelCheckingGatewayNodeSocket);
+    this.sendMessage(new Message<>(
+      message.getPayload(),
+      new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS, NodeSelection.ALL)
+    ), this.counterexampleAnalysisGatewayNodeSocket);
     return new RouteResult(new Message<>(new VerificationResponse(false)));
   }
 
