@@ -154,7 +154,7 @@ public class ClientCodeModule extends CodeModule {
       return Optional.empty();
     }
 
-    return Optional.of(new ComponentSearchResult(0, new LinkedList<>()));
+    return Optional.of(new ComponentSearchResult(this.getComponents().getFirst(), 0, new LinkedList<>()));
   }
 
   public void setHead(Head head) {

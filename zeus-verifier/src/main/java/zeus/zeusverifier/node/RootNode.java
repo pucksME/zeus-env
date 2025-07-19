@@ -4,11 +4,9 @@ import zeus.shared.message.Message;
 import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.*;
-import zeus.shared.message.payload.abstraction.AbstractionFailedMissingPredicateValuation;
-import zeus.shared.message.payload.modelchecking.AbstractionFailed;
-import zeus.shared.message.payload.modelchecking.CalibrationFailed;
-import zeus.shared.message.payload.modelchecking.ExpressionVariableInformationNotPresent;
-import zeus.shared.message.payload.modelchecking.UnsupportedComponent;
+import zeus.shared.message.payload.abstraction.AbstractionFailed;
+import zeus.shared.message.payload.counterexampleanalysis.CounterexampleAnalysisFailed;
+import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.routing.NodeAction;
@@ -80,19 +78,6 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
-  private RouteResult processAbstractionFailedMissingPredicateValuationRoute(
-    Message<AbstractionFailedMissingPredicateValuation> message,
-    Socket requestSocket
-  ) {
-    System.out.printf(
-      "Abstraction node \"%s\" could not perform abstraction: missing valuation for predicate \"%s\"%n",
-      message.getPayload().nodeUuid(),
-      message.getPayload().predicateUuid()
-    );
-    this.terminate();
-    return new RouteResult();
-  }
-
   private RouteResult processUnsupportedComponentRoute(Message<UnsupportedComponent> message, Socket requestSocket) {
     System.out.printf(
       "Model checking node \"%s\" could not perform model checking: unsupported component type \"%s\"%n",
@@ -103,12 +88,11 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
-  private RouteResult processExpressionVariableInformationNotPresentRoute(Message<ExpressionVariableInformationNotPresent> message, Socket requestSocket) {
+  private RouteResult processModelCheckingFailedRoute(Message<ModelCheckingFailed> message, Socket requestSocket) {
     System.out.printf(
-      "Model checking node \"%s\" could not perform model checking: variable information for expression at %s:%s not present%n",
+      "Model checking node \"%s\" could not perform model checking: (%s)%n",
       message.getPayload().nodeUuid(),
-      message.getPayload().line(),
-      message.getPayload().linePosition()
+      message.getPayload().message()
     );
     this.terminate();
     return new RouteResult();
@@ -117,6 +101,19 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   private RouteResult processAbstractionFailedRoute(Message<AbstractionFailed> message, Socket requestSocket) {
     System.out.printf(
       "Model checking node \"%s\" could not perform model checking: abstraction failed (%s)%n",
+      message.getPayload().nodeUuid(),
+      message.getPayload().message()
+    );
+    this.terminate();
+    return new RouteResult();
+  }
+
+  private RouteResult processCounterexampleAnalysisFailedRoute(
+    Message<CounterexampleAnalysisFailed> message,
+    Socket requestSocket
+  ) {
+    System.out.printf(
+      "Counterexample analysis node \"%s\" could not perform counterexample analysis: counterexample analysis failed (%s)%n",
       message.getPayload().nodeUuid(),
       message.getPayload().message()
     );
@@ -134,10 +131,10 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         ClientCodeModule.class, this::verifyRoute,
         VerificationResponse.class, this::processVerificationResponseRoute,
         CalibrationFailed.class, this::processCalibrationFailedRoute,
-        AbstractionFailedMissingPredicateValuation.class, this::processAbstractionFailedMissingPredicateValuationRoute,
         UnsupportedComponent.class, this::processUnsupportedComponentRoute,
-        ExpressionVariableInformationNotPresent.class, this::processExpressionVariableInformationNotPresentRoute,
-        AbstractionFailed.class, this::processAbstractionFailedRoute
+        ModelCheckingFailed.class, this::processModelCheckingFailedRoute,
+        AbstractionFailed.class, this::processAbstractionFailedRoute,
+        CounterexampleAnalysisFailed.class, this::processCounterexampleAnalysisFailedRoute
       )
     );
   }

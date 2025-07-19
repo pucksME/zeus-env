@@ -3,7 +3,6 @@ package zeus.zeusverifier.node.counterexampleanalysis;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleResponse;
 import zeus.shared.message.payload.modelchecking.Path;
@@ -38,6 +37,13 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
   ) {
     System.out.printf("Running processAnalyzeCounterexampleRequestRoute for uuid \"%s\"%n", message.getPayload().uuid());
 
+    CounterexampleAnalyzer counterexampleAnalyzer = new CounterexampleAnalyzer(
+      message.getPayload().path(),
+      this.clientCodeModule,
+      this
+    );
+    counterexampleAnalyzer.analyze();
+
     return new RouteResult(new Message<>(
       new AnalyzeCounterExampleResponse(message.getPayload().uuid(), new Path(new ArrayList<>())),
       new Recipient(NodeType.ROOT)
@@ -51,7 +57,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
       requestSocket,
       Map.of(
         ClientCodeModule.class, this::processClientCodeModuleRoute,
-        AbstractRequest.class, this::processAnalyzeCounterexampleRequestRoute
+        AnalyzeCounterExampleRequest.class, this::processAnalyzeCounterexampleRequestRoute
       )
     );
   }

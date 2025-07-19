@@ -10,8 +10,8 @@ import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.abstraction.AbstractResponse;
-import zeus.shared.message.payload.abstraction.AbstractionFailedMissingPredicateValuation;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
+import zeus.shared.message.payload.abstraction.AbstractionFailed;
 import zeus.shared.message.payload.modelchecking.PredicateValuation;
 import zeus.shared.predicate.Predicate;
 import zeus.zeusverifier.config.abstractionnode.AbstractionNodeConfig;
@@ -55,8 +55,12 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
             "Could not compute abstraction: missing valuation for predicate \"%s\"%n",
             uuidPredicate.getKey()
           );
+
           return new RouteResult(new Message<>(
-            new AbstractionFailedMissingPredicateValuation(this.getUuid(), uuidPredicate.getKey()),
+            new AbstractionFailed(
+              this.getUuid(),
+              String.format("missing valuation for predicate \"%s\"", uuidPredicate.getKey())
+            ),
             new Recipient(NodeType.ROOT)
           ));
         }

@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 
 public class CodeModuleModelChecker {
   ClientCodeModule codeModule;
+  Map<String, VariableInformation> variables;
   ModelCheckingNode modelCheckingNode;
   int codeModuleSearchIndex;
   Queue<ParentStatement> currentStatementParents;
@@ -35,7 +36,16 @@ public class CodeModuleModelChecker {
 
   public CodeModuleModelChecker(ClientCodeModule codeModule, ModelCheckingNode modelCheckingNode) {
     this.codeModule = codeModule;
+    Optional<Map<String, VariableInformation>> variablesOptional = codeModule.getVariables();
     this.modelCheckingNode = modelCheckingNode;
+
+    if (variablesOptional.isEmpty()) {
+      this.modelCheckingNode.sendMessage(new Message<>(new ModelCheckingFailed(
+        this.modelCheckingNode.getUuid(),
+        "code module variable information not present"
+      ), new Recipient(NodeType.ROOT)));
+    }
+
     this.currentStatementParents = null;
     this.currentComponents = new ArrayList<>();
     this.currentIndex = 0;
@@ -71,24 +81,11 @@ public class CodeModuleModelChecker {
   }
 
   private Optional<AbstractLiteral> evaluateExpression(Expression expression) {
-    Optional<Map<String, VariableInformation>> variablesOptional = this.codeModule.getVariables();
-    if (variablesOptional.isEmpty()) {
-      this.modelCheckingNode.sendMessage(new Message<>(
-        new ExpressionVariableInformationNotPresent(
-          this.modelCheckingNode.getUuid(),
-          expression.getLine(),
-          expression.getLinePosition()
-        ),
-        new Recipient(NodeType.ROOT)
-      ));
-      return Optional.empty();
-    }
-
     try {
       return Optional.of(this.modelCheckingNode.sendAbstractRequest(
         this.predicates,
         this.predicateValuations,
-        expression.toFormula(variablesOptional.get())
+        expression.toFormula(this.variables)
       ).get());
     } catch (InterruptedException | ExecutionException e) {
       return Optional.empty();
@@ -175,19 +172,7 @@ public class CodeModuleModelChecker {
   }
 
   private void handleAssignment(String variable, Expression expression) {
-    Optional<Map<String, VariableInformation>> variablesOptional = this.codeModule.getVariables();
-    if (variablesOptional.isEmpty()) {
-      this.modelCheckingNode.sendMessage(new Message<>(
-        new ExpressionVariableInformationNotPresent(
-          this.modelCheckingNode.getUuid(),
-          expression.getLine(),
-          expression.getLinePosition()
-        ),
-        new Recipient(NodeType.ROOT)));
-      return;
-    }
-
-    Formula expressionFormula = expression.toFormula(variablesOptional.get());
+    Formula expressionFormula = expression.toFormula(this.variables);
     Set<String> expressionRelevantPredicates = expressionFormula.getReferencedVariables();
     Set<Predicate> relevantPredicates = this.predicates.values().stream()
       .filter(predicate -> predicate.getFormula().getReferencedVariables().stream()
@@ -237,7 +222,7 @@ public class CodeModuleModelChecker {
         }
       } catch (InterruptedException | ExecutionException e) {
         this.modelCheckingNode.sendMessage(new Message<>(
-          new AbstractionFailed(this.modelCheckingNode.getUuid(), "abstraction request failed"),
+          new ModelCheckingFailed(this.modelCheckingNode.getUuid(), "abstraction request failed"),
           new Recipient(NodeType.ROOT)
         ));
         break;
@@ -264,9 +249,9 @@ public class CodeModuleModelChecker {
 
     if (predicateValuations.isEmpty()) {
       this.modelCheckingNode.sendMessage(new Message<>(
-        new AbstractionFailed(
+        new ModelCheckingFailed(
           this.modelCheckingNode.getUuid(),
-          "model checking assignment resulted in empty predicate valuations"
+          "assignment resulted in empty predicate valuations"
         ),
         new Recipient(NodeType.ROOT)
       ));

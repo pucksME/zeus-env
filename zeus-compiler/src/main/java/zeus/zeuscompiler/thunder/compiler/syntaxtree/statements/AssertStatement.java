@@ -47,4 +47,8 @@ public class AssertStatement extends Statement {
       ));
     }
   }
+
+  public Expression getExpression() {
+    return expression;
+  }
 }

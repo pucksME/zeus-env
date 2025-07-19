@@ -17,7 +17,7 @@ public abstract class Component extends TypeCheckableNode implements Translatabl
 
   public Optional<ComponentSearchResult> searchComponent(Location location, int index, Queue<ParentStatement> parents) {
     if (this.getLine() == location.line() && this.getLinePosition() == location.linePosition()) {
-      return Optional.of(new ComponentSearchResult(index, new LinkedList<>()));
+      return Optional.of(new ComponentSearchResult(this, index, new LinkedList<>()));
     }
     return Optional.empty();
   }
