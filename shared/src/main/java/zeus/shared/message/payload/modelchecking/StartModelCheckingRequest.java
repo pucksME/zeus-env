@@ -2,11 +2,12 @@ package zeus.shared.message.payload.modelchecking;
 
 import zeus.shared.predicate.Predicate;
 
-import java.util.Set;
+import java.util.Map;
+import java.util.UUID;
 
 public record StartModelCheckingRequest(
   Path path,
-  Set<Predicate> predicates,
-  Set<PredicateValuation> predicateValuations
+  Map<UUID, Predicate> predicates,
+  Map<UUID, PredicateValuation> predicateValuations
 ) {
 }

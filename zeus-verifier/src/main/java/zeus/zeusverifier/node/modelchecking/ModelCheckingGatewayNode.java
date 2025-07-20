@@ -32,7 +32,7 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
 
     UUID nodeUuid = this.getNodes().keys().nextElement();
     this.sendMessage(
-      new Message<>(new StartModelCheckingRequest(new Path(new ArrayList<>()), new HashSet<>(), new HashSet<>())),
+      new Message<>(new StartModelCheckingRequest(new Path(new ArrayList<>()), new HashMap<>(), new HashMap<>())),
       this.getNodes().get(nodeUuid)
     );
 
@@ -44,14 +44,6 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     return new RouteResult();
   }
 
-  private RouteResult processStartModelCheckingResponseRoute(
-    Message<StartModelCheckingResponse> message,
-    Socket requestSocket
-  ) {
-    System.out.println("Running processStartModelCheckingResponseRoute route");
-    return new RouteResult();
-  }
-
   private RouteResult processDistributeModelCheckingRequestRoute(
     Message<DistributeModelCheckingRequest> message,
     Socket requestSocket
@@ -60,8 +52,8 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     for (Map<UUID, PredicateValuation> predicateValuations : message.getPayload().predicateValuations()) {
       this.sendMessageToNode(new Message<>(new StartModelCheckingRequest(
         message.getPayload().path(),
-        new HashSet<>(message.getPayload().predicates().values()),
-        new HashSet<>(predicateValuations.values())
+        message.getPayload().predicates(),
+        predicateValuations
       )));
     }
     return new RouteResult();
@@ -75,7 +67,6 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
       Map.of(
         RegisterNode.class, this::registerNodeRoute,
         SetCodeModuleResponse.class, this::processSetCodeModuleResponseRoute,
-        StartModelCheckingResponse.class, this::processStartModelCheckingResponseRoute,
         DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute
       )
     );

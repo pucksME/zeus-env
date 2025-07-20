@@ -98,6 +98,11 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
+  private RouteResult processNoCounterexampleFoundRoute(Message<NoCounterexampleFound> message, Socket requestSocket) {
+    System.out.printf("Model checking node \"%s\" could not find a counterexample%n", message.getPayload().nodeUuid());
+    return new RouteResult();
+  }
+
   private RouteResult processAbstractionFailedRoute(Message<AbstractionFailed> message, Socket requestSocket) {
     System.out.printf(
       "Model checking node \"%s\" could not perform model checking: abstraction failed (%s)%n",
@@ -133,6 +138,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         CalibrationFailed.class, this::processCalibrationFailedRoute,
         UnsupportedComponent.class, this::processUnsupportedComponentRoute,
         ModelCheckingFailed.class, this::processModelCheckingFailedRoute,
+        NoCounterexampleFound.class, this::processNoCounterexampleFoundRoute,
         AbstractionFailed.class, this::processAbstractionFailedRoute,
         CounterexampleAnalysisFailed.class, this::processCounterexampleAnalysisFailedRoute
       )

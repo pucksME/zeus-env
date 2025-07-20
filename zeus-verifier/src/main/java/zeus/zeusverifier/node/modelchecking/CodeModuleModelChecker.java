@@ -270,7 +270,7 @@ public class CodeModuleModelChecker {
     while (true) {
       if (this.currentIndex >= this.currentComponents.size()) {
         if (this.currentStatementParents.isEmpty()) {
-          return Optional.empty();
+          return Optional.of(new Path(new ArrayList<>(List.of(new State(new Location(-1, -1))))));
         }
 
         this.handleCurrentParentStatement();
@@ -314,6 +314,15 @@ public class CodeModuleModelChecker {
         }
         case AssertStatement assertStatement -> {
           System.out.println("assert statement");
+          Optional<AbstractLiteral> abstractLiteralOptional = this.evaluateExpression(assertStatement.getExpression());
+
+          if (abstractLiteralOptional.isEmpty()) {
+            return Optional.empty();
+          }
+
+          if (abstractLiteralOptional.get() != AbstractLiteral.FALSE) {
+            return Optional.of(this.path);
+          }
         }
         default -> {
           this.modelCheckingNode.sendMessage(new Message<>(

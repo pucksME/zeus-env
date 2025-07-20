@@ -8,6 +8,7 @@ import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.abstraction.AbstractResponse;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
+import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.modelchecking.*;
 import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
@@ -19,6 +20,7 @@ import zeus.zeusverifier.routing.RouteResult;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.*;
 
@@ -88,8 +90,23 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       ), new Recipient(NodeType.ROOT)), NodeAction.NONE);
     }
 
-    codeModuleModelChecker.check();
-    return new RouteResult(new Message<>(new StartModelCheckingResponse()));
+    Optional<Path> pathOptional = codeModuleModelChecker.check();
+
+    if (pathOptional.isEmpty()) {
+      return new RouteResult();
+    }
+
+    Path path = pathOptional.get();
+
+    if (path.states().size() == 1 && path.states().getFirst().location().equals(new Location(-1, -1))) {
+      return new RouteResult(new Message<>(new NoCounterexampleFound(this.getUuid()), new Recipient(NodeType.ROOT)));
+    }
+
+    return new RouteResult(new Message<>(new AnalyzeCounterExampleRequest(
+      this.getUuid(),
+      pathOptional.get(),
+      message.getPayload().predicates()
+    )));
   }
 
   @Override

@@ -39,6 +39,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
 
     CounterexampleAnalyzer counterexampleAnalyzer = new CounterexampleAnalyzer(
       message.getPayload().path(),
+      message.getPayload().predicates(),
       this.clientCodeModule,
       this
     );

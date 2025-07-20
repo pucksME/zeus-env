@@ -7,13 +7,13 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public class CounterexampleAnalysisHistory {
-  private ArrayList<ArrayList<Formula>> formulaHistory;
+  private List<List<Formula>> formulaHistory;
 
   public CounterexampleAnalysisHistory() {
     this.formulaHistory = new ArrayList<>();
   }
 
-  public void addFormulas(ArrayList<Formula> formulas) {
+  public void addFormulas(List<Formula> formulas) {
     this.formulaHistory.add(formulas);
   }
 
@@ -23,5 +23,15 @@ public class CounterexampleAnalysisHistory {
     } catch (NoSuchElementException noSuchElementException) {
       return new ArrayList<>();
     }
+  }
+
+  public List<Formula> getFormulaHistory(int index) {
+    List<Formula> formulaHistory = new ArrayList<>();
+    for (List<Formula> formulas : this.formulaHistory) {
+      if (index >= 0 && index < formulas.size()) {
+        formulaHistory.add(formulas.get(index));
+      }
+    }
+    return formulaHistory;
   }
 }
