@@ -22,4 +22,9 @@ public abstract class BinaryFormula extends Formula {
       this.rightFormula.getReferencedVariables().stream()
     ).collect(Collectors.toSet());
   }
+
+  @Override
+  public boolean containsVariables() {
+    return this.leftFormula.containsVariables() || this.rightFormula.containsVariables();
+  }
 }

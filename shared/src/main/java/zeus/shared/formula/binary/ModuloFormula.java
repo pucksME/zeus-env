@@ -4,7 +4,7 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import zeus.shared.formula.Formula;
 
-public class ModuloFormula extends BinaryFormula {
+public class ModuloFormula extends BinaryArithmeticFormula {
   public ModuloFormula(Formula leftFormula, Formula rightFormula) {
     super(leftFormula, rightFormula);
   }

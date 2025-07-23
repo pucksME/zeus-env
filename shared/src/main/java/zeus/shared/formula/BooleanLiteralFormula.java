@@ -17,4 +17,14 @@ public class BooleanLiteralFormula extends LiteralFormula<Boolean> {
   public Formula replace(String variable, Formula formula) {
     return new BooleanLiteralFormula(this.value);
   }
+
+  @Override
+  public boolean isBoolean() {
+    return true;
+  }
+
+  @Override
+  public boolean isAtomic() {
+    return true;
+  }
 }

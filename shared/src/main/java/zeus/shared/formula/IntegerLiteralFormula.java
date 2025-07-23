@@ -17,4 +17,14 @@ public class IntegerLiteralFormula extends LiteralFormula<Integer> {
   public Formula replace(String variable, Formula formula) {
     return new IntegerLiteralFormula(this.value);
   }
+
+  @Override
+  public boolean isBoolean() {
+    return false;
+  }
+
+  @Override
+  public boolean isAtomic() {
+    return true;
+  }
 }

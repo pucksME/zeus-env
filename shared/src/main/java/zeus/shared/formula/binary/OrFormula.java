@@ -4,7 +4,10 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import zeus.shared.formula.Formula;
 
-public class OrFormula extends BinaryFormula {
+import java.util.HashSet;
+import java.util.Set;
+
+public class OrFormula extends BinaryBooleanFormula {
   public OrFormula(Formula leftFormula, Formula rightFormula) {
     super(leftFormula, rightFormula);
   }
@@ -17,5 +20,10 @@ public class OrFormula extends BinaryFormula {
   @Override
   public Formula replace(String variable, Formula formula) {
     return new OrFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
+  }
+
+  @Override
+  public Set<Formula> extractPredicateFormulas() {
+    return new HashSet<>(Set.of(this));
   }
 }

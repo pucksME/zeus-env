@@ -4,7 +4,7 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import zeus.shared.formula.Formula;
 
-public class LessFormula extends BinaryFormula {
+public class LessFormula extends BinaryArithmeticFormula {
   public LessFormula(Formula leftFormula, Formula rightFormula) {
     super(leftFormula, rightFormula);
   }

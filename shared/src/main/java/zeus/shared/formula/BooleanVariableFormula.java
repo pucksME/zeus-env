@@ -17,4 +17,14 @@ public class BooleanVariableFormula extends VariableFormula {
   public Formula replace(String variable, Formula formula) {
     return new BooleanVariableFormula(this.id);
   }
+
+  @Override
+  public boolean isBoolean() {
+    return true;
+  }
+
+  @Override
+  public boolean isAtomic() {
+    return true;
+  }
 }

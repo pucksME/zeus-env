@@ -15,4 +15,9 @@ public abstract class UnaryFormula extends Formula {
   public Set<String> getReferencedVariables() {
     return formula.getReferencedVariables();
   }
+
+  @Override
+  public boolean containsVariables() {
+    return formula.containsVariables();
+  }
 }

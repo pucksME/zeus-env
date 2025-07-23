@@ -98,7 +98,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
     Path path = pathOptional.get();
 
-    if (path.states().size() == 1 && path.states().getFirst().location().equals(new Location(-1, -1))) {
+    if (path.states().size() == 1 && path.states().getFirst().getLocation().equals(new Location(-1, -1))) {
       return new RouteResult(new Message<>(new NoCounterexampleFound(this.getUuid()), new Recipient(NodeType.ROOT)));
     }
 

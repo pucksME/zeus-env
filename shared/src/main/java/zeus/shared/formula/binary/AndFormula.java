@@ -4,7 +4,11 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import zeus.shared.formula.Formula;
 
-public class AndFormula extends BinaryFormula {
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+public class AndFormula extends BinaryBooleanFormula {
   public AndFormula(Formula leftFormula, Formula rightFormula) {
     super(leftFormula, rightFormula);
   }
@@ -17,5 +21,13 @@ public class AndFormula extends BinaryFormula {
   @Override
   public Formula replace(String variable, Formula formula) {
     return new AndFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
+  }
+
+  @Override
+  public Set<Formula> extractPredicateFormulas() {
+    return Stream.concat(
+      this.leftFormula.extractPredicateFormulas().stream(),
+      this.rightFormula.extractPredicateFormulas().stream()
+    ).collect(Collectors.toSet());
   }
 }

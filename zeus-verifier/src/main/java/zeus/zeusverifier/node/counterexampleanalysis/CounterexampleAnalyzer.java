@@ -23,6 +23,8 @@ import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.WhileStatement;
 import zeus.zeuscompiler.thunder.compiler.utils.ComponentSearchResult;
 
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CounterexampleAnalyzer {
   Path path;
@@ -46,7 +48,7 @@ public class CounterexampleAnalyzer {
     List<Component> components = new ArrayList<>();
 
     for (State state : path.states()) {
-      Location location = state.location();
+      Location location = state.getLocation();
       Optional<ComponentSearchResult> componentSearchResultOptional = this.clientCodeModule.searchComponent(location);
 
       if (componentSearchResultOptional.isEmpty()) {
@@ -66,7 +68,7 @@ public class CounterexampleAnalyzer {
     return Optional.of(components);
   }
 
-  private Optional<List<Formula>> findNewPredicateCandidates(
+  private Optional<Set<Predicate>> findNewPredicateCandidates(
     List<Formula> formulas,
     CounterexampleAnalysisHistory counterexampleAnalysisHistory
   ) {
@@ -79,13 +81,16 @@ public class CounterexampleAnalyzer {
 
       if (solver.check() == Status.SATISFIABLE) {
         counterexampleAnalysisHistory.addFormulas(formulas);
-        return Optional.of(new ArrayList<>());
+        return Optional.of(new HashSet<>());
       }
 
       for (Expr expr : solver.getUnsatCore()) {
         String id = expr.getFuncDecl().getName().toString();
         try {
-          return Optional.of(new ArrayList<>(counterexampleAnalysisHistory.getFormulaHistory(Integer.parseInt(id))));
+          return Optional.of(counterexampleAnalysisHistory.getFormulaHistory(Integer.parseInt(id)).stream()
+            .flatMap(formula -> formula.extractPredicateFormulas().stream()
+              .map(predicateFormula -> new Predicate(UUID.randomUUID(), predicateFormula)))
+            .collect(Collectors.toSet()));
         } catch (NumberFormatException numberFormatException) {
           this.counterexampleAnalysisNode.sendMessage(new Message<>(new CounterexampleAnalysisFailed(
             this.counterexampleAnalysisNode.getUuid(),
@@ -99,7 +104,24 @@ public class CounterexampleAnalyzer {
     }
   }
 
-  public Optional<Path> analyze() {
+  private Set<Predicate> findNewPredicates(Set<Predicate> newPredicateCandidates) {
+    return newPredicateCandidates.stream()
+      .filter(predicate1 -> predicate1.getFormula().containsVariables() &&
+        Stream.concat(
+          newPredicateCandidates.stream(),
+          this.predicates.values().stream()
+        ).allMatch(predicate2 -> {
+          try (Context context = new Context()) {
+            return context.mkSolver().check(context.mkNot(context.mkEq(
+              predicate1.getFormula().toFormula(context),
+              predicate2.getFormula().toFormula(context)
+            ))) != Status.UNSATISFIABLE;
+          }
+      }))
+      .collect(Collectors.toSet());
+  }
+
+  public Optional<Counterexample> analyze() {
     Optional<Map<String, VariableInformation>> variablesOptional = this.clientCodeModule.getVariables();
 
     if (variablesOptional.isEmpty()) {
@@ -122,24 +144,24 @@ public class CounterexampleAnalyzer {
 
     List<Component> components = componentsOptional.get();
     CounterexampleAnalysisHistory counterexampleAnalysisHistory = new CounterexampleAnalysisHistory();
-    List<Formula> newPredicateCandidates = new ArrayList<>();
-    Path counterexample = new Path(new ArrayList<>());
+    Set<Predicate> newPredicateCandidates = new HashSet<>();
+    Path counterexamplePath = new Path(new ArrayList<>());
 
-    for (int i = components.size() - 1; i >= 0; i--) {
-      Component component = components.get(i);
-      counterexample.states().addFirst(new State(new Location(component.getLine(), component.getLinePosition())));
+    for (int componentIndex = components.size() - 1; componentIndex >= 0; componentIndex--) {
+      Component component = components.get(componentIndex);
+      counterexamplePath.states().addFirst(new State(new Location(component.getLine(), component.getLinePosition())));
       List<Formula> formulas = counterexampleAnalysisHistory.getCurrentFormulas();
 
       switch (component) {
-        case IfStatement ifStatement -> formulas.add((i == components.size() - 1 ||
-          !components.get(i + 1).equals(ifStatement.getThenBody().getBodyComponents().getFirst()))
+        case IfStatement ifStatement -> formulas.add((componentIndex == components.size() - 1 ||
+          !components.get(componentIndex + 1).equals(ifStatement.getThenBody().getBodyComponents().getFirst()))
             ? new NotFormula(ifStatement.getConditionExpression().toFormula(variables))
             : ifStatement.getConditionExpression().toFormula(variables));
-        case WhileStatement whileStatement -> formulas.add((i == components.size() - 1 ||
-          !components.get(i + 1).equals(whileStatement.getBody().getBodyComponents().getFirst()))
+        case WhileStatement whileStatement -> formulas.add((componentIndex == components.size() - 1 ||
+          !components.get(componentIndex + 1).equals(whileStatement.getBody().getBodyComponents().getFirst()))
             ? new NotFormula(whileStatement.getConditionExpression().toFormula(variables))
             : whileStatement.getConditionExpression().toFormula(variables));
-        case AssertStatement assertStatement -> formulas.add((i == components.size() - 1)
+        case AssertStatement assertStatement -> formulas.add((componentIndex == components.size() - 1)
           ? new NotFormula(assertStatement.getExpression().toFormula(variables))
           : assertStatement.getExpression().toFormula(variables));
         default -> {
@@ -151,7 +173,7 @@ public class CounterexampleAnalyzer {
         }
       }
 
-      Optional<List<Formula>> newPredicateCandidatesOptional = this.findNewPredicateCandidates(
+      Optional<Set<Predicate>> newPredicateCandidatesOptional = this.findNewPredicateCandidates(
         formulas,
         counterexampleAnalysisHistory
       );
@@ -168,10 +190,14 @@ public class CounterexampleAnalyzer {
     }
 
     if (newPredicateCandidates.isEmpty()) {
-      return Optional.of(counterexample);
+      return Optional.of(new Counterexample(counterexamplePath, true));
     }
 
-    // TODO: handle new predicate candidates
+    if (!counterexamplePath.states().isEmpty()) {
+      counterexamplePath.states().getLast().setPredicates(this.findNewPredicates(newPredicateCandidates));
+      return Optional.of(new Counterexample(counterexamplePath, false));
+    }
+
     return Optional.empty();
   }
 }

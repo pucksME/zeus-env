@@ -17,4 +17,14 @@ public class IntegerVariableFormula extends VariableFormula {
   public Formula replace(String variable, Formula formula) {
     return new IntegerVariableFormula(this.id);
   }
+
+  @Override
+  public boolean isBoolean() {
+    return false;
+  }
+
+  @Override
+  public boolean isAtomic() {
+    return true;
+  }
 }

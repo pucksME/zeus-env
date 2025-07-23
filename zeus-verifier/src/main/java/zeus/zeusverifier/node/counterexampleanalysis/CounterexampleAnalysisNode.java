@@ -4,8 +4,8 @@ import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
-import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleResponse;
-import zeus.shared.message.payload.modelchecking.Path;
+import zeus.shared.message.payload.counterexampleanalysis.InvalidCounterexample;
+import zeus.shared.message.payload.counterexampleanalysis.ValidCounterexample;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysisNodeConfig;
 import zeus.zeusverifier.node.Node;
@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 
 public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeConfig> {
   ClientCodeModule clientCodeModule;
@@ -43,10 +44,23 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
       this.clientCodeModule,
       this
     );
-    counterexampleAnalyzer.analyze();
+    Optional<Counterexample> counterexampleOptional = counterexampleAnalyzer.analyze();
+
+    if (counterexampleOptional.isEmpty()) {
+      return new RouteResult();
+    }
+
+    Counterexample counterexample = counterexampleOptional.get();
+
+    if (counterexample.valid()) {
+      return new RouteResult(new Message<>(
+        new ValidCounterexample(message.getPayload().uuid(), counterexample.path()),
+        new Recipient(NodeType.ROOT)
+      ));
+    }
 
     return new RouteResult(new Message<>(
-      new AnalyzeCounterExampleResponse(message.getPayload().uuid(), new Path(new ArrayList<>())),
+      new InvalidCounterexample(message.getPayload().uuid(), counterexample.path()),
       new Recipient(NodeType.ROOT)
     ));
   }

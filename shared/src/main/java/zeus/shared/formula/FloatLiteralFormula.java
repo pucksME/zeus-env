@@ -17,4 +17,14 @@ public class FloatLiteralFormula extends LiteralFormula<Float> {
   public Formula replace(String variable, Formula formula) {
     return new FloatLiteralFormula(this.value);
   }
+
+  @Override
+  public boolean isBoolean() {
+    return false;
+  }
+
+  @Override
+  public boolean isAtomic() {
+    return true;
+  }
 }

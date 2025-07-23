@@ -4,7 +4,7 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import zeus.shared.formula.Formula;
 
-public class EqualFormula extends BinaryFormula {
+public class EqualFormula extends BinaryEqualityFormula {
   public EqualFormula(Formula leftFormula, Formula rightFormula) {
     super(leftFormula, rightFormula);
   }

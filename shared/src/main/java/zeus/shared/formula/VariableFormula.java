@@ -14,4 +14,14 @@ public abstract class VariableFormula extends Formula {
   public Set<String> getReferencedVariables() {
     return new HashSet<>(Set.of(this.id));
   }
+
+  @Override
+  public boolean containsVariables() {
+    return true;
+  }
+
+  @Override
+  public Set<Formula> extractPredicateFormulas() {
+    return new HashSet<>(Set.of(this));
+  }
 }

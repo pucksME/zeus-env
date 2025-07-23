@@ -65,7 +65,7 @@ public class CodeModuleModelChecker {
   public boolean calibrate(Path path) {
     Optional<ComponentSearchResult> componentSearchResultOptional = path.states().isEmpty()
       ? this.codeModule.getFirstComponent()
-      : this.codeModule.searchComponent(path.states().getLast().location());
+      : this.codeModule.searchComponent(path.states().getLast().getLocation());
 
     if (componentSearchResultOptional.isEmpty()) {
       return false;

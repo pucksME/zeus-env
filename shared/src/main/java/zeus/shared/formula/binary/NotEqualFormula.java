@@ -4,7 +4,7 @@ import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
 import zeus.shared.formula.Formula;
 
-public class NotEqualFormula extends BinaryFormula {
+public class NotEqualFormula extends BinaryEqualityFormula {
   public NotEqualFormula(Formula leftFormula, Formula rightFormula) {
     super(leftFormula, rightFormula);
   }

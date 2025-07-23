@@ -5,6 +5,8 @@ import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.*;
 import zeus.shared.message.payload.abstraction.AbstractionFailed;
+import zeus.shared.message.payload.counterexampleanalysis.InvalidCounterexample;
+import zeus.shared.message.payload.counterexampleanalysis.ValidCounterexample;
 import zeus.shared.message.payload.counterexampleanalysis.CounterexampleAnalysisFailed;
 import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.function.BiFunction;
 
 public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket modelCheckingGatewayNodeSocket;
@@ -126,21 +129,33 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
+  private RouteResult processValidCounterexampleRoute(Message<ValidCounterexample> message, Socket requestSocket) {
+    System.out.println("Running processValidCounterexampleRoute");
+    return new RouteResult();
+  }
+
+  private RouteResult processInvalidCounterexampleRoute(Message<InvalidCounterexample> message, Socket requestSocket) {
+    System.out.println("Running processInvalidCounterexampleRoute");
+    return new RouteResult();
+  }
+
   @Override
   public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
     return this.processMessage(
       message,
       requestSocket,
-      Map.of(
-        RegisterNode.class, this::registerGatewayNodeRoute,
-        ClientCodeModule.class, this::verifyRoute,
-        VerificationResponse.class, this::processVerificationResponseRoute,
-        CalibrationFailed.class, this::processCalibrationFailedRoute,
-        UnsupportedComponent.class, this::processUnsupportedComponentRoute,
-        ModelCheckingFailed.class, this::processModelCheckingFailedRoute,
-        NoCounterexampleFound.class, this::processNoCounterexampleFoundRoute,
-        AbstractionFailed.class, this::processAbstractionFailedRoute,
-        CounterexampleAnalysisFailed.class, this::processCounterexampleAnalysisFailedRoute
+      Map.ofEntries(
+        Map.entry(RegisterNode.class, this::registerGatewayNodeRoute),
+        Map.entry(ClientCodeModule.class, this::verifyRoute),
+        Map.entry(VerificationResponse.class, this::processVerificationResponseRoute),
+        Map.entry(CalibrationFailed.class, this::processCalibrationFailedRoute),
+        Map.entry(UnsupportedComponent.class, this::processUnsupportedComponentRoute),
+        Map.entry(ModelCheckingFailed.class, this::processModelCheckingFailedRoute),
+        Map.entry(NoCounterexampleFound.class, this::processNoCounterexampleFoundRoute),
+        Map.entry(AbstractionFailed.class, this::processAbstractionFailedRoute),
+        Map.entry(CounterexampleAnalysisFailed.class, this::processCounterexampleAnalysisFailedRoute),
+        Map.entry(ValidCounterexample.class, this::processValidCounterexampleRoute),
+        Map.entry(InvalidCounterexample.class, this::processInvalidCounterexampleRoute)
       )
     );
   }

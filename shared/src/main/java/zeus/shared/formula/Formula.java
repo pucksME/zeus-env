@@ -17,4 +17,12 @@ public abstract class Formula {
   public abstract Set<String> getReferencedVariables();
 
   public abstract Formula replace(String variable, Formula formula);
+
+  public abstract boolean containsVariables();
+
+  public abstract boolean isBoolean();
+
+  public abstract boolean isAtomic();
+
+  public abstract Set<Formula> extractPredicateFormulas();
 }
