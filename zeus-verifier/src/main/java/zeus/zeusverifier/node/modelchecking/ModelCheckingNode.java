@@ -106,7 +106,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       this.getUuid(),
       pathOptional.get(),
       message.getPayload().predicates()
-    )));
+    ), new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY)));
   }
 
   @Override

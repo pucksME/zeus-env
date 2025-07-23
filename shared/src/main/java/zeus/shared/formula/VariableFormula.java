@@ -11,6 +11,11 @@ public abstract class VariableFormula extends Formula {
   }
 
   @Override
+  public Formula replace(String variable, Formula formula) {
+    return (variable.equals(id)) ? formula : this;
+  }
+
+  @Override
   public Set<String> getReferencedVariables() {
     return new HashSet<>(Set.of(this.id));
   }

@@ -18,6 +18,7 @@ import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Component;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.AssertStatement;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationVariableStatement;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.IfStatement;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.WhileStatement;
 import zeus.zeuscompiler.thunder.compiler.utils.ComponentSearchResult;
@@ -164,6 +165,16 @@ public class CounterexampleAnalyzer {
         case AssertStatement assertStatement -> formulas.add((componentIndex == components.size() - 1)
           ? new NotFormula(assertStatement.getExpression().toFormula(variables))
           : assertStatement.getExpression().toFormula(variables));
+        case DeclarationVariableStatement declarationVariableStatement -> {
+          if (declarationVariableStatement.getDeclarationExpression().isPresent()) {
+            formulas = formulas.stream()
+              .map(formula -> formula.replace(
+                declarationVariableStatement.getId(),
+                declarationVariableStatement.getDeclarationExpression().get().toFormula(variables)
+              ))
+              .toList();
+          }
+        }
         default -> {
           this.counterexampleAnalysisNode.sendMessage(new Message<>(new CounterexampleAnalysisFailed(
             this.counterexampleAnalysisNode.getUuid(),

@@ -14,11 +14,6 @@ public class FloatVariableFormula extends VariableFormula {
   }
 
   @Override
-  public Formula replace(String variable, Formula formula) {
-    return new FloatVariableFormula(this.id);
-  }
-
-  @Override
   public boolean isBoolean() {
     return false;
   }

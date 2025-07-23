@@ -14,11 +14,6 @@ public class IntegerVariableFormula extends VariableFormula {
   }
 
   @Override
-  public Formula replace(String variable, Formula formula) {
-    return new IntegerVariableFormula(this.id);
-  }
-
-  @Override
   public boolean isBoolean() {
     return false;
   }

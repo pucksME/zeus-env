@@ -14,11 +14,6 @@ public class BooleanVariableFormula extends VariableFormula {
   }
 
   @Override
-  public Formula replace(String variable, Formula formula) {
-    return new BooleanVariableFormula(this.id);
-  }
-
-  @Override
   public boolean isBoolean() {
     return true;
   }

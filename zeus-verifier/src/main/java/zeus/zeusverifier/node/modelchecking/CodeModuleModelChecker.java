@@ -36,15 +36,18 @@ public class CodeModuleModelChecker {
 
   public CodeModuleModelChecker(ClientCodeModule codeModule, ModelCheckingNode modelCheckingNode) {
     this.codeModule = codeModule;
-    Optional<Map<String, VariableInformation>> variablesOptional = codeModule.getVariables();
     this.modelCheckingNode = modelCheckingNode;
+    Optional<Map<String, VariableInformation>> variablesOptional = codeModule.getVariables();
 
     if (variablesOptional.isEmpty()) {
       this.modelCheckingNode.sendMessage(new Message<>(new ModelCheckingFailed(
         this.modelCheckingNode.getUuid(),
         "code module variable information not present"
       ), new Recipient(NodeType.ROOT)));
+      return;
     }
+
+    this.variables = variablesOptional.get();
 
     this.currentStatementParents = null;
     this.currentComponents = new ArrayList<>();
@@ -186,6 +189,10 @@ public class CodeModuleModelChecker {
       ))
       .collect(Collectors.toSet());
 
+    if (relevantPredicatesWeakestPrecondition.isEmpty()) {
+      return;
+    }
+
     Map<UUID, CompletableFuture<AbstractLiteral>> predicateCompletableFutures = relevantPredicatesWeakestPrecondition.stream()
       .map(predicate -> Map.entry(
         predicate.getUuid(), this.modelCheckingNode.sendAbstractRequest(
@@ -230,7 +237,9 @@ public class CodeModuleModelChecker {
     }
 
     List<Map<UUID, PredicateValuation>> predicateValuations = new ArrayList<>();
-    for (int i = 0; i < Math.pow(2, nonDeterministicPredicateValuations.size()); i++) {
+    for (int i = 0; i < ((nonDeterministicPredicateValuations.isEmpty())
+      ? 0
+      : Math.pow(2, nonDeterministicPredicateValuations.size())); i++) {
       String valuation = Integer.toBinaryString(i);
       String valuationBits = "0".repeat(nonDeterministicPredicateValuations.size() - valuation.length()) + valuation;
       Map<UUID, PredicateValuation> newPredicateValuations = Stream.concat(
