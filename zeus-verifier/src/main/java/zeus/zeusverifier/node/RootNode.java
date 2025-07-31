@@ -9,6 +9,7 @@ import zeus.shared.message.payload.counterexampleanalysis.InvalidCounterexample;
 import zeus.shared.message.payload.counterexampleanalysis.ValidCounterexample;
 import zeus.shared.message.payload.counterexampleanalysis.CounterexampleAnalysisFailed;
 import zeus.shared.message.payload.modelchecking.*;
+import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.routing.NodeAction;
@@ -18,7 +19,6 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
-import java.util.function.BiFunction;
 
 public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket modelCheckingGatewayNodeSocket;
@@ -136,7 +136,13 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
   private RouteResult processInvalidCounterexampleRoute(Message<InvalidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processInvalidCounterexampleRoute");
-    return new RouteResult();
+    return new RouteResult(new Message<>(new DistributeModelCheckingRequest(
+      message.getPayload().path(),
+      PredicateValuation.getCombinations(
+        message.getPayload().path().states().getLast().getPredicates().orElse(new HashSet<>()).stream()
+          .map(Predicate::getUuid)
+          .toList()
+      )), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
   }
 
   @Override

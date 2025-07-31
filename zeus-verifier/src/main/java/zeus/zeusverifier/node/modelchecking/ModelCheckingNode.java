@@ -83,11 +83,11 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     System.out.println("Running startModelChecking route");
 
     CodeModuleModelChecker codeModuleModelChecker = new CodeModuleModelChecker(this.codeModule, this);
-    if (!codeModuleModelChecker.calibrate(message.getPayload().path())) {
+    if (!codeModuleModelChecker.calibrate(message.getPayload().getPath())) {
       return new RouteResult(new Message<>(new CalibrationFailed(
         this.getUuid(),
-        message.getPayload().path()
-      ), new Recipient(NodeType.ROOT)), NodeAction.NONE);
+        message.getPayload().getPath()
+      ), new Recipient(NodeType.ROOT)), NodeAction.TERMINATE);
     }
 
     Optional<Path> pathOptional = codeModuleModelChecker.check();
@@ -104,8 +104,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
     return new RouteResult(new Message<>(new AnalyzeCounterExampleRequest(
       this.getUuid(),
-      pathOptional.get(),
-      message.getPayload().predicates()
+      pathOptional.get()
     ), new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY)));
   }
 

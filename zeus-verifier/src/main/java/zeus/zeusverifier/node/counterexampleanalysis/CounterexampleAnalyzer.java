@@ -17,10 +17,7 @@ import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Component;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.AssertStatement;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.DeclarationVariableStatement;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.IfStatement;
-import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.WhileStatement;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.*;
 import zeus.zeuscompiler.thunder.compiler.utils.ComponentSearchResult;
 
 import java.util.*;
@@ -29,20 +26,29 @@ import java.util.stream.Stream;
 
 public class CounterexampleAnalyzer {
   Path path;
-  Map<UUID, Predicate> predicates;
+  Set<Predicate> predicates;
   ClientCodeModule clientCodeModule;
   CounterexampleAnalysisNode counterexampleAnalysisNode;
 
   public CounterexampleAnalyzer(
     Path path,
-    Map<UUID, Predicate> predicates,
     ClientCodeModule clientCodeModule,
     CounterexampleAnalysisNode counterexampleAnalysisNode
   ) {
     this.path = path;
-    this.predicates = predicates;
+    this.predicates = this.getPredicates(this.path);
     this.clientCodeModule = clientCodeModule;
     this.counterexampleAnalysisNode = counterexampleAnalysisNode;
+  }
+
+  private Set<Predicate> getPredicates(Path path) {
+    for (int i = path.states().size() - 1; i >= 0; i--) {
+      Optional<Set<Predicate>> predicatesOptional = path.states().get(i).getPredicates();
+      if (predicatesOptional.isPresent()) {
+        return predicatesOptional.get();
+      }
+    }
+    return new HashSet<>();
   }
 
   private Optional<List<Component>> findComponents(Path path) {
@@ -96,7 +102,7 @@ public class CounterexampleAnalyzer {
           this.counterexampleAnalysisNode.sendMessage(new Message<>(new CounterexampleAnalysisFailed(
             this.counterexampleAnalysisNode.getUuid(),
             String.format("invalid unsatisfiable core id \"%s\"", id)
-          )));
+          ), new Recipient(NodeType.ROOT)));
           return Optional.empty();
         }
       }
@@ -105,21 +111,33 @@ public class CounterexampleAnalyzer {
     }
   }
 
+  private boolean predicatesEqual(Predicate predicate1, Predicate predicate2, Context context, Solver solver) {
+    return solver.check(context.mkNot(context.mkEq(
+      predicate1.getFormula().toFormula(context),
+      predicate2.getFormula().toFormula(context)
+    ))) == Status.UNSATISFIABLE;
+  }
+
   private Set<Predicate> findNewPredicates(Set<Predicate> newPredicateCandidates) {
-    return newPredicateCandidates.stream()
-      .filter(predicate1 -> predicate1.getFormula().containsVariables() &&
-        Stream.concat(
-          newPredicateCandidates.stream(),
-          this.predicates.values().stream()
-        ).allMatch(predicate2 -> {
-          try (Context context = new Context()) {
-            return context.mkSolver().check(context.mkNot(context.mkEq(
-              predicate1.getFormula().toFormula(context),
-              predicate2.getFormula().toFormula(context)
-            ))) != Status.UNSATISFIABLE;
-          }
-      }))
-      .collect(Collectors.toSet());
+    try (Context context = new Context()) {
+      Solver solver = context.mkSolver();
+      Set<Predicate> newPredicates = new HashSet<>();
+      for (Predicate predicate1 : newPredicateCandidates) {
+        if (!predicate1.getFormula().containsVariables()) {
+          continue;
+        }
+
+        if (newPredicates.stream().noneMatch(predicate2 -> newPredicateCandidates.contains(predicate2) ||
+          this.predicatesEqual(predicate1, predicate2, context, solver))) {
+          newPredicates.add(predicate1);
+        }
+      }
+
+      return newPredicates.stream()
+        .filter(predicate1 -> this.predicates.stream()
+          .noneMatch(predicate2 -> this.predicatesEqual(predicate1, predicate2, context, solver)))
+        .collect(Collectors.toSet());
+    }
   }
 
   public Optional<Counterexample> analyze() {
@@ -146,11 +164,10 @@ public class CounterexampleAnalyzer {
     List<Component> components = componentsOptional.get();
     CounterexampleAnalysisHistory counterexampleAnalysisHistory = new CounterexampleAnalysisHistory();
     Set<Predicate> newPredicateCandidates = new HashSet<>();
-    Path counterexamplePath = new Path(new ArrayList<>());
 
-    for (int componentIndex = components.size() - 1; componentIndex >= 0; componentIndex--) {
+    int componentIndex;
+    for (componentIndex = components.size() - 1; componentIndex >= 0; componentIndex--) {
       Component component = components.get(componentIndex);
-      counterexamplePath.states().addFirst(new State(new Location(component.getLine(), component.getLinePosition())));
       List<Formula> formulas = counterexampleAnalysisHistory.getCurrentFormulas();
 
       switch (component) {
@@ -175,11 +192,19 @@ public class CounterexampleAnalyzer {
               .toList();
           }
         }
+        case AssignmentStatement assignmentStatement -> {
+          formulas = formulas.stream()
+            .map(formula -> formula.replace(
+              assignmentStatement.getId(),
+              assignmentStatement.getAssignExpression().toFormula(variables)
+            ))
+            .toList();
+        }
         default -> {
           this.counterexampleAnalysisNode.sendMessage(new Message<>(new CounterexampleAnalysisFailed(
             this.counterexampleAnalysisNode.getUuid(),
             String.format("unsupported component \"%s\"", component.getClass().getSimpleName())
-          )));
+          ), new Recipient(NodeType.ROOT)));
           return Optional.empty();
         }
       }
@@ -200,14 +225,27 @@ public class CounterexampleAnalyzer {
       }
     }
 
+    Path counterexamplePath = new Path(components.subList(0, componentIndex + 1).stream()
+      .map(component -> new State(new Location(component.getLine(), component.getLinePosition())))
+      .toList());
+
     if (newPredicateCandidates.isEmpty()) {
       return Optional.of(new Counterexample(counterexamplePath, true));
     }
 
     if (!counterexamplePath.states().isEmpty()) {
-      counterexamplePath.states().getLast().setPredicates(this.findNewPredicates(newPredicateCandidates));
+      counterexamplePath.states().getLast().setPredicates(Stream.concat(
+        this.predicates.stream(),
+        this.findNewPredicates(newPredicateCandidates).stream()
+      ).collect(Collectors.toSet()));
+
       return Optional.of(new Counterexample(counterexamplePath, false));
     }
+
+    this.counterexampleAnalysisNode.sendMessage(new Message<>(
+      new CounterexampleAnalysisFailed(this.counterexampleAnalysisNode.getUuid(), "empty counterexample"),
+      new Recipient(NodeType.ROOT)
+    ));
 
     return Optional.empty();
   }

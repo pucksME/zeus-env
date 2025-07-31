@@ -17,20 +17,18 @@ import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class CodeModuleModelChecker {
   ClientCodeModule codeModule;
   Map<String, VariableInformation> variables;
   ModelCheckingNode modelCheckingNode;
-  int codeModuleSearchIndex;
+
   Queue<ParentStatement> currentStatementParents;
   List<Component> currentComponents;
   int currentIndex;
-  boolean assertionViolationReached;
-  ExecutorService abstractionExecutorService;
-  HashMap<UUID, Predicate> predicates;
+
+  Map<UUID, Predicate> predicates;
   Map<UUID, PredicateValuation> predicateValuations;
   Path path;
 
@@ -52,8 +50,6 @@ public class CodeModuleModelChecker {
     this.currentStatementParents = null;
     this.currentComponents = new ArrayList<>();
     this.currentIndex = 0;
-    this.assertionViolationReached = false;
-    this.abstractionExecutorService = Executors.newSingleThreadExecutor();
     this.predicates = new HashMap<>();
     this.predicateValuations = new HashMap<>();
     this.path = new Path(new ArrayList<>());
@@ -75,12 +71,44 @@ public class CodeModuleModelChecker {
     }
 
     ComponentSearchResult componentSearchResult = componentSearchResultOptional.get();
-    this.codeModuleSearchIndex = componentSearchResult.getIndex();
-    this.currentIndex = this.codeModuleSearchIndex;
+    this.currentIndex = componentSearchResult.getIndex() + 1;
     this.currentStatementParents = componentSearchResult.getParents();
     this.updateCurrentComponents();
     this.path = path;
+    this.predicates = (path.states().isEmpty())
+      ? new HashMap<>()
+      : path.states().getLast().getPredicates().orElse(new HashSet<>()).stream()
+      .collect(Collectors.toMap(Predicate::getUuid, predicate -> predicate));
     return true;
+  }
+
+  private Optional<Component> getNextComponent(
+    int currentIndex,
+    List<Component> currentComponents,
+    Queue<ParentStatement> currentStatementParents
+  ) {
+    if (currentIndex >= currentComponents.size() - 1) {
+      if (currentStatementParents.isEmpty()) {
+        return Optional.empty();
+      }
+
+      ParentStatement parentStatement = ((LinkedList<ParentStatement>) currentStatementParents).peekLast();
+
+      return getNextComponent(
+        parentStatement.getIndex(),
+        parentStatement.getComponents(),
+        new LinkedList<>(((LinkedList<ParentStatement>) currentStatementParents).subList(
+          0,
+          currentStatementParents.size() - 1
+        ))
+      );
+    }
+
+    return Optional.of(currentComponents.get(currentIndex + 1));
+  }
+
+  private Optional<Component> getNextComponent() {
+    return this.getNextComponent(this.currentIndex, this.currentComponents, this.currentStatementParents);
   }
 
   private Optional<AbstractLiteral> evaluateExpression(Expression expression) {
@@ -140,9 +168,8 @@ public class CodeModuleModelChecker {
             this.path.states().stream(),
             Stream.of(new State(new Location(bodyComponent.getLine(), bodyComponent.getLinePosition())))
           ).toList()),
-          this.predicates,
           new ArrayList<>(List.of(this.predicateValuations))
-        )));
+        ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
 
         this.handleControlStatement(controlStatement, AbstractLiteral.FALSE);
       }
@@ -175,6 +202,12 @@ public class CodeModuleModelChecker {
   }
 
   private void handleAssignment(String variable, Expression expression) {
+    Optional<Component> nextComponentOptional = this.getNextComponent();
+
+    if (nextComponentOptional.isEmpty()) {
+      return;
+    }
+
     Formula expressionFormula = expression.toFormula(this.variables);
     Set<String> expressionRelevantPredicates = expressionFormula.getReferencedVariables();
     Set<Predicate> relevantPredicates = this.predicates.values().stream()
@@ -236,25 +269,10 @@ public class CodeModuleModelChecker {
       }
     }
 
-    List<Map<UUID, PredicateValuation>> predicateValuations = new ArrayList<>();
-    for (int i = 0; i < ((nonDeterministicPredicateValuations.isEmpty())
-      ? 0
-      : Math.pow(2, nonDeterministicPredicateValuations.size())); i++) {
-      String valuation = Integer.toBinaryString(i);
-      String valuationBits = "0".repeat(nonDeterministicPredicateValuations.size() - valuation.length()) + valuation;
-      Map<UUID, PredicateValuation> newPredicateValuations = Stream.concat(
-        deterministicPredicateValuations.entrySet().stream(),
-        IntStream.range(0, nonDeterministicPredicateValuations.size())
-          .mapToObj(index -> Map.entry(
-            nonDeterministicPredicateValuations.get(index),
-            new PredicateValuation(
-              nonDeterministicPredicateValuations.get(index),
-              valuationBits.charAt(index) == '1'
-            )
-          ))
-      ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-      predicateValuations.add(newPredicateValuations);
-    }
+    List<Map<UUID, PredicateValuation>> predicateValuations = PredicateValuation.getCombinations(
+      deterministicPredicateValuations,
+      nonDeterministicPredicateValuations
+    );
 
     if (predicateValuations.isEmpty()) {
       this.modelCheckingNode.sendMessage(new Message<>(
@@ -269,8 +287,16 @@ public class CodeModuleModelChecker {
 
     this.predicateValuations = predicateValuations.getFirst();
     predicateValuations.removeFirst();
+
+    Component nextComponent = nextComponentOptional.get();
     this.modelCheckingNode.sendMessage(new Message<>(
-      new DistributeModelCheckingRequest(this.path, this.predicates, predicateValuations),
+      new DistributeModelCheckingRequest(new Path(Stream.concat(
+        this.path.states().stream(),
+        Stream.of(new State(
+          new Location(nextComponent.getLine(), nextComponent.getLinePosition()),
+          new HashSet<>(this.predicates.values())
+        ))
+      ).toList()), predicateValuations),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ));
   }

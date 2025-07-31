@@ -15,7 +15,6 @@ public class CompilerErrorService implements Service {
   }
 
   public void addError(CompilerError compilerError) {
-    compilerError.setLine(compilerError.getLine() + this.lineOffset);
     this.compilerErrors.add(compilerError);
   }
 
@@ -34,6 +33,10 @@ public class CompilerErrorService implements Service {
 
   public void resetLineOffset() {
     this.lineOffset = 0;
+  }
+
+  public int getLineOffset() {
+    return lineOffset;
   }
 
   public List<CompilerError> getErrors() {

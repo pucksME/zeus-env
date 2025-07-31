@@ -17,10 +17,7 @@ import zeus.zeuscompiler.thunder.compiler.utils.ComponentSearchResult;
 import zeus.zeuscompiler.thunder.compiler.utils.ParentStatement;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -110,9 +107,13 @@ public class IfStatement extends ControlStatement {
       return componentSearchResultOptional;
     }
 
+    List<BodyComponent> elseBodyComponents = (this.elseBody == null)
+      ? new ArrayList<>()
+      : this.elseBody.getBodyComponents();
+
     List<BodyComponent> bodyComponents = Stream.concat(
       this.thenBody.getBodyComponents().stream(),
-      this.elseBody.getBodyComponents().stream()
+      elseBodyComponents.stream()
     ).toList();
 
     for (int i = 0; i < bodyComponents.size(); i++) {
@@ -121,7 +122,7 @@ public class IfStatement extends ControlStatement {
         this,
         (i < this.thenBody.getBodyComponents().size())
           ? this.thenBody.getBodyComponents()
-          : this.elseBody.getBodyComponents(),
+          : elseBodyComponents,
         index
       ));
 
