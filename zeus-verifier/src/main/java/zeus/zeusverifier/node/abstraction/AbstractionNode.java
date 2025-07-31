@@ -32,12 +32,12 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
     super(config);
   }
 
-  private boolean prove(List<Expr> formulas, Solver solver, Context context) {
-    return solver.check(context.mkNot(context.mkAnd(formulas.toArray(Expr[]::new)))) == Status.UNSATISFIABLE;
+  private boolean check(List<Expr> formulas, Solver solver, Context context) {
+    return solver.check(context.mkAnd(formulas.toArray(Expr[]::new))) == Status.UNSATISFIABLE;
   }
 
-  private boolean prove(List<Expr> formular, Expr expression, Solver solver, Context context) {
-    return this.prove(Stream.concat(formular.stream(), Stream.of(expression)).toList(), solver, context);
+  private boolean check(List<Expr> formulars, Expr expression, Solver solver, Context context) {
+    return this.check(Stream.concat(formulars.stream(), Stream.of(expression)).toList(), solver, context);
   }
 
   private RouteResult processAbstractRequestRoute(Message<AbstractRequest> message, Socket requestSocket) {
@@ -72,14 +72,14 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
 
       Expr expression = message.getPayload().expression().toFormula(context);
 
-      if (this.prove(formulas, expression, solver, context)) {
+      if (this.check(formulas, context.mkNot(expression), solver, context)) {
         return new RouteResult(new Message<>(
           new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.TRUE),
           new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
         ));
       }
 
-      if (this.prove(formulas, context.mkNot(expression), solver, context)) {
+      if (this.check(formulas, expression, solver, context)) {
         return new RouteResult(new Message<>(
           new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.FALSE),
           new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
