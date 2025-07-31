@@ -1,18 +1,25 @@
 package zeus.shared.message.payload.modelchecking;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 public class StartModelCheckingRequest {
+  private UUID verificationUuid;
   private Path path;
   private Map<UUID, PredicateValuation> predicateValuations;
 
-  public StartModelCheckingRequest(Path path) {
+  public StartModelCheckingRequest(UUID verificationUuid, Path path) {
+    this.verificationUuid = verificationUuid;
     this.path = path;
   }
 
-  public StartModelCheckingRequest(Path path, Map<UUID, PredicateValuation> predicateValuations) {
-    this(path);
+  public StartModelCheckingRequest(
+    UUID verificationUuid,
+    Path path,
+    Map<UUID, PredicateValuation> predicateValuations
+  ) {
+    this(verificationUuid, path);
     this.predicateValuations = predicateValuations;
   }
 
@@ -20,7 +27,11 @@ public class StartModelCheckingRequest {
     return path;
   }
 
-  public Map<UUID, PredicateValuation> getPredicateValuations() {
-    return predicateValuations;
+  public Optional<Map<UUID, PredicateValuation>> getPredicateValuations() {
+    return Optional.ofNullable(predicateValuations);
+  }
+
+  public UUID getVerificationUuid() {
+    return verificationUuid;
   }
 }

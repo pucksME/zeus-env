@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CodeModuleModelChecker {
+  UUID verificationUuid;
   ClientCodeModule codeModule;
   Map<String, VariableInformation> variables;
   ModelCheckingNode modelCheckingNode;
@@ -32,7 +33,12 @@ public class CodeModuleModelChecker {
   Map<UUID, PredicateValuation> predicateValuations;
   Path path;
 
-  public CodeModuleModelChecker(ClientCodeModule codeModule, ModelCheckingNode modelCheckingNode) {
+  public CodeModuleModelChecker(
+    UUID verificationUuid,
+    ClientCodeModule codeModule,
+    ModelCheckingNode modelCheckingNode
+  ) {
+    this.verificationUuid = verificationUuid;
     this.codeModule = codeModule;
     this.modelCheckingNode = modelCheckingNode;
     Optional<Map<String, VariableInformation>> variablesOptional = codeModule.getVariables();
@@ -61,7 +67,8 @@ public class CodeModuleModelChecker {
       : ((LinkedList<ParentStatement>) this.currentStatementParents).peekLast().getComponents();
   }
 
-  public boolean calibrate(Path path) {
+  public boolean calibrate(StartModelCheckingRequest startModelCheckingRequest) {
+    Path path = startModelCheckingRequest.getPath();
     Optional<ComponentSearchResult> componentSearchResultOptional = path.states().isEmpty()
       ? this.codeModule.getFirstComponent()
       : this.codeModule.searchComponent(path.states().getLast().getLocation());
@@ -79,6 +86,10 @@ public class CodeModuleModelChecker {
       ? new HashMap<>()
       : path.states().getLast().getPredicates().orElse(new HashSet<>()).stream()
       .collect(Collectors.toMap(Predicate::getUuid, predicate -> predicate));
+
+    startModelCheckingRequest.getPredicateValuations().ifPresent(uuidPredicateValuationMap ->
+      this.predicateValuations = uuidPredicateValuationMap);
+
     return true;
   }
 
@@ -164,6 +175,7 @@ public class CodeModuleModelChecker {
         BodyComponent bodyComponent = bodyComponents.getFirst();
 
         this.modelCheckingNode.sendMessage(new Message<>(new DistributeModelCheckingRequest(
+          this.verificationUuid,
           new Path(Stream.concat(
             this.path.states().stream(),
             Stream.of(new State(new Location(bodyComponent.getLine(), bodyComponent.getLinePosition())))
@@ -290,12 +302,14 @@ public class CodeModuleModelChecker {
 
     Component nextComponent = nextComponentOptional.get();
     this.modelCheckingNode.sendMessage(new Message<>(
-      new DistributeModelCheckingRequest(new Path(Stream.concat(
-        this.path.states().stream(),
-        Stream.of(new State(
-          new Location(nextComponent.getLine(), nextComponent.getLinePosition()),
-          new HashSet<>(this.predicates.values())
-        ))
+      new DistributeModelCheckingRequest(
+        this.verificationUuid,
+        new Path(Stream.concat(
+          this.path.states().stream(),
+          Stream.of(new State(
+            new Location(nextComponent.getLine(), nextComponent.getLinePosition()),
+            new HashSet<>(this.predicates.values())
+          ))
       ).toList()), predicateValuations),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ));

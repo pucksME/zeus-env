@@ -25,6 +25,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket abstractionGatewayNodeSocket;
   Socket counterexampleAnalysisGatewayNodeSocket;
   ExecutorService gatewayNodesExecutorService;
+  ConcurrentHashMap<UUID, List<CompletableFuture<UUID>>> pendingCodeModuleSynchronizations;
+  ConcurrentHashMap<UUID, CompletableFuture<Path>> pendingVerificationRequests;
 
   public RootNode(GatewayNodeConfig config) {
     super(config);
@@ -32,6 +34,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     this.abstractionGatewayNodeSocket = null;
     this.counterexampleAnalysisGatewayNodeSocket = null;
     this.gatewayNodesExecutorService = Executors.newCachedThreadPool();
+    this.pendingCodeModuleSynchronizations = new ConcurrentHashMap<>();
+    this.pendingVerificationRequests = new ConcurrentHashMap<>();
   }
 
   private RouteResult registerGatewayNodeRoute(Message<RegisterNode> message, Socket requestSocket) {
@@ -57,13 +61,90 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult(new Message<>(new RegisterNodeResponse(UUID.randomUUID())));
   }
 
-  private RouteResult verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
-    this.sendMessage(message, this.modelCheckingGatewayNodeSocket);
+  private RouteResult processClientCodeModuleRoute(Message<ClientCodeModule> message, Socket requestSocket) {
+    CompletableFuture<Path> pendingVerificationCompletableFuture = new CompletableFuture<>();
+    UUID verificationUuid = UUID.randomUUID();
+    this.pendingVerificationRequests.put(verificationUuid, pendingVerificationCompletableFuture);
+    message.getPayload().setVerificationUuid(verificationUuid);
+    this.pendingCodeModuleSynchronizations.put(
+      verificationUuid,
+      List.of(new CompletableFuture<>(), new CompletableFuture<>())
+    );
+
+    this.sendMessage(new Message<>(
+      message.getPayload(),
+      new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
+    ), this.modelCheckingGatewayNodeSocket);
+
     this.sendMessage(new Message<>(
       message.getPayload(),
       new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS, NodeSelection.ALL)
     ), this.counterexampleAnalysisGatewayNodeSocket);
-    return new RouteResult(new Message<>(new VerificationResponse(false)));
+
+    List<CompletableFuture<UUID>> pendingCodeModuleSynchronization = this.pendingCodeModuleSynchronizations.get(
+      verificationUuid
+    );
+
+    if (pendingCodeModuleSynchronization == null) {
+      System.out.printf("Code module synchronization for verification uuid \"%s\" does not exist%n", verificationUuid);
+      return new RouteResult(NodeAction.TERMINATE);
+    }
+
+    for (CompletableFuture<UUID> pendingSynchronizationCompletableFuture : this.pendingCodeModuleSynchronizations.get(
+      verificationUuid
+    )) {
+      try {
+        UUID nodeUuid = pendingSynchronizationCompletableFuture.get();
+        System.out.printf(
+          "Synchronized code module for verification uuid \"%s\" and node \"%s\"",
+          verificationUuid,
+          nodeUuid
+        );
+      } catch (InterruptedException | ExecutionException e) {
+        System.out.printf("Could not synchronize code module for verification uuid \"%s\"%n", verificationUuid);
+        return new RouteResult(NodeAction.TERMINATE);
+      }
+    }
+
+    this.pendingCodeModuleSynchronizations.remove(verificationUuid);
+
+    this.sendMessage(new Message<>(
+      new StartModelCheckingRequest(verificationUuid, new Path(new ArrayList<>())),
+      new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+    ), this.modelCheckingGatewayNodeSocket);
+
+    try {
+      Path counterexample = pendingVerificationCompletableFuture.get();
+      return new RouteResult(new Message<>(new VerificationResponse(true)));
+    } catch (InterruptedException | ExecutionException e) {
+      return new RouteResult(new Message<>(new VerificationResponse(false)));
+    }
+  }
+
+  private RouteResult processSynchronizedCodeModuleRoute(
+    Message<SynchronizedCodeModule> message,
+    Socket requestSocket
+  ) {
+    List<CompletableFuture<UUID>> pendingCodeModuleSynchronization = this.pendingCodeModuleSynchronizations.get(
+      message.getPayload().verificationUuid()
+    );
+
+    if (pendingCodeModuleSynchronization == null) {
+      System.out.printf(
+        "Pending code module synchronization for verification uuid \"%s\" received from node \"%s\" does not exist%n",
+        message.getPayload().verificationUuid(),
+        message.getPayload().nodeUuid()
+      );
+      return new RouteResult(NodeAction.TERMINATE);
+    }
+
+    for (CompletableFuture<UUID> completableFuture : pendingCodeModuleSynchronization) {
+      if (!completableFuture.isDone()) {
+        completableFuture.complete(message.getPayload().nodeUuid());
+      }
+    }
+
+    return new RouteResult();
   }
 
   private RouteResult processVerificationResponseRoute(Message<VerificationResponse> message, Socket requestSocket) {
@@ -137,6 +218,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   private RouteResult processInvalidCounterexampleRoute(Message<InvalidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processInvalidCounterexampleRoute");
     return new RouteResult(new Message<>(new DistributeModelCheckingRequest(
+      message.getPayload().verificationUuid(),
       message.getPayload().path(),
       PredicateValuation.getCombinations(
         message.getPayload().path().states().getLast().getPredicates().orElse(new HashSet<>()).stream()
@@ -152,7 +234,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       requestSocket,
       Map.ofEntries(
         Map.entry(RegisterNode.class, this::registerGatewayNodeRoute),
-        Map.entry(ClientCodeModule.class, this::verifyRoute),
+        Map.entry(ClientCodeModule.class, this::processClientCodeModuleRoute),
+        Map.entry(SynchronizedCodeModule.class, this::processSynchronizedCodeModuleRoute),
         Map.entry(VerificationResponse.class, this::processVerificationResponseRoute),
         Map.entry(CalibrationFailed.class, this::processCalibrationFailedRoute),
         Map.entry(UnsupportedComponent.class, this::processUnsupportedComponentRoute),

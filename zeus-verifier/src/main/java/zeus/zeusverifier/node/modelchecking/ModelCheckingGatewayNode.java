@@ -1,9 +1,10 @@
 package zeus.zeusverifier.node.modelchecking;
 
 import zeus.shared.message.Message;
+import zeus.shared.message.NodeSelection;
+import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.RegisterNode;
-import zeus.shared.message.payload.VerificationResponse;
 import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
@@ -20,28 +21,22 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     super(config, NodeType.MODEL_CHECKING);
   }
 
-  private RouteResult verifyRoute(Message<ClientCodeModule> message, Socket requestSocket) {
-    System.out.println("Running verify route");
+  private RouteResult processClientCodeModuleRoute(Message<ClientCodeModule> message, Socket requestSocket) {
+    System.out.println("Running processClientCodeModuleRoute");
 
-    if (this.getNodes().isEmpty()) {
-      System.out.println("Could not verify code module: no model checking nodes available");
-      return new RouteResult(new Message<>(new VerificationResponse(false)));
-    }
-
-    this.sendBroadcastMessage(new Message<>(message.getPayload()));
-
-    UUID nodeUuid = this.getNodes().keys().nextElement();
-    this.sendMessage(
-      new Message<>(new StartModelCheckingRequest(new Path(new ArrayList<>()), new HashMap<>())),
-      this.getNodes().get(nodeUuid)
-    );
-
-    return new RouteResult(new Message<>(new VerificationResponse(false)));
+    return new RouteResult(new Message<>(
+      message.getPayload(),
+      new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
+    ));
   }
 
-  private RouteResult processSetCodeModuleResponseRoute(Message<SetCodeModuleResponse> message, Socket requestSocket) {
-    System.out.println("Running processSetCodeModuleResponse route");
-    return new RouteResult();
+  private RouteResult processStartModelCheckingRequestRoute(Message<StartModelCheckingRequest> message, Socket requestSocket) {
+    System.out.println("Running processStartModelCheckingRequestRoute route");
+
+    return new RouteResult(new Message<>(
+      message.getPayload(),
+      new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ANY)
+    ));
   }
 
   private RouteResult processDistributeModelCheckingRequestRoute(
@@ -64,7 +59,6 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
       requestSocket,
       Map.of(
         RegisterNode.class, this::registerNodeRoute,
-        SetCodeModuleResponse.class, this::processSetCodeModuleResponseRoute,
         DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute
       )
     );
@@ -76,7 +70,8 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
       message,
       requestSocket,
       Map.of(
-        ClientCodeModule.class, this::verifyRoute,
+        ClientCodeModule.class, this::processClientCodeModuleRoute,
+        StartModelCheckingRequest.class, this::processStartModelCheckingRequestRoute,
         DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute
       )
     );

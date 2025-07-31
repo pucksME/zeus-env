@@ -5,17 +5,23 @@ import java.util.Map;
 import java.util.UUID;
 
 public class DistributeModelCheckingRequest {
+  private UUID verificationUuid;
   private Path path;
   private List<Map<UUID, PredicateValuation>> predicateValuations;
 
-  public DistributeModelCheckingRequest(Path path, List<Map<UUID, PredicateValuation>> predicateValuations) {
+  public DistributeModelCheckingRequest(UUID verificationUuid, Path path, List<Map<UUID, PredicateValuation>> predicateValuations) {
+    this.verificationUuid = verificationUuid;
     this.path = path;
     this.predicateValuations = predicateValuations;
   }
 
   public List<StartModelCheckingRequest> getStartModelCheckingRequests() {
     return this.predicateValuations.stream()
-      .map(predicateValuations -> new StartModelCheckingRequest(this.path, predicateValuations))
+      .map(predicateValuations -> new StartModelCheckingRequest(
+        this.verificationUuid,
+        this.path,
+        predicateValuations
+      ))
       .toList();
   }
 

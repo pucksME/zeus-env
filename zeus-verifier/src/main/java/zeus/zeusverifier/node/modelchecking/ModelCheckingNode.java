@@ -25,7 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.*;
 
 public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
-  ClientCodeModule codeModule;
+  ConcurrentHashMap<UUID, ClientCodeModule> codeModules = new ConcurrentHashMap<>();
   ConcurrentHashMap<UUID, CompletableFuture<AbstractLiteral>> pendingAbstractionRequests;
   ExecutorService modelCheckingExecutor;
 
@@ -37,8 +37,21 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
   private RouteResult processClientCodeModuleRoute(Message<ClientCodeModule> message, Socket socket) {
     System.out.println("Running processClientCodeModuleRoute route");
-    this.codeModule = message.getPayload();
-    return new RouteResult(new Message<>(new SetCodeModuleResponse()));
+    Optional<UUID> verificationUuidOptional = message.getPayload().getVerificationUuid();
+
+    if (verificationUuidOptional.isEmpty()) {
+      return new RouteResult(new Message<>(
+        new ModelCheckingFailed(this.getUuid(), "missing verification uuid in client code module"),
+        new Recipient(NodeType.ROOT)
+      ), NodeAction.TERMINATE);
+    }
+
+    UUID verificationUuid = verificationUuidOptional.get();
+    this.codeModules.put(verificationUuid, message.getPayload());
+    return new RouteResult(new Message<>(
+      new SynchronizedCodeModule(this.getUuid(), verificationUuid),
+      new Recipient(NodeType.ROOT)
+    ));
   }
 
   CompletableFuture<AbstractLiteral> sendAbstractRequest(
@@ -81,9 +94,25 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     Socket requestSocket
   ) {
     System.out.println("Running startModelChecking route");
+    ClientCodeModule codeModule = this.codeModules.get(message.getPayload().getVerificationUuid());
 
-    CodeModuleModelChecker codeModuleModelChecker = new CodeModuleModelChecker(this.codeModule, this);
-    if (!codeModuleModelChecker.calibrate(message.getPayload().getPath())) {
+    if (codeModule == null) {
+      return new RouteResult(new Message<>(
+        new ModelCheckingFailed(
+          this.getUuid(),
+          String.format("missing code module for verification uuid \"%s\"", message.getPayload().getVerificationUuid())
+        ),
+        new Recipient(NodeType.ROOT)
+      ), NodeAction.TERMINATE);
+    }
+
+    CodeModuleModelChecker codeModuleModelChecker = new CodeModuleModelChecker(
+      message.getPayload().getVerificationUuid(),
+      codeModule,
+      this
+    );
+
+    if (!codeModuleModelChecker.calibrate(message.getPayload())) {
       return new RouteResult(new Message<>(new CalibrationFailed(
         this.getUuid(),
         message.getPayload().getPath()
@@ -103,6 +132,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     }
 
     return new RouteResult(new Message<>(new AnalyzeCounterExampleRequest(
+      message.getPayload().getVerificationUuid(),
       this.getUuid(),
       pathOptional.get()
     ), new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY)));

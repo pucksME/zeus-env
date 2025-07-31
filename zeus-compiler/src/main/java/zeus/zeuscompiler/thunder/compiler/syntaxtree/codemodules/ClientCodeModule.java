@@ -15,6 +15,7 @@ import java.util.stream.Stream;
 
 public class ClientCodeModule extends CodeModule {
   Head head;
+  private UUID verificationUuid;
 
   public ClientCodeModule() {
     super(-1, -1, "Unnamed", "");
@@ -190,5 +191,13 @@ public class ClientCodeModule extends CodeModule {
       this.head.getHeadComponents().stream(),
       this.body.getBodyComponents().stream()
     ).toList();
+  }
+
+  public Optional<UUID> getVerificationUuid() {
+    return Optional.ofNullable(verificationUuid);
+  }
+
+  public void setVerificationUuid(UUID verificationUuid) {
+    this.verificationUuid = verificationUuid;
   }
 }
