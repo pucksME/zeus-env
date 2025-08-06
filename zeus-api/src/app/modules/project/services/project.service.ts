@@ -489,7 +489,12 @@ export class ProjectService {
       codeModuleName: verifyCodeModuleDto.codeModuleName
     })).data;
     return {
-      success: verifiedCodeModule.success,
+      counterexamples: Array.from(verifiedCodeModule.counterexamples.values())
+        .map(counterexample => ({ locations: counterexample.locations
+            .map(location => ({
+              line: location.line,
+              linePosition: location.linePosition
+            }))})),
       errors: verifiedCodeModule.errors.map(CodeModuleUtils.buildErrorDto)
     };
   }

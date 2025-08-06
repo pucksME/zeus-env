@@ -18,16 +18,14 @@ import zeus.zeuscompiler.services.SymbolTableService;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzerMode;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.thunder.dtos.CodeModuleCounterexampleDto;
 import zeus.zeuscompiler.thunder.dtos.CodeModulesDto;
 import zeus.zeuscompiler.thunder.dtos.CreateCodeModuleDto;
 import zeus.zeuscompiler.thunder.compiler.ThunderAnalyzer;
 import zeus.zeuscompiler.thunder.compiler.utils.ThunderUtils;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModules;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @SpringBootApplication
 @RestController
@@ -162,21 +160,21 @@ public class ZeusCompilerApplication {
 
     if (projectOptional.isEmpty() || ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
       return new VerifiedCodeModuleDto(
-        false,
+        new HashSet<>(),
         ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
 
     Project project = projectOptional.get();
-    project.verify(verifyCodeModuleDto.codeModuleName());
+    Set<CodeModuleCounterexampleDto> counterexamples = project.verify(verifyCodeModuleDto.codeModuleName());
 
     if (ServiceProvider.provide(CompilerErrorService.class).hasErrors()) {
       return new VerifiedCodeModuleDto(
-        false,
+        new HashSet<>(),
         ServiceProvider.provide(CompilerErrorService.class).getErrors().stream().map(CompilerError::toDto).toList()
       );
     }
 
-    return new VerifiedCodeModuleDto(true, new ArrayList<>());
+    return new VerifiedCodeModuleDto(counterexamples, new ArrayList<>());
   }
 }

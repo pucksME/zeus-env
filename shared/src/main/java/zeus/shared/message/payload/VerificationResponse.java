@@ -1,7 +1,5 @@
 package zeus.shared.message.payload;
 
-import zeus.shared.message.payload.modelchecking.Path;
-
 import java.util.List;
 import java.util.Optional;
 

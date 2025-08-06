@@ -3,6 +3,7 @@ package zeus.zeuscompiler.rain.compiler.syntaxtree;
 import com.google.gson.GsonBuilder;
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.VerificationResponse;
+import zeus.shared.message.payload.VerificationResult;
 import zeus.shared.message.utils.MessageJsonDeserializer;
 import zeus.shared.message.utils.MessageUtils;
 import zeus.zeuscompiler.CompilerError;
@@ -16,6 +17,7 @@ import zeus.zeuscompiler.symboltable.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.CodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.exceptions.verification.UnknownCodeModuleException;
 import zeus.zeuscompiler.thunder.compiler.utils.CompilerPhase;
+import zeus.zeuscompiler.thunder.dtos.CodeModuleCounterexampleDto;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Context;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
 import zeus.zeuscompiler.utils.CompilerUtils;
@@ -316,7 +318,7 @@ public class Project extends Node {
     return Optional.empty();
   }
 
-  public void verify(String codeModuleName) {
+  public Set<CodeModuleCounterexampleDto> verify(String codeModuleName) {
     Optional<CodeModule> codeModuleOptional = this.findCodeModule(codeModuleName);
 
     if (codeModuleOptional.isEmpty()) {
@@ -324,7 +326,7 @@ public class Project extends Node {
         new UnknownCodeModuleException(),
         CompilerPhase.VERIFIER
       ));
-      return;
+      return new HashSet<>();
     }
 
     CodeModule codeModule = codeModuleOptional.get();
@@ -339,12 +341,34 @@ public class Project extends Node {
       try (Socket socket = new Socket("localhost", 3000)) {
         PrintWriter outputPrintWriter = new PrintWriter(socket.getOutputStream(), true);
         outputPrintWriter.println(json);
-        Message<VerificationResponse> response = new GsonBuilder()
+        Message<VerificationResponse> responseMessage = new GsonBuilder()
           .registerTypeAdapter(Message.class, new MessageJsonDeserializer<VerificationResponse>())
           .create().fromJson(
             MessageUtils.readMessage(socket.getInputStream()),
             Message.class
           );
+
+        Optional<List<VerificationResult>> verificationResultsOptional = responseMessage.getPayload().getVerificationResults();
+
+        if (verificationResultsOptional.isEmpty()) {
+          return new HashSet<>();
+        }
+
+        Set<CodeModuleCounterexampleDto> counterexamples = new HashSet<>();
+
+        for (VerificationResult verificationResult : verificationResultsOptional.get()) {
+          if (verificationResult.getValidCounterexample().isEmpty()) {
+            continue;
+          }
+
+          counterexamples.add(new CodeModuleCounterexampleDto(
+            verificationResult.getValidCounterexample().get().states().stream()
+              .map(state -> new LocationDto(state.getLocation().line(), state.getLocation().linePosition()))
+              .toList()
+          ));
+        }
+
+        return counterexamples;
       }
     }  catch (UnknownHostException unknownHostException) {
       throw new RuntimeException("Could not verify code module: unknown verifier host");
