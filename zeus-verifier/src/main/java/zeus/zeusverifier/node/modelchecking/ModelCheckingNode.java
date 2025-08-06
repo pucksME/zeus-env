@@ -122,20 +122,23 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     Optional<Path> pathOptional = codeModuleModelChecker.check();
 
     if (pathOptional.isEmpty()) {
-      return new RouteResult();
+      return new RouteResult(NodeAction.TERMINATE);
     }
 
     Path path = pathOptional.get();
 
     if (path.states().size() == 1 && path.states().getFirst().getLocation().equals(new Location(-1, -1))) {
-      return new RouteResult(new Message<>(new NoCounterexampleFound(this.getUuid()), new Recipient(NodeType.ROOT)));
+      return new RouteResult(new Message<>(new NoCounterexampleFound(
+        message.getPayload().getVerificationUuid(),
+        this.getUuid()
+      ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
     }
 
     return new RouteResult(new Message<>(new AnalyzeCounterExampleRequest(
       message.getPayload().getVerificationUuid(),
       this.getUuid(),
       pathOptional.get()
-    ), new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY)));
+    ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
   }
 
   @Override

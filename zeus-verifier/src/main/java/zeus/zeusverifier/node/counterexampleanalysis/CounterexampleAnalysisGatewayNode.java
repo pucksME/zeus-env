@@ -35,7 +35,7 @@ public class CounterexampleAnalysisGatewayNode extends GatewayNode<CounterExampl
     Message<AnalyzeCounterExampleRequest> message,
     Socket requestSocket
   ) {
-    Optional<UUID> uuidOptional = this.sendMessageToNode(message);
+    Optional<UUID> uuidOptional = this.sendMessageToNode(new Message<>(message.getPayload()));
     if (uuidOptional.isEmpty()) {
       System.out.println("Could not send analyze counterexample request: sending message to an counterexample analysis node failed");
       return new RouteResult(NodeAction.TERMINATE);

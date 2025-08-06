@@ -47,6 +47,18 @@ public abstract class Node<T extends Config> {
     this.config = config;
   }
 
+  private NodeType getNodeType() {
+    return switch (this.config.getNodeType()) {
+      case ROOT_NODE -> NodeType.ROOT;
+      case MODEL_CHECKING_GATEWAY_NODE -> NodeType.MODEL_CHECKING_GATEWAY;
+      case MODEL_CHECKING_NODE -> NodeType.MODEL_CHECKING;
+      case ABSTRACTION_GATEWAY_NODE -> NodeType.ABSTRACTION_GATEWAY;
+      case ABSTRACTION_NODE -> NodeType.ABSTRACTION;
+      case COUNTER_EXAMPLE_GATEWAY_NODE -> NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY;
+      case COUNTER_EXAMPLE_NODE -> NodeType.COUNTEREXAMPLE_ANALYSIS;
+    };
+  }
+
   public abstract NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) throws IOException;
 
   protected <T> Optional<Message<T>> parseMessage(String message) {
@@ -155,6 +167,7 @@ public abstract class Node<T extends Config> {
     if (this instanceof RootNode) {
       switch (recipient.getNodeType()) {
         case ROOT:
+          message.removeRecipient();
           return false;
         case MODEL_CHECKING_GATEWAY:
         case MODEL_CHECKING:
@@ -172,13 +185,12 @@ public abstract class Node<T extends Config> {
       return true;
     }
 
-    if ((recipient.getNodeType() == NodeType.MODEL_CHECKING_GATEWAY && this instanceof ModelCheckingGatewayNode) ||
-      (recipient.getNodeType() == NodeType.ABSTRACTION_GATEWAY && this instanceof AbstractionGatewayNode) ||
-      (recipient.getNodeType() == NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY && this instanceof CounterexampleAnalysisGatewayNode)) {
-      return false;
-    }
-
     if (this instanceof zeus.zeusverifier.node.GatewayNode) {
+      if (recipient.getNodeType() == this.getNodeType()) {
+        message.removeRecipient();
+        return false;
+      }
+
       if (recipient.getNodeType() == ((zeus.zeusverifier.node.GatewayNode<?>) this).getGatewayTo()) {
         switch (recipient.getNodeSelection()) {
           case ANY -> ((zeus.zeusverifier.node.GatewayNode<?>) this).sendMessageToNode(message);
@@ -186,15 +198,15 @@ public abstract class Node<T extends Config> {
         }
         return true;
       }
+    }
 
-      Optional<Socket> gatewayNodeSocketOptional = this.getGatewayNodeSocket();
-      if (gatewayNodeSocketOptional.isPresent()) {
-        this.sendMessageToGateway(message);
-      }
-
+    Optional<Socket> gatewayNodeSocketOptional = this.getGatewayNodeSocket();
+    if (gatewayNodeSocketOptional.isPresent() && message.getRecipient().get().getNodeType() != this.getNodeType()) {
+      this.sendMessageToGateway(message);
       return true;
     }
 
+    message.removeRecipient();
     return false;
   }
 
@@ -275,7 +287,7 @@ public abstract class Node<T extends Config> {
     BiFunction<Message, Socket, RouteResult> route = routes.get(payloadClass);
 
     if (route == null) {
-      System.out.printf("Warning: processed message with unsupported route \"%s\"%n", payloadClass);
+      System.out.printf("Warning: processed message with unsupported route \"%s\"%n", payloadClass.getSimpleName());
       return NodeAction.TERMINATE;
     }
 
@@ -283,6 +295,10 @@ public abstract class Node<T extends Config> {
     Optional<Message<?>> responseMessageOptional = routeResult.getResponseMessage();
 
     if (responseMessageOptional.isPresent()) {
+      Message<?> responseMessage = responseMessageOptional.get();
+      if (this.handleMessageWithRecipient(responseMessage)) {
+        return routeResult.getNodeAction();
+      }
       PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
       printWriter.println(responseMessageOptional.get().toJsonString());
     }

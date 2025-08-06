@@ -27,6 +27,10 @@ public class Message<T> {
     return new Gson().toJson(this);
   }
 
+  public void removeRecipient() {
+    this.recipient = null;
+  }
+
   public Optional<Recipient> getRecipient() {
     return Optional.ofNullable(recipient);
   }

@@ -32,4 +32,8 @@ public class DistributeModelCheckingRequest {
   public List<Map<UUID, PredicateValuation>> getPredicateValuations() {
     return predicateValuations;
   }
+
+  public UUID getVerificationUuid() {
+    return verificationUuid;
+  }
 }

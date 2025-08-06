@@ -26,7 +26,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket counterexampleAnalysisGatewayNodeSocket;
   ExecutorService gatewayNodesExecutorService;
   ConcurrentHashMap<UUID, List<CompletableFuture<UUID>>> pendingCodeModuleSynchronizations;
-  ConcurrentHashMap<UUID, CompletableFuture<Path>> pendingVerificationRequests;
+  ConcurrentHashMap<UUID, List<CompletableFuture<VerificationResult>>> pendingVerification;
 
   public RootNode(GatewayNodeConfig config) {
     super(config);
@@ -35,7 +35,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     this.counterexampleAnalysisGatewayNodeSocket = null;
     this.gatewayNodesExecutorService = Executors.newCachedThreadPool();
     this.pendingCodeModuleSynchronizations = new ConcurrentHashMap<>();
-    this.pendingVerificationRequests = new ConcurrentHashMap<>();
+    this.pendingVerification = new ConcurrentHashMap<>();
   }
 
   private RouteResult registerGatewayNodeRoute(Message<RegisterNode> message, Socket requestSocket) {
@@ -62,9 +62,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   }
 
   private RouteResult processClientCodeModuleRoute(Message<ClientCodeModule> message, Socket requestSocket) {
-    CompletableFuture<Path> pendingVerificationCompletableFuture = new CompletableFuture<>();
     UUID verificationUuid = UUID.randomUUID();
-    this.pendingVerificationRequests.put(verificationUuid, pendingVerificationCompletableFuture);
+    this.pendingVerification.put(verificationUuid, new ArrayList<>(List.of(new CompletableFuture<>())));
     message.getPayload().setVerificationUuid(verificationUuid);
     this.pendingCodeModuleSynchronizations.put(
       verificationUuid,
@@ -96,7 +95,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       try {
         UUID nodeUuid = pendingSynchronizationCompletableFuture.get();
         System.out.printf(
-          "Synchronized code module for verification uuid \"%s\" and node \"%s\"",
+          "Synchronized code module for verification uuid \"%s\" and node \"%s\"%n",
           verificationUuid,
           nodeUuid
         );
@@ -113,12 +112,29 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ), this.modelCheckingGatewayNodeSocket);
 
-    try {
-      Path counterexample = pendingVerificationCompletableFuture.get();
-      return new RouteResult(new Message<>(new VerificationResponse(true)));
-    } catch (InterruptedException | ExecutionException e) {
-      return new RouteResult(new Message<>(new VerificationResponse(false)));
+    List<VerificationResult> verificationResults = new ArrayList<>();
+    List<CompletableFuture<VerificationResult>> pendingVerificationResults = this.pendingVerification.get(
+      verificationUuid
+    );
+
+    for (int i = 0; i < pendingVerificationResults.size(); i++) {
+      CompletableFuture<VerificationResult> verificationResultCompletableFuture = pendingVerificationResults.get(i);
+
+      try {
+        VerificationResult verificationResult = verificationResultCompletableFuture.get();
+
+        if (verificationResult.getValidCounterexample().isEmpty()) {
+          break;
+        }
+
+        verificationResults.add(verificationResult);
+        pendingVerificationResults.add(new CompletableFuture<>());
+      } catch (InterruptedException | ExecutionException e) {
+        return new RouteResult(new Message<>(new VerificationResponse()));
+      }
     }
+
+    return new RouteResult(new Message<>(new VerificationResponse(verificationResults)));
   }
 
   private RouteResult processSynchronizedCodeModuleRoute(
@@ -141,6 +157,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     for (CompletableFuture<UUID> completableFuture : pendingCodeModuleSynchronization) {
       if (!completableFuture.isDone()) {
         completableFuture.complete(message.getPayload().nodeUuid());
+        break;
       }
     }
 
@@ -212,12 +229,40 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
   private RouteResult processValidCounterexampleRoute(Message<ValidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processValidCounterexampleRoute");
-    return new RouteResult();
+    List<CompletableFuture<VerificationResult>> verificationResults = this.pendingVerification.get(
+      message.getPayload().verificationUuid()
+    );
+
+    if (verificationResults == null) {
+      System.out.printf(
+        "No pending verification for verification uuid \"%s\" in valid counterexample%n",
+        message.getPayload().verificationUuid()
+      );
+      return new RouteResult(NodeAction.TERMINATE);
+    }
+
+    if (verificationResults.isEmpty()) {
+      System.out.printf(
+        "No verification results for pending verification for verification uuid \"%s\" in valid counterexample%n",
+        message.getPayload().verificationUuid()
+      );
+      return new RouteResult(NodeAction.TERMINATE);
+    }
+
+    verificationResults.getLast().complete(new VerificationResult(
+      message.getPayload().verificationUuid(),
+      message.getPayload().path()
+    ));
+
+    return new RouteResult(new Message<>(
+      new StopModelCheckingTask(message.getPayload().verificationUuid()),
+      new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+    ));
   }
 
   private RouteResult processInvalidCounterexampleRoute(Message<InvalidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processInvalidCounterexampleRoute");
-    return new RouteResult(new Message<>(new DistributeModelCheckingRequest(
+    this.sendMessage(new Message<>(new DistributeModelCheckingRequest(
       message.getPayload().verificationUuid(),
       message.getPayload().path(),
       PredicateValuation.getCombinations(
@@ -225,6 +270,39 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
           .map(Predicate::getUuid)
           .toList()
       )), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
+
+    return new RouteResult(new Message<>(
+      new StopModelCheckingTask(message.getPayload().verificationUuid()),
+      new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+    ));
+  }
+
+  private RouteResult processVerificationResultRoute(Message<VerificationResult> message, Socket requestSocket) {
+    System.out.println("Running processVerificationResultRoute");
+    List<CompletableFuture<VerificationResult>> verificationResults = this.pendingVerification.get(
+      message.getPayload().getVerificationUuid()
+    );
+
+    if (verificationResults == null) {
+      System.out.printf(
+        "Could not process verification result: no verification results for verification uuid \"%s\"%n",
+        message.getPayload().getVerificationUuid()
+      );
+
+      return new RouteResult(NodeAction.TERMINATE);
+    }
+
+    try {
+      verificationResults.getLast().complete(message.getPayload());
+      return new RouteResult();
+    } catch (NoSuchElementException noSuchElementException) {
+      System.out.printf(
+        "Could not process verification result: empty verification results for verification uuid \"%s\"%n",
+        message.getPayload().getVerificationUuid()
+      );
+
+      return new RouteResult(NodeAction.TERMINATE);
+    }
   }
 
   @Override
@@ -244,7 +322,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         Map.entry(AbstractionFailed.class, this::processAbstractionFailedRoute),
         Map.entry(CounterexampleAnalysisFailed.class, this::processCounterexampleAnalysisFailedRoute),
         Map.entry(ValidCounterexample.class, this::processValidCounterexampleRoute),
-        Map.entry(InvalidCounterexample.class, this::processInvalidCounterexampleRoute)
+        Map.entry(InvalidCounterexample.class, this::processInvalidCounterexampleRoute),
+        Map.entry(VerificationResult.class, this::processVerificationResultRoute)
       )
     );
   }

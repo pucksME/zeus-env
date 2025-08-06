@@ -2,5 +2,5 @@ package zeus.shared.message.payload.modelchecking;
 
 import java.util.UUID;
 
-public record NoCounterexampleFound(UUID verificationUuid, UUID nodeUuid) {
+public record StopModelCheckingTask(UUID verificationUuid) {
 }

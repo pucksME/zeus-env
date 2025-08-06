@@ -42,14 +42,20 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
 
     UUID verificationUuid = verificationUuidOptional.get();
     this.codeModules.put(verificationUuid, message.getPayload());
-    return new RouteResult(new Message<>(new SynchronizedCodeModule(this.getUuid(), verificationUuid)));
+    return new RouteResult(new Message<>(
+      new SynchronizedCodeModule(this.getUuid(), verificationUuid),
+      new Recipient(NodeType.ROOT)
+    ));
   }
 
   private RouteResult processAnalyzeCounterexampleRequestRoute(
     Message<AnalyzeCounterExampleRequest> message,
     Socket requestSocket
   ) {
-    System.out.printf("Running processAnalyzeCounterexampleRequestRoute for uuid \"%s\"%n", message.getPayload().uuid());
+    System.out.printf(
+      "Running processAnalyzeCounterexampleRequestRoute for verification uuid \"%s\"%n",
+      message.getPayload().verificationUuid()
+    );
     ClientCodeModule codeModule = codeModules.get(message.getPayload().verificationUuid());
 
     if (codeModule == null) {
@@ -78,7 +84,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
 
     if (counterexample.valid()) {
       return new RouteResult(new Message<>(
-        new ValidCounterexample(message.getPayload().uuid(), counterexample.path()),
+        new ValidCounterexample(message.getPayload().verificationUuid(), counterexample.path()),
         new Recipient(NodeType.ROOT)
       ));
     }
@@ -86,7 +92,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
     return new RouteResult(new Message<>(
       new InvalidCounterexample(
         message.getPayload().verificationUuid(),
-        message.getPayload().uuid(),
+        message.getPayload().verificationUuid(),
         counterexample.path()
       ),
       new Recipient(NodeType.ROOT)
