@@ -225,7 +225,7 @@ public class CounterexampleAnalyzer {
       }
     }
 
-    Path counterexamplePath = new Path(components.subList(0, componentIndex + 1).stream()
+    Path counterexamplePath = new Path(components.stream()
       .map(component -> new State(new Location(component.getLine(), component.getLinePosition())))
       .toList());
 
@@ -234,6 +234,7 @@ public class CounterexampleAnalyzer {
     }
 
     if (!counterexamplePath.states().isEmpty()) {
+      counterexamplePath = new Path(counterexamplePath.states().subList(0, componentIndex + 1));
       counterexamplePath.states().getLast().setPredicates(Stream.concat(
         this.predicates.stream(),
         this.findNewPredicates(newPredicateCandidates).stream()

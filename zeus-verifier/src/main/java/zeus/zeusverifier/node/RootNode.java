@@ -179,16 +179,6 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     return new RouteResult();
   }
 
-  private RouteResult processUnsupportedComponentRoute(Message<UnsupportedComponent> message, Socket requestSocket) {
-    System.out.printf(
-      "Model checking node \"%s\" could not perform model checking: unsupported component type \"%s\"%n",
-      message.getPayload().nodeUuid(),
-      message.getPayload().componentName()
-    );
-    this.terminate();
-    return new RouteResult();
-  }
-
   private RouteResult processModelCheckingFailedRoute(Message<ModelCheckingFailed> message, Socket requestSocket) {
     System.out.printf(
       "Model checking node \"%s\" could not perform model checking: (%s)%n",
@@ -196,11 +186,6 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       message.getPayload().message()
     );
     this.terminate();
-    return new RouteResult();
-  }
-
-  private RouteResult processNoCounterexampleFoundRoute(Message<NoCounterexampleFound> message, Socket requestSocket) {
-    System.out.printf("Model checking node \"%s\" could not find a counterexample%n", message.getPayload().nodeUuid());
     return new RouteResult();
   }
 
@@ -262,14 +247,17 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
   private RouteResult processInvalidCounterexampleRoute(Message<InvalidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processInvalidCounterexampleRoute");
-    this.sendMessage(new Message<>(new DistributeModelCheckingRequest(
-      message.getPayload().verificationUuid(),
-      message.getPayload().path(),
-      PredicateValuation.getCombinations(
-        message.getPayload().path().states().getLast().getPredicates().orElse(new HashSet<>()).stream()
-          .map(Predicate::getUuid)
-          .toList()
-      )), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
+    this.sendMessage(new Message<>(
+      new DistributeModelCheckingRequest(
+        message.getPayload().verificationUuid(),
+        message.getPayload().path(),
+        PredicateValuation.getCombinations(
+          message.getPayload().path().states().getLast().getPredicates().orElse(new HashSet<>()).stream()
+            .map(Predicate::getUuid)
+            .toList()
+        )),
+      new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+    ), this.modelCheckingGatewayNodeSocket);
 
     return new RouteResult(new Message<>(
       new StopModelCheckingTask(message.getPayload().verificationUuid()),
@@ -316,9 +304,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         Map.entry(SynchronizedCodeModule.class, this::processSynchronizedCodeModuleRoute),
         Map.entry(VerificationResponse.class, this::processVerificationResponseRoute),
         Map.entry(CalibrationFailed.class, this::processCalibrationFailedRoute),
-        Map.entry(UnsupportedComponent.class, this::processUnsupportedComponentRoute),
         Map.entry(ModelCheckingFailed.class, this::processModelCheckingFailedRoute),
-        Map.entry(NoCounterexampleFound.class, this::processNoCounterexampleFoundRoute),
         Map.entry(AbstractionFailed.class, this::processAbstractionFailedRoute),
         Map.entry(CounterexampleAnalysisFailed.class, this::processCounterexampleAnalysisFailedRoute),
         Map.entry(ValidCounterexample.class, this::processValidCounterexampleRoute),

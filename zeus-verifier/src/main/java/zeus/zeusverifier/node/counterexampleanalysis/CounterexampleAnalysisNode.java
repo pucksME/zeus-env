@@ -92,7 +92,6 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
     return new RouteResult(new Message<>(
       new InvalidCounterexample(
         message.getPayload().verificationUuid(),
-        message.getPayload().verificationUuid(),
         counterexample.path()
       ),
       new Recipient(NodeType.ROOT)

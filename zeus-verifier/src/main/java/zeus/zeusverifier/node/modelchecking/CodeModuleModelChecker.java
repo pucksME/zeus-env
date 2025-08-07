@@ -1,5 +1,9 @@
 package zeus.zeusverifier.node.modelchecking;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Expr;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Status;
 import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
@@ -78,7 +82,9 @@ public class CodeModuleModelChecker {
     }
 
     ComponentSearchResult componentSearchResult = componentSearchResultOptional.get();
-    this.currentIndex = componentSearchResult.getIndex() + 1;
+    this.currentIndex = (path.states().isEmpty())
+      ? componentSearchResult.getIndex()
+      : componentSearchResult.getIndex() + 1;
     this.currentStatementParents = componentSearchResult.getParents();
     this.updateCurrentComponents();
     this.path = path;
@@ -130,6 +136,11 @@ public class CodeModuleModelChecker {
         expression.toFormula(this.variables)
       ).get());
     } catch (InterruptedException | ExecutionException e) {
+      this.modelCheckingNode.sendMessage(new Message<>(
+        new ModelCheckingFailed(
+          this.modelCheckingNode.getUuid(),
+          String.format("could not evaluate expression at %s:%s", expression.getLine(), expression.getLinePosition())
+        ), new Recipient(NodeType.ROOT)));
       return Optional.empty();
     }
   }
@@ -213,7 +224,7 @@ public class CodeModuleModelChecker {
     this.currentIndex = parentStatement.getIndex() + 1;
   }
 
-  private void handleAssignment(String variable, Expression expression) {
+  private void handleAssignment(String variable, Expression expression, Context context, Solver solver) {
     Optional<Component> nextComponentOptional = this.getNextComponent();
 
     if (nextComponentOptional.isEmpty()) {
@@ -284,7 +295,13 @@ public class CodeModuleModelChecker {
     List<Map<UUID, PredicateValuation>> predicateValuations = PredicateValuation.getCombinations(
       deterministicPredicateValuations,
       nonDeterministicPredicateValuations
-    );
+    ).stream()
+      .filter(valuations -> this.currentPredicateValuationsInfeasible(
+        valuations,
+        context,
+        solver
+      ))
+      .toList();
 
     if (predicateValuations.isEmpty()) {
       this.modelCheckingNode.sendMessage(new Message<>(
@@ -315,11 +332,44 @@ public class CodeModuleModelChecker {
     ));
   }
 
-  public Optional<Path> check() {
+  private boolean currentPredicateValuationsInfeasible(
+    Map<UUID, PredicateValuation> predicateValuations,
+    Context context,
+    Solver solver
+  ) {
+    List<Expr> formulas = new ArrayList<>();
+    for (Map.Entry<UUID, Predicate> predicateEntry : this.predicates.entrySet()) {
+      PredicateValuation predicateValuation = predicateValuations.get(predicateEntry.getKey());
+
+      if (predicateValuation == null) {
+        this.modelCheckingNode.sendMessage(new Message<>(
+          new ModelCheckingFailed(
+            this.modelCheckingNode.getUuid(),
+            String.format("missing valuation for predicate \"%s\"", predicateEntry.getKey())
+          ),
+          new Recipient(NodeType.ROOT)
+        ));
+        return false;
+      }
+
+      formulas.add((predicateValuation.getValue())
+        ? predicateEntry.getValue().getFormula().toFormula(context)
+        : context.mkNot(predicateEntry.getValue().getFormula().toFormula(context)));
+    }
+
+    return solver.check(context.mkAnd(formulas.toArray(Expr[]::new))) == Status.SATISFIABLE;
+  }
+
+  public ModelCheckingResult checkComponents(Context context, Solver solver) {
+    if (!this.currentPredicateValuationsInfeasible(this.predicateValuations, context, solver)) {
+      System.out.println("Infeasible predicate valuations, stopping model checking task");
+      return new ModelCheckingResult(ModelCheckingResultStatus.INFEASIBLE_PREDICATE_VALUATIONS);
+    }
+
     while (true) {
       if (this.currentIndex >= this.currentComponents.size()) {
         if (this.currentStatementParents.isEmpty()) {
-          return Optional.of(new Path(new ArrayList<>(List.of(new State(new Location(-1, -1))))));
+          return new ModelCheckingResult(ModelCheckingResultStatus.NO_COUNTEREXAMPLE_FOUND);
         }
 
         this.handleCurrentParentStatement();
@@ -337,7 +387,7 @@ public class CodeModuleModelChecker {
           );
 
           if (abstractionLiteralOptional.isEmpty()) {
-            return Optional.empty();
+            return new ModelCheckingResult(ModelCheckingResultStatus.ABSTRACTION_FAILED);
           }
 
           this.handleControlStatement(controlStatement, abstractionLiteralOptional.get());
@@ -347,42 +397,51 @@ public class CodeModuleModelChecker {
         case Output output -> {
           output.getDeclarationExpression().ifPresent(expression -> this.handleAssignment(
             output.getId(),
-            expression
+            expression,
+            context,
+            solver
           ));
         }
         case DeclarationVariableStatement declarationVariableStatement -> {
           System.out.println("declaration statement");
           declarationVariableStatement.getDeclarationExpression().ifPresent(expression -> this.handleAssignment(
             declarationVariableStatement.getId(),
-            expression
+            expression,
+            context,
+            solver
           ));
         }
         case AssignmentStatement assignmentStatement -> {
           System.out.println("assignment statement");
-          this.handleAssignment(assignmentStatement.getId(), assignmentStatement.getAssignExpression());
+          this.handleAssignment(
+            assignmentStatement.getId(),
+            assignmentStatement.getAssignExpression(),
+            context,
+            solver
+          );
         }
         case AssertStatement assertStatement -> {
           System.out.println("assert statement");
           Optional<AbstractLiteral> abstractLiteralOptional = this.evaluateExpression(assertStatement.getExpression());
 
           if (abstractLiteralOptional.isEmpty()) {
-            return Optional.empty();
+            return new ModelCheckingResult(ModelCheckingResultStatus.ABSTRACTION_FAILED);
           }
 
-          if (abstractLiteralOptional.get() != AbstractLiteral.FALSE) {
-            return Optional.of(this.path);
+          if (abstractLiteralOptional.get() != AbstractLiteral.TRUE) {
+            return new ModelCheckingResult(this.path);
           }
         }
-        default -> {
-          this.modelCheckingNode.sendMessage(new Message<>(
-            new UnsupportedComponent(this.modelCheckingNode.getUuid(), component.getClass().getSimpleName()),
-            new Recipient(NodeType.ROOT)
-          ));
-          return Optional.empty();
-        }
+        default -> new ModelCheckingResult(ModelCheckingResultStatus.UNSUPPORTED_COMPONENT);
       }
 
       this.currentIndex++;
+    }
+  }
+
+  public ModelCheckingResult check() {
+    try (Context context = new Context()) {
+      return this.checkComponents(context, context.mkSolver());
     }
   }
 }

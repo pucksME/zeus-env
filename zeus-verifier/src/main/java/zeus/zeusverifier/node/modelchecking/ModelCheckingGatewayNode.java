@@ -113,7 +113,7 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
   private RouteResult processNoCounterexampleFoundRoute(Message<NoCounterexampleFound> message, Socket requestSocket) {
     System.out.println("Running processNoCounterexampleFoundRoute");
     this.stopModelCheckingTask(message.getPayload().verificationUuid());
-    return new RouteResult(new Message<>(message.getPayload(), new Recipient(NodeType.ROOT)));
+    return new RouteResult();
   }
 
   private RouteResult processAnalyzeCounterexampleRequestRoute(
@@ -143,7 +143,8 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
         RegisterNode.class, this::registerNodeRoute,
         DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute,
         NoCounterexampleFound.class, this::processNoCounterexampleFoundRoute,
-        AnalyzeCounterExampleRequest.class, this::processAnalyzeCounterexampleRequestRoute
+        AnalyzeCounterExampleRequest.class, this::processAnalyzeCounterexampleRequestRoute,
+        StopModelCheckingTask.class, this::processStopModelCheckingTaskRoute
       )
     );
   }

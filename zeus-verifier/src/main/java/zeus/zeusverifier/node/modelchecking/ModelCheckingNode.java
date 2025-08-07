@@ -119,26 +119,39 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       ), new Recipient(NodeType.ROOT)), NodeAction.TERMINATE);
     }
 
-    Optional<Path> pathOptional = codeModuleModelChecker.check();
+    ModelCheckingResult modelCheckingResult = codeModuleModelChecker.check();
 
-    if (pathOptional.isEmpty()) {
-      return new RouteResult(NodeAction.TERMINATE);
-    }
+    return switch (modelCheckingResult.getStatus()) {
+      case ModelCheckingResultStatus.NO_COUNTEREXAMPLE_FOUND -> new RouteResult(new Message<>(
+        new NoCounterexampleFound(message.getPayload().getVerificationUuid(), this.getUuid()),
+        new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+      ));
 
-    Path path = pathOptional.get();
+      case ModelCheckingResultStatus.INFEASIBLE_PREDICATE_VALUATIONS -> new RouteResult(new Message<>(
+          new StopModelCheckingTask(message.getPayload().getVerificationUuid()),
+          new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+        ));
 
-    if (path.states().size() == 1 && path.states().getFirst().getLocation().equals(new Location(-1, -1))) {
-      return new RouteResult(new Message<>(new NoCounterexampleFound(
-        message.getPayload().getVerificationUuid(),
-        this.getUuid()
-      ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
-    }
+      case UNSUPPORTED_COMPONENT -> new RouteResult(new Message<>(
+          new ModelCheckingFailed(this.getUuid(), "unsupported component"),
+          new Recipient(NodeType.ROOT)
+        ));
 
-    return new RouteResult(new Message<>(new AnalyzeCounterExampleRequest(
-      message.getPayload().getVerificationUuid(),
-      this.getUuid(),
-      pathOptional.get()
-    ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
+      case ABSTRACTION_FAILED -> new RouteResult(new Message<>(
+          new ModelCheckingFailed(this.getUuid(), "abstraction failed"),
+          new Recipient(NodeType.ROOT)
+        ));
+
+      case OK -> modelCheckingResult.getPath()
+        .map(path -> new RouteResult(new Message<>(
+          new AnalyzeCounterExampleRequest(message.getPayload().getVerificationUuid(), this.getUuid(), path),
+          new Recipient(NodeType.MODEL_CHECKING_GATEWAY))))
+        .orElse(new RouteResult(new Message<>(
+          new ModelCheckingFailed(this.getUuid(), "missing path in model checking result"),
+          new Recipient(NodeType.ROOT)
+        )));
+    };
+
   }
 
   @Override
