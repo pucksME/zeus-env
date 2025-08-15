@@ -7,6 +7,7 @@ import zeus.shared.message.payload.abstraction.AbstractionFailed;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.counterexampleanalysis.InvalidCounterexample;
 import zeus.shared.message.payload.counterexampleanalysis.ValidCounterexample;
+import zeus.shared.message.payload.modelchecking.StopModelCheckingTask;
 import zeus.shared.message.payload.modelchecking.SynchronizedCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysisNodeConfig;
@@ -77,7 +78,11 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
     Optional<Counterexample> counterexampleOptional = counterexampleAnalyzer.analyze();
 
     if (counterexampleOptional.isEmpty()) {
-      return new RouteResult();
+      System.out.println("Counterexample analysis, no new predicates");
+      return new RouteResult(new Message<>(
+        new StopModelCheckingTask(message.getPayload().verificationUuid()),
+        new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
+      ));
     }
 
     Counterexample counterexample = counterexampleOptional.get();

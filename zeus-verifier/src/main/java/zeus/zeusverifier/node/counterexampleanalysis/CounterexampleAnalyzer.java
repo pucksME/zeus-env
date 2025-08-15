@@ -234,10 +234,16 @@ public class CounterexampleAnalyzer {
     }
 
     if (!counterexamplePath.states().isEmpty()) {
+      Set<Predicate> newPredicates = this.findNewPredicates(newPredicateCandidates);
+
+      if (newPredicates.isEmpty()) {
+        return Optional.empty();
+      }
+
       counterexamplePath = new Path(counterexamplePath.states().subList(0, componentIndex + 1));
       counterexamplePath.states().getLast().setPredicates(Stream.concat(
         this.predicates.stream(),
-        this.findNewPredicates(newPredicateCandidates).stream()
+        newPredicates.stream()
       ).collect(Collectors.toSet()));
 
       return Optional.of(new Counterexample(counterexamplePath, false));
