@@ -29,7 +29,6 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.*;
 import java.net.Socket;
-import java.net.SocketException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,6 +41,7 @@ public abstract class Node<T extends Config> {
   T config;
   UUID uuid;
   Socket gatewayNodeSocket;
+  BufferedReader gatewayNodeBufferedReader;
 
   public Node(T config) {
     this.config = config;
@@ -75,38 +75,36 @@ public abstract class Node<T extends Config> {
     } catch (JsonParseException jsonParseException) {
       System.out.printf("Could not deserialize \"%s\": parsing failed%n", message);
       return Optional.empty();
+    } catch (Exception e) {
+      e.printStackTrace();
+      throw new RuntimeException(e);
     }
   }
 
-  protected <T> Optional<Message<T>> getMessage(Socket requestSocket) throws IOException {
-    try {
-      String message = MessageUtils.readMessage(requestSocket.getInputStream());
-      if (message == null) {
-        System.out.println("Received empty message: closing socket");
-        this.terminate();
-        return Optional.empty();
-      }
-
-      Optional<Message<T>> messageOptional = this.parseMessage(message);
-
-      if (messageOptional.isEmpty()) {
-        System.out.printf("Warning: received invalid message \"%s\"%n", message);
-        this.terminate();
-      }
-
-      return messageOptional;
-    } catch (SocketException socketException) {
+  protected <T> Optional<Message<T>> getMessage(BufferedReader bufferedReader) throws IOException {
+    String message = MessageUtils.readMessage(bufferedReader);
+    if (message == null) {
+      System.out.println("Received empty message: closing socket");
       this.terminate();
       return Optional.empty();
     }
 
+    Optional<Message<T>> messageOptional = this.parseMessage(message);
+
+    if (messageOptional.isEmpty()) {
+      System.out.printf("Warning: received invalid message \"%s\"%n", message);
+      this.terminate();
+    }
+
+    return messageOptional;
   }
 
   public void sendMessage(Message<?> message, Socket socket) {
     try {
       PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
       printWriter.println(message.toJsonString());
-    } catch (IOException e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
   }
@@ -123,9 +121,8 @@ public abstract class Node<T extends Config> {
     this.sendMessageToGateway(message);
   }
 
-  private boolean registerOnGateway(Socket gatewaySocket) throws IOException {
-    PrintWriter printWriter = new PrintWriter(gatewaySocket.getOutputStream(), true);
-    printWriter.println(new Message<>(new RegisterNode(switch (this) {
+  private boolean registerOnGateway(Socket gatewaySocket, BufferedReader bufferedReader) throws IOException {
+    this.sendMessage(new Message<>(new RegisterNode(switch (this) {
       case ModelCheckingGatewayNode _ -> NodeType.MODEL_CHECKING_GATEWAY;
       case ModelCheckingNode _ -> NodeType.MODEL_CHECKING;
       case AbstractionGatewayNode _ -> NodeType.ABSTRACTION_GATEWAY;
@@ -136,10 +133,10 @@ public abstract class Node<T extends Config> {
         "Could not register node on gateway: unsupported node type \"%s\"",
         this.getClass().getSimpleName()
       ));
-    })).toJsonString());
+    })), gatewaySocket);
 
     Optional<Message<RegisterNodeResponse>> messageOptional = this.parseMessage(
-      MessageUtils.readMessage(gatewaySocket.getInputStream())
+      MessageUtils.readMessage(bufferedReader)
     );
 
     if (messageOptional.isEmpty()) {
@@ -171,7 +168,8 @@ public abstract class Node<T extends Config> {
           return false;
         case MODEL_CHECKING_GATEWAY:
         case MODEL_CHECKING:
-          this.sendMessage(message, ((RootNode) this).modelCheckingGatewayNodeSocket);
+          //this.sendMessage(message, ((RootNode) this).modelCheckingGatewayNodeSocket);
+          ((RootNode) this).modelCheckingGatewayNodePrintWriter.println(message.toJsonString());
           break;
         case ABSTRACTION_GATEWAY:
         case ABSTRACTION:
@@ -240,11 +238,12 @@ public abstract class Node<T extends Config> {
 
   void processRequests(
     Socket socket,
+    BufferedReader bufferedReader,
     ExecutorService executorService,
     BiFunction<Message<?>, Socket, NodeAction> requestHandler
   ) throws IOException, RejectedExecutionException {
     while (true) {
-      this.processRequest(socket, this.getMessage(socket), executorService, requestHandler);
+      this.processRequest(socket, this.getMessage(bufferedReader), executorService, requestHandler);
     }
   }
 
@@ -263,15 +262,18 @@ public abstract class Node<T extends Config> {
       Socket socket = new Socket(gatewayNode.getHost(), rootNodePortOptional.get());
       ExecutorService executorService = Executors.newCachedThreadPool()
     ) {
-      if (!this.registerOnGateway(socket)) {
+      this.gatewayNodeSocket = socket;
+      this.gatewayNodeBufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+      if (!this.registerOnGateway(this.gatewayNodeSocket, this.gatewayNodeBufferedReader)) {
         return;
       }
 
-      this.gatewayNodeSocket = socket;
-      this.processRequests(socket, executorService, (Message<?> message, Socket messageSocket) -> {
+      this.processRequests(socket, this.gatewayNodeBufferedReader, executorService, (Message<?> message, Socket messageSocket) -> {
         try {
           return this.handleGatewayRequest(message, messageSocket);
-        } catch (IOException e) {
+        } catch (Exception e) {
+          e.printStackTrace();
           throw new RuntimeException(e);
         }
       });
@@ -282,7 +284,7 @@ public abstract class Node<T extends Config> {
     Message message,
     Socket requestSocket,
     Map<Class<?>, BiFunction<Message, Socket, RouteResult>> routes
-  ) throws IOException {
+  ) {
     Class<?> payloadClass = message.getPayload().getClass();
     BiFunction<Message, Socket, RouteResult> route = routes.get(payloadClass);
 
@@ -299,8 +301,7 @@ public abstract class Node<T extends Config> {
       if (this.handleMessageWithRecipient(responseMessage)) {
         return routeResult.getNodeAction();
       }
-      PrintWriter printWriter = new PrintWriter(requestSocket.getOutputStream(), true);
-      printWriter.println(responseMessageOptional.get().toJsonString());
+      this.sendMessage(responseMessage, requestSocket);
     }
 
     return routeResult.getNodeAction();

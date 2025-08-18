@@ -71,8 +71,8 @@ public class CodeModuleModelChecker {
       : ((LinkedList<ParentStatement>) this.currentStatementParents).peekLast().getComponents();
   }
 
-  public boolean calibrate(StartModelCheckingRequest startModelCheckingRequest) {
-    Path path = startModelCheckingRequest.getPath();
+  public boolean calibrate(StartModelCheckingTaskRequest startModelCheckingTaskRequest) {
+    Path path = startModelCheckingTaskRequest.getPath();
     Optional<ComponentSearchResult> componentSearchResultOptional = path.states().isEmpty()
       ? this.codeModule.getFirstComponent()
       : this.codeModule.searchComponent(path.states().getLast().getLocation());
@@ -93,7 +93,7 @@ public class CodeModuleModelChecker {
       : path.states().getLast().getPredicates().orElse(new HashSet<>()).stream()
       .collect(Collectors.toMap(Predicate::getUuid, predicate -> predicate));
 
-    startModelCheckingRequest.getPredicateValuations().ifPresent(uuidPredicateValuationMap ->
+    startModelCheckingTaskRequest.getPredicateValuations().ifPresent(uuidPredicateValuationMap ->
       this.predicateValuations = uuidPredicateValuationMap);
 
     return true;

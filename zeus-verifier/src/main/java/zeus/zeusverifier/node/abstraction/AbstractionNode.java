@@ -95,7 +95,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
   }
 
   @Override
-  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,

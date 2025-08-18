@@ -6,7 +6,6 @@ import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.RegisterNode;
 import zeus.shared.message.payload.VerificationResult;
-import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
@@ -21,7 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNodeConfig> {
-  private ConcurrentHashMap<UUID, AtomicInteger> runningModelCheckingTasksCounts;
+  private final ConcurrentHashMap<UUID, AtomicInteger> runningModelCheckingTasksCounts;
 
   public ModelCheckingGatewayNode(ModelCheckingGatewayNodeConfig config) {
     super(config, NodeType.MODEL_CHECKING);
@@ -32,7 +31,7 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     this.runningModelCheckingTasksCounts.put(verificationUuid, new AtomicInteger(0));
   }
 
-  private void startModelCheckingTask(UUID verificationUuid) {
+  private void startModelCheckingTask(UUID verificationUuid, UUID modelCheckingTaskUuid) {
     AtomicInteger runningModelCheckingTasksCount = this.runningModelCheckingTasksCounts.get(verificationUuid);
     if (runningModelCheckingTasksCount == null) {
       this.sendMessage(new Message<>(
@@ -49,10 +48,18 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     }
 
     int taskCount = runningModelCheckingTasksCount.incrementAndGet();
-    System.out.printf("Started a new model checking task: currently running model checking tasks: %d\n", taskCount);
+    System.out.printf(
+      "Started new model checking task \"%s\": currently running model checking tasks: %d\n",
+      modelCheckingTaskUuid,
+      taskCount
+    );
   }
 
-  private void stopModelCheckingTask(UUID verificationUuid) {
+  private void stopModelCheckingTask(
+    UUID verificationUuid,
+    UUID modelCheckingTaskUuid,
+    StopModelCheckingTaskRequestStatus stopModelCheckingTaskRequestStatus
+  ) {
     AtomicInteger runningModelCheckingTasksCount = this.runningModelCheckingTasksCounts.get(verificationUuid);
     if (runningModelCheckingTasksCount == null) {
       this.sendMessage(new Message<>(
@@ -69,7 +76,12 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     }
 
     int taskCount = runningModelCheckingTasksCount.decrementAndGet();
-    System.out.printf("Stopped a new model checking task: currently running model checking tasks: %d\n", taskCount);
+    System.out.printf(
+      "Stopped model checking task \"%s\" (\"%s\"): currently running model checking tasks: %d\n",
+      modelCheckingTaskUuid,
+      stopModelCheckingTaskRequestStatus,
+      taskCount
+    );
 
     if (taskCount == 0) {
       this.sendMessage(new Message<>(new VerificationResult(verificationUuid), new Recipient(NodeType.ROOT)));
@@ -85,10 +97,9 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     ));
   }
 
-  private RouteResult processStartModelCheckingRequestRoute(Message<StartModelCheckingRequest> message, Socket requestSocket) {
-    System.out.println("Running processStartModelCheckingRequestRoute route");
+  private RouteResult processStartModelCheckingRequestRoute(Message<StartModelCheckingTaskRequest> message, Socket requestSocket) {
     this.initializeModelCheckingTasksCount(message.getPayload().getVerificationUuid());
-    this.startModelCheckingTask(message.getPayload().getVerificationUuid());
+    this.startModelCheckingTask(message.getPayload().getVerificationUuid(), message.getPayload().getUuid());
 
     return new RouteResult(new Message<>(
       message.getPayload(),
@@ -102,63 +113,46 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
   ) {
     System.out.println("Running processDistributeModelCheckingRequestRoute route");
 
-    for (StartModelCheckingRequest startModelCheckingRequest: message.getPayload().getStartModelCheckingRequests()) {
-      this.startModelCheckingTask(message.getPayload().getVerificationUuid());
-      this.sendMessageToNode(new Message<>(startModelCheckingRequest));
+    for (StartModelCheckingTaskRequest startModelCheckingTaskRequest : message.getPayload().getStartModelCheckingRequests()) {
+      this.startModelCheckingTask(message.getPayload().getVerificationUuid(), startModelCheckingTaskRequest.getUuid());
+      this.sendMessageToNode(new Message<>(startModelCheckingTaskRequest));
     }
 
     return new RouteResult();
   }
 
-  private RouteResult processNoCounterexampleFoundRoute(Message<NoCounterexampleFound> message, Socket requestSocket) {
-    System.out.println("Running processNoCounterexampleFoundRoute");
-    this.stopModelCheckingTask(message.getPayload().verificationUuid());
-    return new RouteResult();
-  }
-
-  private RouteResult processAnalyzeCounterexampleRequestRoute(
-    Message<AnalyzeCounterExampleRequest> message,
-    Socket requestSocket
-  ) {
-    System.out.println("Running processAnalyzeCounterexampleRequestRoute");
-
-    return new RouteResult(new Message<>(
-      message.getPayload(),
-      new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY)
-    ));
-  }
-
-  private RouteResult processStopModelCheckingTaskRoute(Message<StopModelCheckingTask> message, Socket requestSocket) {
-    System.out.println("Running processStopModelCheckingTaskRoute");
-    this.stopModelCheckingTask(message.getPayload().verificationUuid());
+  private RouteResult processStopModelCheckingTaskRoute(Message<StopModelCheckingTaskRequest> message, Socket requestSocket) {
+    this.stopModelCheckingTask(
+      message.getPayload().verificationUuid(),
+      message.getPayload().modelCheckingTaskUuid(),
+      message.getPayload().status()
+    );
     return new RouteResult();
   }
 
   @Override
-  public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,
       Map.of(
         RegisterNode.class, this::registerNodeRoute,
         DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute,
-        NoCounterexampleFound.class, this::processNoCounterexampleFoundRoute,
-        AnalyzeCounterExampleRequest.class, this::processAnalyzeCounterexampleRequestRoute,
-        StopModelCheckingTask.class, this::processStopModelCheckingTaskRoute
+        StopModelCheckingTaskRequest.class, this::processStopModelCheckingTaskRoute
       )
     );
   }
 
   @Override
-  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,
       Map.of(
         ClientCodeModule.class, this::processClientCodeModuleRoute,
-        StartModelCheckingRequest.class, this::processStartModelCheckingRequestRoute,
+        StartModelCheckingTaskRequest.class, this::processStartModelCheckingRequestRoute,
         DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute,
-        StopModelCheckingTask.class, this::processStopModelCheckingTaskRoute
+        StopModelCheckingTaskRequest.class, this::processStopModelCheckingTaskRoute
       )
     );
   }

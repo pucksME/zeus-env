@@ -9,7 +9,9 @@ import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
 import zeus.zeusverifier.routing.NodeAction;
 import zeus.zeusverifier.routing.RouteResult;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.*;
@@ -49,7 +51,9 @@ public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
     try (ServerSocket serverSocket = new ServerSocket(port)) {
       while (!serverSocket.isClosed()) {
         Socket requestSocket = serverSocket.accept();
-        Optional<Message<Object>> messageOptional = this.getMessage(requestSocket);
+        Optional<Message<Object>> messageOptional = this.getMessage(
+          new BufferedReader(new InputStreamReader(requestSocket.getInputStream()))
+        );
         this.processRequest(
           requestSocket,
           messageOptional,
@@ -57,7 +61,8 @@ public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
           (Message<?> message, Socket socket) -> {
             try {
               return this.handleGatewayServerRequest(message, socket);
-            } catch (IOException e) {
+            } catch (Exception e) {
+              e.printStackTrace();
               throw new RuntimeException(e);
             }
         });
@@ -71,14 +76,16 @@ public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
 
     nodesExecutorService.submit(() -> {
       try {
-        this.processRequests(nodeSocket, nodesExecutorService, (Message<?> message, Socket socket) -> {
+        this.processRequests(nodeSocket, new BufferedReader(new InputStreamReader(nodeSocket.getInputStream())), nodesExecutorService, (Message<?> message, Socket socket) -> {
           try {
             return this.handleGatewayServerRequest(message, socket);
-          } catch (IOException e) {
+          } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException(e);
           }
         });
-      } catch (IOException e) {
+      } catch (Exception e) {
+        e.printStackTrace();
         throw new RuntimeException(e);
       }
     });
@@ -91,7 +98,8 @@ public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
     UUID uuid = null;
     try {
       uuid = this.registerNode(requestSocket, this.nodes, this.nodesExecutorService);
-    } catch (IOException e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
     return new RouteResult(new Message<>(new RegisterNodeResponse(uuid)));

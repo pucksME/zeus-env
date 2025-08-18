@@ -4,23 +4,29 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-public class StartModelCheckingRequest {
-  private UUID verificationUuid;
-  private Path path;
+public class StartModelCheckingTaskRequest {
+  private final UUID uuid;
+  private final UUID verificationUuid;
+  private final Path path;
   private Map<UUID, PredicateValuation> predicateValuations;
 
-  public StartModelCheckingRequest(UUID verificationUuid, Path path) {
+  public StartModelCheckingTaskRequest(UUID verificationUuid, Path path) {
+    this.uuid = UUID.randomUUID();
     this.verificationUuid = verificationUuid;
     this.path = path;
   }
 
-  public StartModelCheckingRequest(
+  public StartModelCheckingTaskRequest(
     UUID verificationUuid,
     Path path,
     Map<UUID, PredicateValuation> predicateValuations
   ) {
     this(verificationUuid, path);
     this.predicateValuations = predicateValuations;
+  }
+
+  public UUID getUuid() {
+    return uuid;
   }
 
   public Path getPath() {

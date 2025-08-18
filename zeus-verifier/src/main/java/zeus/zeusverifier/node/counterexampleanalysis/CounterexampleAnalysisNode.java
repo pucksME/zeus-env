@@ -7,7 +7,8 @@ import zeus.shared.message.payload.abstraction.AbstractionFailed;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.counterexampleanalysis.InvalidCounterexample;
 import zeus.shared.message.payload.counterexampleanalysis.ValidCounterexample;
-import zeus.shared.message.payload.modelchecking.StopModelCheckingTask;
+import zeus.shared.message.payload.modelchecking.StopModelCheckingTaskRequest;
+import zeus.shared.message.payload.modelchecking.StopModelCheckingTaskRequestStatus;
 import zeus.shared.message.payload.modelchecking.SynchronizedCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysisNodeConfig;
@@ -80,7 +81,11 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
     if (counterexampleOptional.isEmpty()) {
       System.out.println("Counterexample analysis, no new predicates");
       return new RouteResult(new Message<>(
-        new StopModelCheckingTask(message.getPayload().verificationUuid()),
+        new StopModelCheckingTaskRequest(
+          message.getPayload().verificationUuid(),
+          message.getPayload().modelCheckingTaskUuid(),
+          StopModelCheckingTaskRequestStatus.NO_NEW_PREDICATES
+        ),
         new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
       ));
     }
@@ -89,7 +94,11 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
 
     if (counterexample.valid()) {
       return new RouteResult(new Message<>(
-        new ValidCounterexample(message.getPayload().verificationUuid(), counterexample.path()),
+        new ValidCounterexample(
+          message.getPayload().verificationUuid(),
+          message.getPayload().modelCheckingTaskUuid(),
+          counterexample.path()
+        ),
         new Recipient(NodeType.ROOT)
       ));
     }
@@ -97,6 +106,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
     return new RouteResult(new Message<>(
       new InvalidCounterexample(
         message.getPayload().verificationUuid(),
+        message.getPayload().modelCheckingTaskUuid(),
         counterexample.path()
       ),
       new Recipient(NodeType.ROOT)
@@ -104,7 +114,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
   }
 
   @Override
-  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,

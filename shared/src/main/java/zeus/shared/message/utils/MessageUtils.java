@@ -3,9 +3,6 @@ package zeus.shared.message.utils;
 import com.google.gson.JsonObject;
 
 import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 public abstract class MessageUtils {
   public static Class<?> getClass(JsonObject jsonObject, String propertyName) {
@@ -23,11 +20,11 @@ public abstract class MessageUtils {
     }
   }
 
-  public static String readMessage(InputStream inputStream) {
-    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+  public static String readMessage(BufferedReader bufferedReader) {
     try {
       return bufferedReader.readLine();
-    } catch (IOException ioException) {
+    } catch (Exception exception) {
+      exception.printStackTrace();
       return "";
     }
   }

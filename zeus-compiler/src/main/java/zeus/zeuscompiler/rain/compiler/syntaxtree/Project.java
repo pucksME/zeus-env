@@ -22,7 +22,9 @@ import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.Context;
 import zeus.zeuscompiler.umbrellaspecification.compiler.syntaxtree.UmbrellaSpecification;
 import zeus.zeuscompiler.utils.CompilerUtils;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -344,7 +346,7 @@ public class Project extends Node {
         Message<VerificationResponse> responseMessage = new GsonBuilder()
           .registerTypeAdapter(Message.class, new MessageJsonDeserializer<VerificationResponse>())
           .create().fromJson(
-            MessageUtils.readMessage(socket.getInputStream()),
+            MessageUtils.readMessage(new BufferedReader(new InputStreamReader(socket.getInputStream()))),
             Message.class
           );
 

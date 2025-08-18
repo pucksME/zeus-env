@@ -90,7 +90,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   }
 
   private RouteResult processStartModelCheckingRequestRoute(
-    Message<StartModelCheckingRequest> message,
+    Message<StartModelCheckingTaskRequest> message,
     Socket requestSocket
   ) {
     System.out.println("Running startModelChecking route");
@@ -122,13 +122,21 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     ModelCheckingResult modelCheckingResult = codeModuleModelChecker.check();
 
     return switch (modelCheckingResult.getStatus()) {
-      case ModelCheckingResultStatus.NO_COUNTEREXAMPLE_FOUND -> new RouteResult(new Message<>(
-        new NoCounterexampleFound(message.getPayload().getVerificationUuid(), this.getUuid()),
+      case NO_COUNTEREXAMPLE_FOUND -> new RouteResult(new Message<>(
+        new StopModelCheckingTaskRequest(
+          message.getPayload().getVerificationUuid(),
+          message.getPayload().getUuid(),
+          StopModelCheckingTaskRequestStatus.NO_COUNTEREXAMPLE_FOUND
+        ),
         new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
       ));
 
-      case ModelCheckingResultStatus.INFEASIBLE_PREDICATE_VALUATIONS -> new RouteResult(new Message<>(
-          new StopModelCheckingTask(message.getPayload().getVerificationUuid()),
+      case INFEASIBLE_PREDICATE_VALUATIONS -> new RouteResult(new Message<>(
+          new StopModelCheckingTaskRequest(
+            message.getPayload().getVerificationUuid(),
+            message.getPayload().getUuid(),
+            StopModelCheckingTaskRequestStatus.INFEASIBLE_PATH
+          ),
           new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
         ));
 
@@ -144,8 +152,13 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
       case OK -> modelCheckingResult.getPath()
         .map(path -> new RouteResult(new Message<>(
-          new AnalyzeCounterExampleRequest(message.getPayload().getVerificationUuid(), this.getUuid(), path),
-          new Recipient(NodeType.MODEL_CHECKING_GATEWAY))))
+          new AnalyzeCounterExampleRequest(
+            message.getPayload().getVerificationUuid(),
+            message.getPayload().getUuid(),
+            this.getUuid(),
+            path
+          ),
+          new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY))))
         .orElse(new RouteResult(new Message<>(
           new ModelCheckingFailed(this.getUuid(), "missing path in model checking result"),
           new Recipient(NodeType.ROOT)
@@ -155,13 +168,13 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   }
 
   @Override
-  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,
       Map.of(
         ClientCodeModule.class, this::processClientCodeModuleRoute,
-        StartModelCheckingRequest.class, this::processStartModelCheckingRequestRoute,
+        StartModelCheckingTaskRequest.class, this::processStartModelCheckingRequestRoute,
         AbstractResponse.class, this::processAbstractResponseRoute
       )
     );

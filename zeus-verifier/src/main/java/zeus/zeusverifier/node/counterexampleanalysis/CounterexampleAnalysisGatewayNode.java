@@ -21,7 +21,7 @@ public class CounterexampleAnalysisGatewayNode extends GatewayNode<CounterExampl
   }
 
   @Override
-  public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,
@@ -44,7 +44,7 @@ public class CounterexampleAnalysisGatewayNode extends GatewayNode<CounterExampl
   }
 
   @Override
-  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,

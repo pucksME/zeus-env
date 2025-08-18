@@ -16,14 +16,21 @@ import zeus.zeusverifier.routing.NodeAction;
 import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.*;
 import java.util.concurrent.*;
 
 public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket modelCheckingGatewayNodeSocket;
+  PrintWriter modelCheckingGatewayNodePrintWriter;
+
   Socket abstractionGatewayNodeSocket;
+  PrintWriter abstractionGatewayNodePrintWriter;
+
   Socket counterexampleAnalysisGatewayNodeSocket;
+  PrintWriter counterexampleAnalysisGatewayNodePrintWriter;
+
   ExecutorService gatewayNodesExecutorService;
   ConcurrentHashMap<UUID, List<CompletableFuture<UUID>>> pendingCodeModuleSynchronizations;
   ConcurrentHashMap<UUID, List<CompletableFuture<VerificationResult>>> pendingVerification;
@@ -38,24 +45,43 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     this.pendingVerification = new ConcurrentHashMap<>();
   }
 
+  private Optional<PrintWriter> getPrintWriter(Socket socket) {
+    try {
+      return Optional.of(new PrintWriter(socket.getOutputStream(), true));
+    } catch (IOException e) {
+      e.printStackTrace();
+      return Optional.empty();
+    }
+  }
+
   private RouteResult registerGatewayNodeRoute(Message<RegisterNode> message, Socket requestSocket) {
     System.out.println("Running registerGatewayNodeRoute");
+
+    Optional<PrintWriter> printWriterOptional = this.getPrintWriter(requestSocket);
+
+    if (printWriterOptional.isEmpty()) {
+      return new RouteResult(NodeAction.TERMINATE);
+    }
 
     switch (message.getPayload().type()) {
       case MODEL_CHECKING_GATEWAY -> {
         this.modelCheckingGatewayNodeSocket = requestSocket;
+        this.modelCheckingGatewayNodePrintWriter = printWriterOptional.get();
       }
       case ABSTRACTION_GATEWAY -> {
         this.abstractionGatewayNodeSocket = requestSocket;
+        this.abstractionGatewayNodePrintWriter = printWriterOptional.get();
       }
       case COUNTEREXAMPLE_ANALYSIS_GATEWAY -> {
         this.counterexampleAnalysisGatewayNodeSocket = requestSocket;
+        this.counterexampleAnalysisGatewayNodePrintWriter = printWriterOptional.get();
       }
     };
 
     try {
       this.registerNode(requestSocket, this.nodes, this.nodesExecutorService);
-    } catch (IOException e) {
+    } catch (Exception e) {
+      e.printStackTrace();
       throw new RuntimeException(e);
     }
     return new RouteResult(new Message<>(new RegisterNodeResponse(UUID.randomUUID())));
@@ -108,7 +134,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     this.pendingCodeModuleSynchronizations.remove(verificationUuid);
 
     this.sendMessage(new Message<>(
-      new StartModelCheckingRequest(verificationUuid, new Path(new ArrayList<>())),
+      new StartModelCheckingTaskRequest(verificationUuid, new Path(new ArrayList<>())),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ), this.modelCheckingGatewayNodeSocket);
 
@@ -240,7 +266,11 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     ));
 
     return new RouteResult(new Message<>(
-      new StopModelCheckingTask(message.getPayload().verificationUuid()),
+      new StopModelCheckingTaskRequest(
+        message.getPayload().verificationUuid(),
+        message.getPayload().modelCheckingTaskUuid(),
+        StopModelCheckingTaskRequestStatus.VALID_COUNTEREXAMPLE
+      ),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ));
   }
@@ -260,7 +290,11 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     ), this.modelCheckingGatewayNodeSocket);
 
     return new RouteResult(new Message<>(
-      new StopModelCheckingTask(message.getPayload().verificationUuid()),
+      new StopModelCheckingTaskRequest(
+        message.getPayload().verificationUuid(),
+        message.getPayload().modelCheckingTaskUuid(),
+        StopModelCheckingTaskRequestStatus.INVALID_COUNTEREXAMPLE
+      ),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ));
   }
@@ -294,7 +328,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   }
 
   @Override
-  public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) throws IOException {
+  public NodeAction handleGatewayServerRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
       message,
       requestSocket,
