@@ -12,6 +12,8 @@ import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysi
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
+import zeus.zeusverifier.config.storagenode.StorageGatewayNodeConfig;
+import zeus.zeusverifier.config.storagenode.StorageNodeConfig;
 import zeus.zeusverifier.node.abstraction.AbstractionGatewayNode;
 import zeus.zeusverifier.node.abstraction.AbstractionNode;
 import zeus.zeusverifier.node.counterexampleanalysis.CounterexampleAnalysisGatewayNode;
@@ -20,6 +22,8 @@ import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.node.RootNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingGatewayNode;
+import zeus.zeusverifier.node.storage.StorageGatewayNode;
+import zeus.zeusverifier.node.storage.StorageNode;
 import zeus.zeusverifier.utils.ConfigJsonDeserializer;
 
 import java.io.FileNotFoundException;
@@ -45,6 +49,8 @@ public class Main {
       case ABSTRACTION_NODE -> new AbstractionNode((AbstractionNodeConfig) config);
       case COUNTER_EXAMPLE_GATEWAY_NODE -> new CounterexampleAnalysisGatewayNode((CounterExampleAnalysisGatewayNodeConfig) config);
       case COUNTER_EXAMPLE_NODE -> new CounterexampleAnalysisNode((CounterExampleAnalysisNodeConfig) config);
+      case STORAGE_GATEWAY_NODE -> new StorageGatewayNode((StorageGatewayNodeConfig) config);
+      case STORAGE_NODE -> new StorageNode((StorageNodeConfig) config);
     };
   }
 

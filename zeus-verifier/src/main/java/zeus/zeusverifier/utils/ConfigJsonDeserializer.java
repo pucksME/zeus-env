@@ -9,6 +9,8 @@ import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysi
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingGatewayNodeConfig;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
+import zeus.zeusverifier.config.storagenode.StorageGatewayNodeConfig;
+import zeus.zeusverifier.config.storagenode.StorageNodeConfig;
 
 import java.lang.reflect.Type;
 
@@ -45,6 +47,8 @@ public class ConfigJsonDeserializer implements JsonDeserializer<Config> {
       case "abstraction-node" -> jsonDeserializationContext.deserialize(jsonElement, AbstractionNodeConfig.class);
       case "counterexample-analysis-gateway-node" -> jsonDeserializationContext.deserialize(jsonElement, CounterExampleAnalysisGatewayNodeConfig.class);
       case "counterexample-analysis-node" -> jsonDeserializationContext.deserialize(jsonElement, CounterExampleAnalysisNodeConfig.class);
+      case "storage-gateway-node" -> jsonDeserializationContext.deserialize(jsonElement, StorageGatewayNodeConfig.class);
+      case "storage-node" -> jsonDeserializationContext.deserialize(jsonElement, StorageNodeConfig.class);
       default -> throw new RuntimeException(String.format(
         "Could not deserialize config: unsupported type \"%s\"",
         nodeType

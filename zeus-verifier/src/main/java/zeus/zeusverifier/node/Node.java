@@ -24,6 +24,8 @@ import zeus.zeusverifier.node.counterexampleanalysis.CounterexampleAnalysisGatew
 import zeus.zeusverifier.node.counterexampleanalysis.CounterexampleAnalysisNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingGatewayNode;
 import zeus.zeusverifier.node.modelchecking.ModelCheckingNode;
+import zeus.zeusverifier.node.storage.StorageGatewayNode;
+import zeus.zeusverifier.node.storage.StorageNode;
 import zeus.zeusverifier.routing.NodeAction;
 import zeus.zeusverifier.routing.RouteResult;
 
@@ -56,6 +58,8 @@ public abstract class Node<T extends Config> {
       case ABSTRACTION_NODE -> NodeType.ABSTRACTION;
       case COUNTER_EXAMPLE_GATEWAY_NODE -> NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY;
       case COUNTER_EXAMPLE_NODE -> NodeType.COUNTEREXAMPLE_ANALYSIS;
+      case STORAGE_GATEWAY_NODE -> NodeType.STORAGE_GATEWAY;
+      case STORAGE_NODE -> NodeType.STORAGE;
     };
   }
 
@@ -129,6 +133,8 @@ public abstract class Node<T extends Config> {
       case AbstractionNode _ -> NodeType.ABSTRACTION;
       case CounterexampleAnalysisGatewayNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY;
       case CounterexampleAnalysisNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS;
+      case StorageGatewayNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY;
+      case StorageNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS;
       default -> throw new RuntimeException(String.format(
         "Could not register node on gateway: unsupported node type \"%s\"",
         this.getClass().getSimpleName()

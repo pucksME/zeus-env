@@ -31,6 +31,9 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   Socket counterexampleAnalysisGatewayNodeSocket;
   PrintWriter counterexampleAnalysisGatewayNodePrintWriter;
 
+  Socket storageGatewayNodeSocket;
+  PrintWriter storageGatewayNodePrintWriter;
+
   ExecutorService gatewayNodesExecutorService;
   ConcurrentHashMap<UUID, List<CompletableFuture<UUID>>> pendingCodeModuleSynchronizations;
   ConcurrentHashMap<UUID, List<CompletableFuture<VerificationResult>>> pendingVerification;
@@ -75,6 +78,10 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       case COUNTEREXAMPLE_ANALYSIS_GATEWAY -> {
         this.counterexampleAnalysisGatewayNodeSocket = requestSocket;
         this.counterexampleAnalysisGatewayNodePrintWriter = printWriterOptional.get();
+      }
+      case STORAGE_GATEWAY -> {
+        this.storageGatewayNodeSocket = requestSocket;
+        this.storageGatewayNodePrintWriter = printWriterOptional.get();
       }
     };
 
