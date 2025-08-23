@@ -73,24 +73,20 @@ public class CodeModuleModelChecker {
 
   public boolean calibrate(StartModelCheckingTaskRequest startModelCheckingTaskRequest) {
     Path path = startModelCheckingTaskRequest.getPath();
-    Optional<ComponentSearchResult> componentSearchResultOptional = path.states().isEmpty()
+    Optional<ComponentSearchResult> componentSearchResultOptional = path.getStates().isEmpty()
       ? this.codeModule.getFirstComponent()
-      : this.codeModule.searchComponent(path.states().getLast().getLocation());
+      : this.codeModule.searchComponent(path.getStates().getLast().getLocation());
 
     if (componentSearchResultOptional.isEmpty()) {
       return false;
     }
 
     ComponentSearchResult componentSearchResult = componentSearchResultOptional.get();
-    this.currentIndex = (path.states().isEmpty())
-      ? componentSearchResult.getIndex()
-      : componentSearchResult.getIndex() + 1;
+    this.currentIndex = componentSearchResult.getIndex();
     this.currentStatementParents = componentSearchResult.getParents();
     this.updateCurrentComponents();
     this.path = path;
-    this.predicates = (path.states().isEmpty())
-      ? new HashMap<>()
-      : path.states().getLast().getPredicates().orElse(new HashSet<>()).stream()
+    this.predicates = path.getPredicates().stream()
       .collect(Collectors.toMap(Predicate::getUuid, predicate -> predicate));
 
     startModelCheckingTaskRequest.getPredicateValuations().ifPresent(uuidPredicateValuationMap ->
@@ -111,13 +107,23 @@ public class CodeModuleModelChecker {
 
       ParentStatement parentStatement = ((LinkedList<ParentStatement>) currentStatementParents).peekLast();
 
-      return getNextComponent(
-        parentStatement.getIndex(),
-        parentStatement.getComponents(),
-        new LinkedList<>(((LinkedList<ParentStatement>) currentStatementParents).subList(
+      if (parentStatement.getControlStatement() instanceof WhileStatement) {
+        return Optional.of(parentStatement.getControlStatement());
+      }
+
+      LinkedList<ParentStatement> nextParentStatements = new LinkedList<>(
+        ((LinkedList<ParentStatement>) currentStatementParents).subList(
           0,
           currentStatementParents.size() - 1
-        ))
+        )
+      );
+
+      return getNextComponent(
+        parentStatement.getIndex(),
+        (nextParentStatements.isEmpty())
+          ? this.codeModule.getComponents()
+          : nextParentStatements.peekLast().getComponents(),
+        nextParentStatements
       );
     }
 
@@ -160,12 +166,7 @@ public class CodeModuleModelChecker {
       }
 
       case FALSE -> {
-        if (controlStatement instanceof WhileStatement) {
-          this.currentIndex++;
-          return;
-        }
-
-        if (((IfStatement) controlStatement).getElseBody() == null) {
+        if (controlStatement instanceof WhileStatement || ((IfStatement) controlStatement).getElseBody() == null) {
           this.currentIndex++;
           return;
         }
@@ -175,6 +176,7 @@ public class CodeModuleModelChecker {
           ((IfStatement) controlStatement).getElseBody().getBodyComponents(),
           this.currentIndex
         ));
+
         this.currentIndex = 0;
         this.updateCurrentComponents();
       }
@@ -188,8 +190,8 @@ public class CodeModuleModelChecker {
         this.modelCheckingNode.sendMessage(new Message<>(new DistributeModelCheckingRequest(
           this.verificationUuid,
           new Path(Stream.concat(
-            this.path.states().stream(),
-            Stream.of(new State(new Location(bodyComponent.getLine(), bodyComponent.getLinePosition())))
+            this.path.getStates().stream(),
+            Stream.of(new State(new Location(bodyComponent.getLine(), bodyComponent.getLinePosition()), false))
           ).toList()),
           new ArrayList<>(List.of(this.predicateValuations))
         ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
@@ -200,11 +202,8 @@ public class CodeModuleModelChecker {
   }
 
   private void handleCurrentParentStatement() {
-    if (this.currentStatementParents.isEmpty()) {
-      return;
-    }
-
     ParentStatement parentStatement = ((LinkedList<ParentStatement>) this.currentStatementParents).pop();
+    this.updateCurrentComponents();
 
     if (parentStatement.getControlStatement() instanceof WhileStatement) {
       Optional<AbstractLiteral> abstractionLiteralOptional = this.evaluateExpression(
@@ -216,11 +215,16 @@ public class CodeModuleModelChecker {
       }
 
       AbstractLiteral abstractLiteral = abstractionLiteralOptional.get();
+
+      if (abstractLiteral != AbstractLiteral.FALSE) {
+        ControlStatement controlStatement = parentStatement.getControlStatement();
+        this.path.getStates().add(new State(new Location(controlStatement.getLine(), controlStatement.getLinePosition())));
+      }
+
       this.handleControlStatement(parentStatement.getControlStatement(), abstractLiteral);
       return;
     }
 
-    this.updateCurrentComponents();
     this.currentIndex = parentStatement.getIndex() + 1;
   }
 
@@ -233,9 +237,9 @@ public class CodeModuleModelChecker {
 
     Formula expressionFormula = expression.toFormula(this.variables);
     Set<String> expressionRelevantPredicates = expressionFormula.getReferencedVariables();
+
     Set<Predicate> relevantPredicates = this.predicates.values().stream()
-      .filter(predicate -> predicate.getFormula().getReferencedVariables().stream()
-        .anyMatch(expressionRelevantPredicates::contains))
+      .filter(predicate -> predicate.getFormula().getReferencedVariables().contains(variable))
       .collect(Collectors.toSet());
 
     Set<Predicate> relevantPredicatesWeakestPrecondition = relevantPredicates.stream()
@@ -292,6 +296,10 @@ public class CodeModuleModelChecker {
       }
     }
 
+    if (deterministicPredicateValuations.size() == this.predicateValuations.size()) {
+      return;
+    }
+
     List<Map<UUID, PredicateValuation>> predicateValuations = PredicateValuation.getCombinations(
       deterministicPredicateValuations,
       nonDeterministicPredicateValuations
@@ -315,19 +323,19 @@ public class CodeModuleModelChecker {
     }
 
     this.predicateValuations = predicateValuations.getFirst();
-    predicateValuations.removeFirst();
-
     Component nextComponent = nextComponentOptional.get();
+
     this.modelCheckingNode.sendMessage(new Message<>(
       new DistributeModelCheckingRequest(
         this.verificationUuid,
         new Path(Stream.concat(
-          this.path.states().stream(),
+          this.path.getStates().stream(),
           Stream.of(new State(
             new Location(nextComponent.getLine(), nextComponent.getLinePosition()),
-            new HashSet<>(this.predicates.values())
+            new HashSet<>(this.predicates.values()),
+            false
           ))
-      ).toList()), predicateValuations),
+      ).toList()), predicateValuations.subList(1, predicateValuations.size())),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ));
   }
@@ -373,11 +381,15 @@ public class CodeModuleModelChecker {
         }
 
         this.handleCurrentParentStatement();
-        continue;
       }
 
       Component component = this.currentComponents.get(this.currentIndex);
-      this.path.states().add(new State(new Location(component.getLine(), component.getLinePosition())));
+
+      if (this.path.getStates().isEmpty() || this.path.getStates().getLast().isChecked()) {
+        this.path.getStates().add(new State(new Location(component.getLine(), component.getLinePosition())));
+      }
+
+      this.path.getStates().getLast().setChecked(true);
 
       switch (component) {
         case ControlStatement controlStatement -> {

@@ -18,4 +18,9 @@ public class AddFormula extends BinaryArithmeticFormula {
   public Formula replace(String variable, Formula formula) {
     return new AddFormula(this.leftFormula.replace(variable, formula), rightFormula.replace(variable, formula));
   }
+
+  @Override
+  public String toString() {
+    return String.format("%s + %s", this.leftFormula, this.rightFormula);
+  }
 }

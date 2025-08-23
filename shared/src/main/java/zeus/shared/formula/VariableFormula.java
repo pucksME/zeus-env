@@ -29,4 +29,9 @@ public abstract class VariableFormula extends Formula {
   public Set<Formula> extractPredicateFormulas() {
     return new HashSet<>(Set.of(this));
   }
+
+  @Override
+  public String toString() {
+    return this.id;
+  }
 }

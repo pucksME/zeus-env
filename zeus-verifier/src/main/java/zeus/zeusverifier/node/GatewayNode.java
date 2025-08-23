@@ -112,7 +112,7 @@ public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
 
     List<UUID> nodeUuids = new ArrayList<>(this.nodes.keySet());
     UUID nodeUuid = nodeUuids.get(new Random().nextInt(nodeUuids.size()));
-    this.sendMessage(message, this.nodes.get(nodeUuid));
+    Node.sendMessage(message, this.nodes.get(nodeUuid));
     return Optional.of(nodeUuid);
   }
 

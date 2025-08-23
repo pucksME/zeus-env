@@ -36,25 +36,15 @@ public class CounterexampleAnalyzer {
     CounterexampleAnalysisNode counterexampleAnalysisNode
   ) {
     this.path = path;
-    this.predicates = this.getPredicates(this.path);
+    this.predicates = this.path.getPredicates();
     this.clientCodeModule = clientCodeModule;
     this.counterexampleAnalysisNode = counterexampleAnalysisNode;
-  }
-
-  private Set<Predicate> getPredicates(Path path) {
-    for (int i = path.states().size() - 1; i >= 0; i--) {
-      Optional<Set<Predicate>> predicatesOptional = path.states().get(i).getPredicates();
-      if (predicatesOptional.isPresent()) {
-        return predicatesOptional.get();
-      }
-    }
-    return new HashSet<>();
   }
 
   private Optional<List<Component>> findComponents(Path path) {
     List<Component> components = new ArrayList<>();
 
-    for (State state : path.states()) {
+    for (State state : path.getStates()) {
       Location location = state.getLocation();
       Optional<ComponentSearchResult> componentSearchResultOptional = this.clientCodeModule.searchComponent(location);
 
@@ -140,7 +130,7 @@ public class CounterexampleAnalyzer {
     }
   }
 
-  public Optional<Counterexample> analyze() {
+  public Optional<CounterexampleAnalysisResult> analyze() {
     Optional<Map<String, VariableInformation>> variablesOptional = this.clientCodeModule.getVariables();
 
     if (variablesOptional.isEmpty()) {
@@ -230,23 +220,24 @@ public class CounterexampleAnalyzer {
       .toList());
 
     if (newPredicateCandidates.isEmpty()) {
-      return Optional.of(new Counterexample(counterexamplePath, true));
+      return Optional.of(new CounterexampleAnalysisResult(counterexamplePath));
     }
 
-    if (!counterexamplePath.states().isEmpty()) {
+    if (!counterexamplePath.getStates().isEmpty()) {
       Set<Predicate> newPredicates = this.findNewPredicates(newPredicateCandidates);
 
       if (newPredicates.isEmpty()) {
         return Optional.empty();
       }
 
-      counterexamplePath = new Path(counterexamplePath.states().subList(0, componentIndex + 1));
-      counterexamplePath.states().getLast().setPredicates(Stream.concat(
+      Path counterexampleValidPath = new Path(counterexamplePath.getStates().subList(0, componentIndex + 1));
+      counterexampleValidPath.getStates().getLast().setChecked(false);
+      counterexampleValidPath.getStates().getLast().setPredicates(Stream.concat(
         this.predicates.stream(),
         newPredicates.stream()
       ).collect(Collectors.toSet()));
 
-      return Optional.of(new Counterexample(counterexamplePath, false));
+      return Optional.of(new CounterexampleAnalysisResult(counterexamplePath, counterexampleValidPath));
     }
 
     this.counterexampleAnalysisNode.sendMessage(new Message<>(

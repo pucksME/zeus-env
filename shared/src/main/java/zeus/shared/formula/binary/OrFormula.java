@@ -26,4 +26,9 @@ public class OrFormula extends BinaryBooleanFormula {
   public Set<Formula> extractPredicateFormulas() {
     return new HashSet<>(Set.of(this));
   }
+
+  @Override
+  public String toString() {
+    return String.format("%s | %s", this.leftFormula, this.rightFormula);
+  }
 }

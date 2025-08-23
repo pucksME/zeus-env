@@ -7,6 +7,7 @@ import zeus.shared.message.payload.abstraction.AbstractionFailed;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.counterexampleanalysis.InvalidCounterexample;
 import zeus.shared.message.payload.counterexampleanalysis.ValidCounterexample;
+import zeus.shared.message.payload.modelchecking.Path;
 import zeus.shared.message.payload.modelchecking.StopModelCheckingTaskRequest;
 import zeus.shared.message.payload.modelchecking.StopModelCheckingTaskRequestStatus;
 import zeus.shared.message.payload.modelchecking.SynchronizedCodeModule;
@@ -76,7 +77,7 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
       this
     );
 
-    Optional<Counterexample> counterexampleOptional = counterexampleAnalyzer.analyze();
+    Optional<CounterexampleAnalysisResult> counterexampleOptional = counterexampleAnalyzer.analyze();
 
     if (counterexampleOptional.isEmpty()) {
       System.out.println("Counterexample analysis, no new predicates");
@@ -90,27 +91,25 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
       ));
     }
 
-    Counterexample counterexample = counterexampleOptional.get();
+    CounterexampleAnalysisResult counterexampleAnalysisResult = counterexampleOptional.get();
+    Optional<Path> counterExampleValidPathOptional = counterexampleAnalysisResult.getValidPath();
 
-    if (counterexample.valid()) {
-      return new RouteResult(new Message<>(
-        new ValidCounterexample(
-          message.getPayload().verificationUuid(),
-          message.getPayload().modelCheckingTaskUuid(),
-          counterexample.path()
-        ),
-        new Recipient(NodeType.ROOT)
-      ));
-    }
-
-    return new RouteResult(new Message<>(
+    return counterExampleValidPathOptional.map(path -> new RouteResult(new Message<>(
       new InvalidCounterexample(
         message.getPayload().verificationUuid(),
         message.getPayload().modelCheckingTaskUuid(),
-        counterexample.path()
+        counterexampleAnalysisResult.getPath(),
+        path
       ),
       new Recipient(NodeType.ROOT)
-    ));
+    ))).orElseGet(() -> new RouteResult(new Message<>(
+      new ValidCounterexample(
+        message.getPayload().verificationUuid(),
+        message.getPayload().modelCheckingTaskUuid(),
+        counterexampleAnalysisResult.getPath()
+      ),
+      new Recipient(NodeType.ROOT)
+    )));
   }
 
   @Override

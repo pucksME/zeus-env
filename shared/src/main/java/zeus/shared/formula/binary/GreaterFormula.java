@@ -18,4 +18,9 @@ public class GreaterFormula extends BinaryArithmeticFormula {
   public Formula replace(String variable, Formula formula) {
     return new GreaterFormula(this.leftFormula.replace(variable, formula), this.rightFormula.replace(variable, formula));
   }
+
+  @Override
+  public String toString() {
+    return String.format("%s > %s", this.leftFormula, this.rightFormula);
+  }
 }

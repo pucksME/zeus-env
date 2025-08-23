@@ -26,4 +26,9 @@ public class NotFormula extends UnaryBooleanFormula {
   public Set<Formula> extractPredicateFormulas() {
     return new HashSet<>(Set.of(this.formula));
   }
+
+  @Override
+  public String toString() {
+    return String.format("!%s", this.formula);
+  }
 }

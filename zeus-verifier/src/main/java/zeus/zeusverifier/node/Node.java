@@ -99,7 +99,7 @@ public abstract class Node<T extends Config> {
     return messageOptional;
   }
 
-  public void sendMessage(Message<?> message, Socket socket) {
+  public static synchronized void sendMessage(Message<?> message, Socket socket) {
     try {
       PrintWriter printWriter = new PrintWriter(socket.getOutputStream(), true);
       printWriter.println(message.toJsonString());
@@ -110,7 +110,7 @@ public abstract class Node<T extends Config> {
   }
 
   public void sendMessageToGateway(Message<?> message) {
-    this.sendMessage(message, this.gatewayNodeSocket);
+    Node.sendMessage(message, this.gatewayNodeSocket);
   }
 
   public void sendMessage(Message<?> message) {
@@ -122,7 +122,7 @@ public abstract class Node<T extends Config> {
   }
 
   private boolean registerOnGateway(Socket gatewaySocket, BufferedReader bufferedReader) throws IOException {
-    this.sendMessage(new Message<>(new RegisterNode(switch (this) {
+    Node.sendMessage(new Message<>(new RegisterNode(switch (this) {
       case ModelCheckingGatewayNode _ -> NodeType.MODEL_CHECKING_GATEWAY;
       case ModelCheckingNode _ -> NodeType.MODEL_CHECKING;
       case AbstractionGatewayNode _ -> NodeType.ABSTRACTION_GATEWAY;
@@ -168,16 +168,15 @@ public abstract class Node<T extends Config> {
           return false;
         case MODEL_CHECKING_GATEWAY:
         case MODEL_CHECKING:
-          //this.sendMessage(message, ((RootNode) this).modelCheckingGatewayNodeSocket);
-          ((RootNode) this).modelCheckingGatewayNodePrintWriter.println(message.toJsonString());
+          Node.sendMessage(message, ((RootNode) this).modelCheckingGatewayNodeSocket);
           break;
         case ABSTRACTION_GATEWAY:
         case ABSTRACTION:
-          this.sendMessage(message, ((RootNode) this).abstractionGatewayNodeSocket);
+          Node.sendMessage(message, ((RootNode) this).abstractionGatewayNodeSocket);
           break;
         case COUNTEREXAMPLE_ANALYSIS_GATEWAY:
         case COUNTEREXAMPLE_ANALYSIS:
-          this.sendMessage(message, ((RootNode) this).counterexampleAnalysisGatewayNodeSocket);
+          Node.sendMessage(message, ((RootNode) this).counterexampleAnalysisGatewayNodeSocket);
           break;
       }
       return true;

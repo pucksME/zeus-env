@@ -30,4 +30,9 @@ public class Predicate {
   public Formula getFormula() {
     return formula;
   }
+
+  @Override
+  public String toString() {
+    return String.format("p_%s: %s", this.uuid.toString().substring(0, 3), this.formula);
+  }
 }

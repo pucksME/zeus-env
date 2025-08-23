@@ -96,12 +96,12 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       List.of(new CompletableFuture<>(), new CompletableFuture<>())
     );
 
-    this.sendMessage(new Message<>(
+    Node.sendMessage(new Message<>(
       message.getPayload(),
       new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
     ), this.modelCheckingGatewayNodeSocket);
 
-    this.sendMessage(new Message<>(
+    Node.sendMessage(new Message<>(
       message.getPayload(),
       new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS, NodeSelection.ALL)
     ), this.counterexampleAnalysisGatewayNodeSocket);
@@ -133,7 +133,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
     this.pendingCodeModuleSynchronizations.remove(verificationUuid);
 
-    this.sendMessage(new Message<>(
+    Node.sendMessage(new Message<>(
       new StartModelCheckingTaskRequest(verificationUuid, new Path(new ArrayList<>())),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
     ), this.modelCheckingGatewayNodeSocket);
@@ -240,6 +240,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
   private RouteResult processValidCounterexampleRoute(Message<ValidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processValidCounterexampleRoute");
+    System.out.println(message.getPayload().path());
     List<CompletableFuture<VerificationResult>> verificationResults = this.pendingVerification.get(
       message.getPayload().verificationUuid()
     );
@@ -277,12 +278,15 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
   private RouteResult processInvalidCounterexampleRoute(Message<InvalidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processInvalidCounterexampleRoute");
-    this.sendMessage(new Message<>(
+    System.out.println(message.getPayload().path());
+    System.out.println("Valid path");
+    System.out.println(message.getPayload().validPath());
+    Node.sendMessage(new Message<>(
       new DistributeModelCheckingRequest(
         message.getPayload().verificationUuid(),
-        message.getPayload().path(),
+        message.getPayload().validPath(),
         PredicateValuation.getCombinations(
-          message.getPayload().path().states().getLast().getPredicates().orElse(new HashSet<>()).stream()
+          message.getPayload().validPath().getPredicates().stream()
             .map(Predicate::getUuid)
             .toList()
         )),

@@ -27,4 +27,9 @@ public class BooleanLiteralFormula extends LiteralFormula<Boolean> {
   public boolean isAtomic() {
     return true;
   }
+
+  @Override
+  public String toString() {
+    return (this.value) ? "true" : "false";
+  }
 }

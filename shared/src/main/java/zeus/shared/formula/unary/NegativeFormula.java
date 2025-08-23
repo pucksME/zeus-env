@@ -26,4 +26,9 @@ public class NegativeFormula extends UnaryArithmeticFormula {
   public Set<Formula> extractPredicateFormulas() {
     return new HashSet<>(Set.of(this));
   }
+
+  @Override
+  public String toString() {
+    return String.format("-%s", this.formula);
+  }
 }

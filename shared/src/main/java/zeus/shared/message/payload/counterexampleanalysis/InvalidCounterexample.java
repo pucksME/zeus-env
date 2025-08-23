@@ -4,5 +4,5 @@ import zeus.shared.message.payload.modelchecking.Path;
 
 import java.util.UUID;
 
-public record InvalidCounterexample(UUID verificationUuid, UUID modelCheckingTaskUuid, Path path) {
+public record InvalidCounterexample(UUID verificationUuid, UUID modelCheckingTaskUuid, Path path, Path validPath) {
 }

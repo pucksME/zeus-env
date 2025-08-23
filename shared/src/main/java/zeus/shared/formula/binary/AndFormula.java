@@ -30,4 +30,9 @@ public class AndFormula extends BinaryBooleanFormula {
       this.rightFormula.extractPredicateFormulas().stream()
     ).collect(Collectors.toSet());
   }
+
+  @Override
+  public String toString() {
+    return String.format("%s & %s", this.leftFormula, this.rightFormula);
+  }
 }
