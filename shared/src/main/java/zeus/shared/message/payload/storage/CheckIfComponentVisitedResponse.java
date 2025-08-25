@@ -4,5 +4,5 @@ import zeus.shared.message.payload.modelchecking.Location;
 
 import java.util.UUID;
 
-public record CheckIfComponentVisitedResponse(UUID uuid, Location location, boolean visited) {
+public record CheckIfComponentVisitedResponse(UUID requestUuid, Location location, boolean visited) {
 }

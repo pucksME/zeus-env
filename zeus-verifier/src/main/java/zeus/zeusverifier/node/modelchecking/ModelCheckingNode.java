@@ -10,6 +10,8 @@ import zeus.shared.message.payload.abstraction.AbstractResponse;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.modelchecking.*;
+import zeus.shared.message.payload.storage.AddVisitedComponentRequest;
+import zeus.shared.message.payload.storage.AddVisitedComponentResponse;
 import zeus.shared.message.payload.storage.CheckIfComponentVisitedRequest;
 import zeus.shared.message.payload.storage.CheckIfComponentVisitedResponse;
 import zeus.shared.predicate.Predicate;
@@ -31,12 +33,14 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   ConcurrentHashMap<UUID, ClientCodeModule> codeModules = new ConcurrentHashMap<>();
   ConcurrentHashMap<UUID, CompletableFuture<AbstractLiteral>> pendingAbstractionRequests;
   ConcurrentHashMap<UUID, CompletableFuture<Boolean>> pendingCheckIfComponentVisitedRequests;
+  ConcurrentHashMap<UUID, CompletableFuture<Boolean>> pendingAddVisitedComponentRequests;
   ExecutorService modelCheckingExecutor;
 
   public ModelCheckingNode(ModelCheckingNodeConfig config) {
     super(config);
     this.pendingAbstractionRequests = new ConcurrentHashMap<>();
     this.pendingCheckIfComponentVisitedRequests = new ConcurrentHashMap<>();
+    this.pendingAddVisitedComponentRequests = new ConcurrentHashMap<>();
     this.modelCheckingExecutor = Executors.newSingleThreadExecutor();
   }
 
@@ -94,11 +98,12 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     return new RouteResult();
   }
 
-  CompletableFuture<Boolean> sendCheckIfComponentVisitedRequest(
+  Optional<Boolean> checkIfComponentVisitedRequest(
     UUID verificationUuid,
     Location location,
     Set<PredicateValuation> predicateValuations) {
     UUID uuid = UUID.randomUUID();
+
     this.sendMessage(new Message<>(new CheckIfComponentVisitedRequest(
       uuid,
       verificationUuid,
@@ -109,7 +114,33 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
     CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
     this.pendingCheckIfComponentVisitedRequests.put(uuid, completableFuture);
-    return completableFuture;
+
+    try {
+      return Optional.of(completableFuture.get());
+    } catch (InterruptedException | ExecutionException e) {
+      return Optional.empty();
+    }
+  }
+
+  boolean addVisitedComponent(UUID verificationUuid, Location location, Set<PredicateValuation> predicateValuations) {
+    UUID uuid = UUID.randomUUID();
+
+    this.sendMessage(new Message<>(new AddVisitedComponentRequest(
+      uuid,
+      verificationUuid,
+      this.getUuid(),
+      location,
+      predicateValuations
+    ), new Recipient(NodeType.STORAGE, NodeSelection.ANY)));
+
+    CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
+    this.pendingAddVisitedComponentRequests.put(uuid, completableFuture);
+
+    try {
+      return completableFuture.get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   private RouteResult processStartModelCheckingRequestRoute(
@@ -208,16 +239,31 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     Socket socket
   ) {
     System.out.println("Running checkIfComponentVisited route");
-    CompletableFuture<Boolean> completableFuture = this.pendingCheckIfComponentVisitedRequests.get(message.getPayload().uuid());
+    CompletableFuture<Boolean> completableFuture = this.pendingCheckIfComponentVisitedRequests.get(message.getPayload().requestUuid());
 
     if (completableFuture == null) {
       return new RouteResult(new Message<>(new ModelCheckingFailed(
         this.getUuid(),
-        String.format("no pending check if component visited for uuid \"%s\"", message.getPayload().uuid())
+        String.format("no pending check if component visited for uuid \"%s\"", message.getPayload().requestUuid())
       ), new Recipient(NodeType.ROOT)));
     }
 
     completableFuture.complete(message.getPayload().visited());
+    return new RouteResult();
+  }
+
+  private RouteResult processAddVisitedComponentResponseRoute(Message<AddVisitedComponentResponse> message, Socket socket) {
+    System.out.println("Running AddVisitedComponentResponseRoute route");
+    CompletableFuture<Boolean> completableFuture = this.pendingAddVisitedComponentRequests.get(message.getPayload().requestUuid());
+
+    if (completableFuture == null) {
+      return new RouteResult(new Message<>(new ModelCheckingFailed(
+        this.getUuid(),
+        String.format("no pending add visited component request for uuid \"%s\"", message.getPayload().requestUuid())
+      ), new Recipient(NodeType.ROOT)));
+    }
+
+    completableFuture.complete(message.getPayload().existed());
     return new RouteResult();
   }
 
@@ -230,7 +276,8 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
         ClientCodeModule.class, this::processClientCodeModuleRoute,
         StartModelCheckingTaskRequest.class, this::processStartModelCheckingRequestRoute,
         AbstractResponse.class, this::processAbstractResponseRoute,
-        CheckIfComponentVisitedResponse.class, this::processCheckIfComponentVisitedResponseRoute
+        CheckIfComponentVisitedResponse.class, this::processCheckIfComponentVisitedResponseRoute,
+        AddVisitedComponentResponse.class, this::processAddVisitedComponentResponseRoute
       )
     );
   }

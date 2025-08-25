@@ -10,7 +10,7 @@ import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.modelchecking.*;
-import zeus.shared.message.payload.storage.AddVisitedComponent;
+import zeus.shared.message.payload.storage.AddVisitedComponentRequest;
 import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
@@ -154,11 +154,11 @@ public class CodeModuleModelChecker {
   }
 
   private void handleControlStatement(ControlStatement controlStatement, AbstractLiteral abstractLiteral) {
-    this.modelCheckingNode.sendMessage(new Message<>(new AddVisitedComponent(
+    this.modelCheckingNode.addVisitedComponent(
       this.verificationUuid,
       new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
       new HashSet<>(this.predicateValuations.values())
-    ), new Recipient(NodeType.STORAGE, NodeSelection.ALL)));
+    );
 
     switch (abstractLiteral) {
       case TRUE -> {
@@ -411,17 +411,18 @@ public class CodeModuleModelChecker {
           }
 
           if (controlStatement instanceof WhileStatement) {
-            CompletableFuture<Boolean> completableFuture = this.modelCheckingNode.sendCheckIfComponentVisitedRequest(
+            Optional<Boolean> componentVisitedOptional = this.modelCheckingNode.checkIfComponentVisitedRequest(
               this.verificationUuid,
               new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
               new HashSet<>(this.predicateValuations.values())
             );
-            try {
-              if (completableFuture.get()) {
-                return new ModelCheckingResult(ModelCheckingResultStatus.COMPONENT_ALREADY_VISITED);
-              }
-            } catch (InterruptedException | ExecutionException e) {
+
+            if (componentVisitedOptional.isEmpty()) {
               return new ModelCheckingResult(ModelCheckingResultStatus.CHECK_IF_COMPONENT_VISITED_FAILED);
+            }
+
+            if (componentVisitedOptional.get()) {
+              return new ModelCheckingResult(ModelCheckingResultStatus.COMPONENT_ALREADY_VISITED);
             }
           }
 

@@ -6,8 +6,10 @@ import zeus.shared.message.payload.modelchecking.PredicateValuation;
 import java.util.Set;
 import java.util.UUID;
 
-public record AddVisitedComponent(
+public record AddVisitedComponentRequest(
+  UUID uuid,
   UUID verificationUuid,
+  UUID modelCheckingNodeUuid,
   Location location,
   Set<PredicateValuation> predicateValuations
 ) {

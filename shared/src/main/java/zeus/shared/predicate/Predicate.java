@@ -35,4 +35,8 @@ public class Predicate {
   public String toString() {
     return String.format("p_%s: %s", this.uuid.toString().substring(0, 3), this.formula);
   }
+
+  public static Predicate fromFormula(Formula formula) {
+    return new Predicate(UUID.randomUUID(), formula);
+  }
 }

@@ -14,7 +14,6 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -80,7 +79,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
   ) {
     System.out.println("Running processCheckIfComponentVisitedResponseRoute");
     Set<CompletableFuture<Boolean>> completableFutures = this.pendingCheckIfComponentVisitedRequests.get(
-      message.getPayload().uuid()
+      message.getPayload().requestUuid()
     );
 
     if (completableFutures == null) {

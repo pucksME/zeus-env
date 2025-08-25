@@ -25,16 +25,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CounterexampleAnalyzer {
+  private final UUID verificationUuid;
   Path path;
   Set<Predicate> predicates;
   ClientCodeModule clientCodeModule;
   CounterexampleAnalysisNode counterexampleAnalysisNode;
 
   public CounterexampleAnalyzer(
+    UUID verificationUuid,
     Path path,
     ClientCodeModule clientCodeModule,
     CounterexampleAnalysisNode counterexampleAnalysisNode
   ) {
+    this.verificationUuid = verificationUuid;
     this.path = path;
     this.predicates = this.path.getPredicates();
     this.clientCodeModule = clientCodeModule;
@@ -65,7 +68,7 @@ public class CounterexampleAnalyzer {
     return Optional.of(components);
   }
 
-  private Optional<Set<Predicate>> findNewPredicateCandidates(
+  private Optional<Set<Formula>> findNewPredicateCandidates(
     List<Formula> formulas,
     CounterexampleAnalysisHistory counterexampleAnalysisHistory
   ) {
@@ -85,8 +88,7 @@ public class CounterexampleAnalyzer {
         String id = expr.getFuncDecl().getName().toString();
         try {
           return Optional.of(counterexampleAnalysisHistory.getFormulaHistory(Integer.parseInt(id)).stream()
-            .flatMap(formula -> formula.extractPredicateFormulas().stream()
-              .map(predicateFormula -> new Predicate(UUID.randomUUID(), predicateFormula)))
+            .flatMap(formula -> formula.extractPredicateFormulas().stream())
             .collect(Collectors.toSet()));
         } catch (NumberFormatException numberFormatException) {
           this.counterexampleAnalysisNode.sendMessage(new Message<>(new CounterexampleAnalysisFailed(
@@ -108,24 +110,17 @@ public class CounterexampleAnalyzer {
     ))) == Status.UNSATISFIABLE;
   }
 
-  private Set<Predicate> findNewPredicates(Set<Predicate> newPredicateCandidates) {
+  private Set<Predicate> findNewPredicates(Set<Formula> newPredicateFormulaCandidates) {
     try (Context context = new Context()) {
       Solver solver = context.mkSolver();
-      Set<Predicate> newPredicates = new HashSet<>();
-      for (Predicate predicate1 : newPredicateCandidates) {
-        if (!predicate1.getFormula().containsVariables()) {
-          continue;
-        }
+      Set<Predicate> newPredicateCandidates = this.counterexampleAnalysisNode.addPredicates(
+        this.verificationUuid,
+        newPredicateFormulaCandidates
+      );
 
-        if (newPredicates.stream().noneMatch(predicate2 -> newPredicateCandidates.contains(predicate2) ||
-          this.predicatesEqual(predicate1, predicate2, context, solver))) {
-          newPredicates.add(predicate1);
-        }
-      }
-
-      return newPredicates.stream()
-        .filter(predicate1 -> this.predicates.stream()
-          .noneMatch(predicate2 -> this.predicatesEqual(predicate1, predicate2, context, solver)))
+      return newPredicateCandidates.stream()
+        .filter(newPredicateCandidate -> this.predicates.stream()
+          .noneMatch(predicate -> this.predicatesEqual(newPredicateCandidate, predicate, context, solver)))
         .collect(Collectors.toSet());
     }
   }
@@ -153,7 +148,7 @@ public class CounterexampleAnalyzer {
 
     List<Component> components = componentsOptional.get();
     CounterexampleAnalysisHistory counterexampleAnalysisHistory = new CounterexampleAnalysisHistory();
-    Set<Predicate> newPredicateCandidates = new HashSet<>();
+    Set<Formula> newPredicateCandidates = new HashSet<>();
 
     int componentIndex;
     for (componentIndex = components.size() - 1; componentIndex >= 0; componentIndex--) {
@@ -199,7 +194,7 @@ public class CounterexampleAnalyzer {
         }
       }
 
-      Optional<Set<Predicate>> newPredicateCandidatesOptional = this.findNewPredicateCandidates(
+      Optional<Set<Formula>> newPredicateCandidatesOptional = this.findNewPredicateCandidates(
         formulas,
         counterexampleAnalysisHistory
       );
