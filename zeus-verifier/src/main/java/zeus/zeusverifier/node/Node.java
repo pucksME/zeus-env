@@ -133,8 +133,8 @@ public abstract class Node<T extends Config> {
       case AbstractionNode _ -> NodeType.ABSTRACTION;
       case CounterexampleAnalysisGatewayNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY;
       case CounterexampleAnalysisNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS;
-      case StorageGatewayNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS_GATEWAY;
-      case StorageNode _ -> NodeType.COUNTEREXAMPLE_ANALYSIS;
+      case StorageGatewayNode _ -> NodeType.STORAGE_GATEWAY;
+      case StorageNode _ -> NodeType.STORAGE;
       default -> throw new RuntimeException(String.format(
         "Could not register node on gateway: unsupported node type \"%s\"",
         this.getClass().getSimpleName()
@@ -184,6 +184,10 @@ public abstract class Node<T extends Config> {
         case COUNTEREXAMPLE_ANALYSIS:
           Node.sendMessage(message, ((RootNode) this).counterexampleAnalysisGatewayNodeSocket);
           break;
+        case STORAGE_GATEWAY:
+        case STORAGE:
+          Node.sendMessage(message, ((RootNode) this).storageGatewayNodeSocket);
+          break;
       }
       return true;
     }
@@ -195,6 +199,23 @@ public abstract class Node<T extends Config> {
       }
 
       if (recipient.getNodeType() == ((zeus.zeusverifier.node.GatewayNode<?>) this).getGatewayTo()) {
+        if (recipient.getNodeUuid().isPresent()) {
+          Socket socket = ((zeus.zeusverifier.node.GatewayNode<?>) this).nodes.get(recipient.getNodeUuid().get());
+
+          if (socket == null) {
+            System.out.printf(
+              "Could not send message to recipient: node \"%s\" does not exist%n",
+              recipient.getNodeUuid().get()
+            );
+
+            this.terminate();
+            return false;
+          }
+
+          Node.sendMessage(message, socket);
+          return true;
+        }
+
         switch (recipient.getNodeSelection()) {
           case ANY -> ((zeus.zeusverifier.node.GatewayNode<?>) this).sendMessageToNode(message);
           case ALL -> ((zeus.zeusverifier.node.GatewayNode<?>) this).sendBroadcastMessage(message);

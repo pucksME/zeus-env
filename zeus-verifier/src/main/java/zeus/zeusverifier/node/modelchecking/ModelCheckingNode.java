@@ -10,6 +10,8 @@ import zeus.shared.message.payload.abstraction.AbstractResponse;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.shared.message.payload.modelchecking.*;
+import zeus.shared.message.payload.storage.CheckIfComponentVisitedRequest;
+import zeus.shared.message.payload.storage.CheckIfComponentVisitedResponse;
 import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeusverifier.config.modelcheckingnode.ModelCheckingNodeConfig;
@@ -21,17 +23,20 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.*;
 
 public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   ConcurrentHashMap<UUID, ClientCodeModule> codeModules = new ConcurrentHashMap<>();
   ConcurrentHashMap<UUID, CompletableFuture<AbstractLiteral>> pendingAbstractionRequests;
+  ConcurrentHashMap<UUID, CompletableFuture<Boolean>> pendingCheckIfComponentVisitedRequests;
   ExecutorService modelCheckingExecutor;
 
   public ModelCheckingNode(ModelCheckingNodeConfig config) {
     super(config);
     this.pendingAbstractionRequests = new ConcurrentHashMap<>();
+    this.pendingCheckIfComponentVisitedRequests = new ConcurrentHashMap<>();
     this.modelCheckingExecutor = Executors.newSingleThreadExecutor();
   }
 
@@ -87,6 +92,24 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     this.pendingAbstractionRequests.remove(message.getPayload().uuid());
     completableFuture.complete(message.getPayload().abstractLiteral());
     return new RouteResult();
+  }
+
+  CompletableFuture<Boolean> sendCheckIfComponentVisitedRequest(
+    UUID verificationUuid,
+    Location location,
+    Set<PredicateValuation> predicateValuations) {
+    UUID uuid = UUID.randomUUID();
+    this.sendMessage(new Message<>(new CheckIfComponentVisitedRequest(
+      uuid,
+      verificationUuid,
+      this.getUuid(),
+      location,
+      predicateValuations
+    ), new Recipient(NodeType.STORAGE_GATEWAY)));
+
+    CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
+    this.pendingCheckIfComponentVisitedRequests.put(uuid, completableFuture);
+    return completableFuture;
   }
 
   private RouteResult processStartModelCheckingRequestRoute(
@@ -150,6 +173,19 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
           new Recipient(NodeType.ROOT)
         ));
 
+      case COMPONENT_ALREADY_VISITED -> new RouteResult(new Message<>(
+        new StopModelCheckingTaskRequest(
+          message.getPayload().getVerificationUuid(),
+          message.getPayload().getUuid(),
+          StopModelCheckingTaskRequestStatus.COMPONENT_ALREADY_VISITED
+        )
+      ));
+
+      case CHECK_IF_COMPONENT_VISITED_FAILED -> new RouteResult(new Message<>(
+        new ModelCheckingFailed(this.getUuid(), "check if component visited failed"),
+        new Recipient(NodeType.ROOT)
+      ));
+
       case OK -> modelCheckingResult.getPath()
         .map(path -> new RouteResult(new Message<>(
           new AnalyzeCounterExampleRequest(
@@ -167,6 +203,24 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
 
   }
 
+  private RouteResult processCheckIfComponentVisitedResponseRoute(
+    Message<CheckIfComponentVisitedResponse> message,
+    Socket socket
+  ) {
+    System.out.println("Running checkIfComponentVisited route");
+    CompletableFuture<Boolean> completableFuture = this.pendingCheckIfComponentVisitedRequests.get(message.getPayload().uuid());
+
+    if (completableFuture == null) {
+      return new RouteResult(new Message<>(new ModelCheckingFailed(
+        this.getUuid(),
+        String.format("no pending check if component visited for uuid \"%s\"", message.getPayload().uuid())
+      ), new Recipient(NodeType.ROOT)));
+    }
+
+    completableFuture.complete(message.getPayload().visited());
+    return new RouteResult();
+  }
+
   @Override
   public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
@@ -175,7 +229,8 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
       Map.of(
         ClientCodeModule.class, this::processClientCodeModuleRoute,
         StartModelCheckingTaskRequest.class, this::processStartModelCheckingRequestRoute,
-        AbstractResponse.class, this::processAbstractResponseRoute
+        AbstractResponse.class, this::processAbstractResponseRoute,
+        CheckIfComponentVisitedResponse.class, this::processCheckIfComponentVisitedResponseRoute
       )
     );
   }

@@ -6,9 +6,11 @@ import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
+import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.modelchecking.*;
+import zeus.shared.message.payload.storage.AddVisitedComponent;
 import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
@@ -152,6 +154,12 @@ public class CodeModuleModelChecker {
   }
 
   private void handleControlStatement(ControlStatement controlStatement, AbstractLiteral abstractLiteral) {
+    this.modelCheckingNode.sendMessage(new Message<>(new AddVisitedComponent(
+      this.verificationUuid,
+      new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
+      new HashSet<>(this.predicateValuations.values())
+    ), new Recipient(NodeType.STORAGE, NodeSelection.ALL)));
+
     switch (abstractLiteral) {
       case TRUE -> {
         this.currentStatementParents.add(new ParentStatement(
@@ -400,6 +408,21 @@ public class CodeModuleModelChecker {
 
           if (abstractionLiteralOptional.isEmpty()) {
             return new ModelCheckingResult(ModelCheckingResultStatus.ABSTRACTION_FAILED);
+          }
+
+          if (controlStatement instanceof WhileStatement) {
+            CompletableFuture<Boolean> completableFuture = this.modelCheckingNode.sendCheckIfComponentVisitedRequest(
+              this.verificationUuid,
+              new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
+              new HashSet<>(this.predicateValuations.values())
+            );
+            try {
+              if (completableFuture.get()) {
+                return new ModelCheckingResult(ModelCheckingResultStatus.COMPONENT_ALREADY_VISITED);
+              }
+            } catch (InterruptedException | ExecutionException e) {
+              return new ModelCheckingResult(ModelCheckingResultStatus.CHECK_IF_COMPONENT_VISITED_FAILED);
+            }
           }
 
           this.handleControlStatement(controlStatement, abstractionLiteralOptional.get());

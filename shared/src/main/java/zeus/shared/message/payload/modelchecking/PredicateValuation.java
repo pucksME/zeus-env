@@ -47,12 +47,14 @@ public class PredicateValuation {
 
   @Override
   public int hashCode() {
-    return this.predicateUuid.hashCode();
+    return String.format("%s,%b", this.predicateUuid.hashCode(), this.value).hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
-    return (obj instanceof PredicateValuation) && this.predicateUuid.equals(((PredicateValuation) obj).predicateUuid);
+    return (obj instanceof PredicateValuation) &&
+      this.predicateUuid.equals(((PredicateValuation) obj).predicateUuid) &&
+      this.value == ((PredicateValuation) obj).value;
   }
 
   public void setValue(boolean value) {
