@@ -98,7 +98,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     return new RouteResult();
   }
 
-  Optional<Boolean> checkIfComponentVisitedRequest(
+  Optional<Boolean> checkIfComponentVisited(
     UUID verificationUuid,
     Location location,
     Set<PredicateValuation> predicateValuations) {

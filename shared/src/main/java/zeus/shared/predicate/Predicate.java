@@ -1,5 +1,7 @@
 package zeus.shared.predicate;
 
+import com.microsoft.z3.Context;
+import com.microsoft.z3.Solver;
 import zeus.shared.formula.Formula;
 
 import java.util.UUID;
@@ -21,6 +23,10 @@ public class Predicate {
   @Override
   public boolean equals(Object obj) {
     return obj instanceof Predicate && uuid.equals(((Predicate) obj).uuid);
+  }
+
+  public boolean equals(Predicate predicate, Context context, Solver solver) {
+    return this.formula.equals(predicate.getFormula(), context, solver);
   }
 
   public UUID getUuid() {

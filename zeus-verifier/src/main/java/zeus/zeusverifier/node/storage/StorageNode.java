@@ -2,7 +2,7 @@ package zeus.zeusverifier.node.storage;
 
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Solver;
-import com.microsoft.z3.Status;
+import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 public class StorageNode extends Node<StorageNodeConfig> {
   private final ConcurrentHashMap<UUID, ConcurrentHashMap<Location, Set<Set<PredicateValuation>>>> visitedComponents;
@@ -95,29 +94,50 @@ public class StorageNode extends Node<StorageNodeConfig> {
     ), new Recipient(NodeType.STORAGE_GATEWAY)));
   }
 
-  private boolean predicatesEqual(Predicate predicate1, Predicate predicate2, Context context, Solver solver) {
-    return solver.check(context.mkNot(context.mkEq(
-      predicate1.getFormula().toFormula(context),
-      predicate2.getFormula().toFormula(context)
-    ))) == Status.UNSATISFIABLE;
-  }
+  private Set<Formula> getFormulaCandidates(Set<Formula> formulas, Context context, Solver solver) {
+    Set<Formula> formulaCandidates = new HashSet<>();
 
-  private Set<Predicate> addPredicates(Set<Predicate> newPredicates, Set<Predicate> predicates, Context context, Solver solver) {
-    Set<Predicate> addedPredicates = new HashSet<>();
-
-    for (Predicate newPredicate : newPredicates) {
-      if (!newPredicate.getFormula().containsVariables()) {
+    for (Formula formula : formulas) {
+      if (!formula.containsVariables()) {
         continue;
       }
 
-      if (predicates.stream().noneMatch(predicate ->
-        this.predicatesEqual(predicate, newPredicate, context, solver))) {
-        predicates.add(newPredicate);
-        addedPredicates.add(newPredicate);
+      if (formulaCandidates.stream().noneMatch(formulaCandidate ->
+        formulaCandidate.equals(formula, context, solver))) {
+        formulaCandidates.add(formula);
       }
     }
 
-    return addedPredicates;
+    return formulaCandidates;
+  }
+
+  private Set<Predicate> getPredicates(
+    Set<Formula> formulas,
+    Set<Predicate> existingPredicates,
+    Context context,
+    Solver solver
+  ) {
+   Set<Predicate> predicates = new HashSet<>();
+
+   for (Formula formula : formulas) {
+      Predicate predicate = null;
+
+      for (Predicate existingPredicate : existingPredicates) {
+        if (formula.equals(existingPredicate.getFormula(), context, solver)) {
+          predicate = existingPredicate;
+          break;
+        }
+      }
+
+      if (predicate == null) {
+        predicate = Predicate.fromFormula(formula);
+        existingPredicates.add(predicate);
+      }
+
+      predicates.add(predicate);
+    }
+
+    return predicates;
   }
 
   private RouteResult processAddPredicatesRequestRoute(Message<AddPredicatesRequest> message, Socket socket) {
@@ -130,19 +150,16 @@ public class StorageNode extends Node<StorageNodeConfig> {
 
     try (Context context = new Context()) {
       Solver solver = context.mkSolver();
-      Set<Predicate> predicatesDeduplicates = new HashSet<>();
-
-      this.addPredicates(
-        message.getPayload().formulas().stream().map(Predicate::fromFormula).collect(Collectors.toSet()),
-        predicatesDeduplicates,
-        context,
-        solver
-      );
 
       return new RouteResult(new Message<>(
         new AddPredicatesResponse(
           message.getPayload().uuid(),
-          this.addPredicates(predicatesDeduplicates, predicates, context, solver)
+          this.getPredicates(
+            this.getFormulaCandidates(message.getPayload().formulas(), context, solver),
+            predicates,
+            context,
+            solver
+          )
         ),
         new Recipient(NodeType.COUNTEREXAMPLE_ANALYSIS, message.getPayload().counterexampleAnalysisNodeUuid())
       ));

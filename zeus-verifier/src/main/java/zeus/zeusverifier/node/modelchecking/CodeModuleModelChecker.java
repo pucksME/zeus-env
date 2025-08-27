@@ -6,11 +6,9 @@ import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
-import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.modelchecking.*;
-import zeus.shared.message.payload.storage.AddVisitedComponentRequest;
 import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.*;
@@ -153,15 +151,40 @@ public class CodeModuleModelChecker {
     }
   }
 
-  private void handleControlStatement(ControlStatement controlStatement, AbstractLiteral abstractLiteral) {
-    this.modelCheckingNode.addVisitedComponent(
-      this.verificationUuid,
-      new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
-      new HashSet<>(this.predicateValuations.values())
-    );
+  private Optional<ModelCheckingResult> handleControlStatement(ControlStatement controlStatement, AbstractLiteral abstractLiteral) {
+    Optional<ModelCheckingResult> modelCheckingResultOptional = Optional.empty();
+
+    if (controlStatement instanceof WhileStatement) {
+      Optional<Boolean> componentVisitedOptional = this.modelCheckingNode.checkIfComponentVisited(
+        this.verificationUuid,
+        new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
+        new HashSet<>(this.predicateValuations.values())
+      );
+
+      if (componentVisitedOptional.isEmpty()) {
+        return Optional.of(new ModelCheckingResult(ModelCheckingResultStatus.CHECK_IF_COMPONENT_VISITED_FAILED));
+      }
+
+      if (componentVisitedOptional.get()) {
+        modelCheckingResultOptional = Optional.of(new ModelCheckingResult(
+          ModelCheckingResultStatus.COMPONENT_ALREADY_VISITED
+        ));
+      }
+
+      this.modelCheckingNode.addVisitedComponent(
+        this.verificationUuid,
+        new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
+        new HashSet<>(this.predicateValuations.values())
+      );
+    }
+
 
     switch (abstractLiteral) {
       case TRUE -> {
+        if (modelCheckingResultOptional.isPresent()) {
+          return modelCheckingResultOptional;
+        }
+
         this.currentStatementParents.add(new ParentStatement(
         controlStatement,
         (controlStatement instanceof IfStatement)
@@ -176,7 +199,7 @@ public class CodeModuleModelChecker {
       case FALSE -> {
         if (controlStatement instanceof WhileStatement || ((IfStatement) controlStatement).getElseBody() == null) {
           this.currentIndex++;
-          return;
+          return Optional.empty();
         }
 
         this.currentStatementParents.add(new ParentStatement(
@@ -195,18 +218,21 @@ public class CodeModuleModelChecker {
 
         BodyComponent bodyComponent = bodyComponents.getFirst();
 
-        this.modelCheckingNode.sendMessage(new Message<>(new DistributeModelCheckingRequest(
-          this.verificationUuid,
-          new Path(Stream.concat(
-            this.path.getStates().stream(),
-            Stream.of(new State(new Location(bodyComponent.getLine(), bodyComponent.getLinePosition()), false))
-          ).toList()),
-          new ArrayList<>(List.of(this.predicateValuations))
-        ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
+        if (modelCheckingResultOptional.isEmpty()) {
+          this.modelCheckingNode.sendMessage(new Message<>(new DistributeModelCheckingRequest(
+            this.verificationUuid,
+            new Path(Stream.concat(
+              this.path.getStates().stream(),
+              Stream.of(new State(new Location(bodyComponent.getLine(), bodyComponent.getLinePosition()), false))
+            ).toList()),
+            new ArrayList<>(List.of(this.predicateValuations))
+          ), new Recipient(NodeType.MODEL_CHECKING_GATEWAY)));
+        }
 
-        this.handleControlStatement(controlStatement, AbstractLiteral.FALSE);
+        return this.handleControlStatement(controlStatement, AbstractLiteral.FALSE);
       }
     }
+    return Optional.empty();
   }
 
   private void handleCurrentParentStatement() {
@@ -410,23 +436,15 @@ public class CodeModuleModelChecker {
             return new ModelCheckingResult(ModelCheckingResultStatus.ABSTRACTION_FAILED);
           }
 
-          if (controlStatement instanceof WhileStatement) {
-            Optional<Boolean> componentVisitedOptional = this.modelCheckingNode.checkIfComponentVisitedRequest(
-              this.verificationUuid,
-              new Location(controlStatement.getLine(), controlStatement.getLinePosition()),
-              new HashSet<>(this.predicateValuations.values())
-            );
+          Optional<ModelCheckingResult> modelCheckingResultOptional = this.handleControlStatement(
+            controlStatement,
+            abstractionLiteralOptional.get()
+          );
 
-            if (componentVisitedOptional.isEmpty()) {
-              return new ModelCheckingResult(ModelCheckingResultStatus.CHECK_IF_COMPONENT_VISITED_FAILED);
-            }
-
-            if (componentVisitedOptional.get()) {
-              return new ModelCheckingResult(ModelCheckingResultStatus.COMPONENT_ALREADY_VISITED);
-            }
+          if (modelCheckingResultOptional.isPresent()) {
+            return modelCheckingResultOptional.get();
           }
 
-          this.handleControlStatement(controlStatement, abstractionLiteralOptional.get());
           continue;
         }
         // case Input input -> {}

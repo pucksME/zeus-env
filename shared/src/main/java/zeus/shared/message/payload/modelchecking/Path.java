@@ -4,6 +4,7 @@ import zeus.shared.predicate.Predicate;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -16,9 +17,13 @@ public class Path {
   }
 
   public Set<Predicate> getPredicates() {
-    return (this.states.isEmpty())
-      ? new HashSet<>()
-      : this.states.getLast().getPredicates().orElse(new HashSet<>());
+    for (int i = this.states.size() - 1; i >= 0; i--) {
+      Optional<Set<Predicate>> predicatesOptional = this.states.get(i).getPredicates();
+      if (predicatesOptional.isPresent()) {
+        return predicatesOptional.get();
+      }
+    }
+    return new HashSet<>();
   }
 
   public List<State> getStates() {

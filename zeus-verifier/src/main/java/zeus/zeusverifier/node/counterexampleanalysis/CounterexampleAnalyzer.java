@@ -103,13 +103,6 @@ public class CounterexampleAnalyzer {
     }
   }
 
-  private boolean predicatesEqual(Predicate predicate1, Predicate predicate2, Context context, Solver solver) {
-    return solver.check(context.mkNot(context.mkEq(
-      predicate1.getFormula().toFormula(context),
-      predicate2.getFormula().toFormula(context)
-    ))) == Status.UNSATISFIABLE;
-  }
-
   private Set<Predicate> findNewPredicates(Set<Formula> newPredicateFormulaCandidates) {
     try (Context context = new Context()) {
       Solver solver = context.mkSolver();
@@ -120,7 +113,7 @@ public class CounterexampleAnalyzer {
 
       return newPredicateCandidates.stream()
         .filter(newPredicateCandidate -> this.predicates.stream()
-          .noneMatch(predicate -> this.predicatesEqual(newPredicateCandidate, predicate, context, solver)))
+          .noneMatch(predicate -> newPredicateCandidate.equals(predicate, context, solver)))
         .collect(Collectors.toSet());
     }
   }

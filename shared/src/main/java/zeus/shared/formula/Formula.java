@@ -2,6 +2,8 @@ package zeus.shared.formula;
 
 import com.microsoft.z3.Context;
 import com.microsoft.z3.Expr;
+import com.microsoft.z3.Solver;
+import com.microsoft.z3.Status;
 
 import java.util.Set;
 
@@ -25,4 +27,11 @@ public abstract class Formula {
   public abstract boolean isAtomic();
 
   public abstract Set<Formula> extractPredicateFormulas();
+
+  public boolean equals(Formula formula, Context context, Solver solver) {
+    return solver.check(context.mkNot(context.mkEq(
+      this.toFormula(context),
+      formula.toFormula(context)
+    ))) == Status.UNSATISFIABLE;
+  }
 }
