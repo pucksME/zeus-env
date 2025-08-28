@@ -64,6 +64,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   }
 
   CompletableFuture<AbstractLiteral> sendAbstractRequest(
+    UUID verificationUuid,
     Map<UUID, Predicate> predicates,
     Map<UUID, PredicateValuation> predicateValuations,
     Formula expression
@@ -71,7 +72,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     System.out.println("Running sendAbstractRequest route");
     UUID uuid = UUID.randomUUID();
     this.sendMessage(new Message<>(
-      new AbstractRequest(uuid, predicates, predicateValuations, expression),
+      new AbstractRequest(uuid, verificationUuid, this.getUuid(), predicates, predicateValuations, expression),
       new Recipient(NodeType.ABSTRACTION, NodeSelection.ANY)
     ));
     CompletableFuture<AbstractLiteral> completableFuture = new CompletableFuture<>();
@@ -82,18 +83,18 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
   private RouteResult processAbstractResponseRoute(Message<AbstractResponse> message, Socket requestSocket) {
     System.out.println("Running setAbstractResponse route");
     CompletableFuture<AbstractLiteral> completableFuture = this.pendingAbstractionRequests.get(
-      message.getPayload().uuid()
+      message.getPayload().requestUuid()
     );
 
     if (completableFuture == null) {
       System.out.printf(
         "Could not handle abstract response: no pending abstract request for uuid \"%s\"%n",
-        message.getPayload().uuid()
+        message.getPayload().requestUuid()
       );
       return new RouteResult(NodeAction.TERMINATE);
     }
 
-    this.pendingAbstractionRequests.remove(message.getPayload().uuid());
+    this.pendingAbstractionRequests.remove(message.getPayload().requestUuid());
     completableFuture.complete(message.getPayload().abstractLiteral());
     return new RouteResult();
   }

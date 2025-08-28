@@ -26,11 +26,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StorageNode extends Node<StorageNodeConfig> {
   private final ConcurrentHashMap<UUID, ConcurrentHashMap<Location, Set<Set<PredicateValuation>>>> visitedComponents;
   private final ConcurrentHashMap<UUID, Set<Predicate>> predicates;
+  private final ConcurrentHashMap<UUID, ConcurrentHashMap<Set<PredicateValuation>, Boolean>> predicateValuationsAbstractValues;
 
   public StorageNode(StorageNodeConfig config) {
     super(config);
     this.visitedComponents = new ConcurrentHashMap<>();
     this.predicates = new ConcurrentHashMap<>();
+    this.predicateValuationsAbstractValues = new ConcurrentHashMap<>();
   }
 
   private RouteResult processAddVisitedComponentRoute(Message<AddVisitedComponentRequest> message, Socket socket) {
@@ -166,6 +168,38 @@ public class StorageNode extends Node<StorageNodeConfig> {
     }
   }
 
+  private RouteResult processCheckPredicateValuationsRequestRoute(
+    Message<CheckPredicateValuationsRequest> message,
+    Socket socket
+  ) {
+    System.out.println("Running CheckPredicateValuationsRequestRoute route");
+
+    Map<Set<PredicateValuation>, Boolean> predicateValuationsAbstractValue = this.predicateValuationsAbstractValues.get(
+      message.getPayload().verificationUuid()
+    );
+
+    if (predicateValuationsAbstractValue == null) {
+      return new RouteResult(new Message<>(
+        new CheckPredicateValuationsResponse(message.getPayload().uuid()),
+        new Recipient(NodeType.STORAGE_GATEWAY)
+      ));
+    }
+
+    Boolean abstractValue = predicateValuationsAbstractValue.get(message.getPayload().predicateValuations());
+
+    if (abstractValue == null) {
+      return new RouteResult(new Message<>(
+        new CheckPredicateValuationsResponse(message.getPayload().uuid()),
+        new Recipient(NodeType.STORAGE_GATEWAY)
+      ));
+    }
+
+    return new RouteResult(new Message<>(new CheckPredicateValuationsResponse(
+      message.getPayload().uuid(),
+      abstractValue
+    ), new Recipient(NodeType.STORAGE_GATEWAY)));
+  }
+
   @Override
   public NodeAction handleGatewayRequest(Message<?> message, Socket requestSocket) {
     return this.processMessage(
@@ -174,7 +208,8 @@ public class StorageNode extends Node<StorageNodeConfig> {
       Map.of(
         AddVisitedComponentRequest.class, this::processAddVisitedComponentRoute,
         CheckIfComponentVisitedRequest.class, this::processCheckIfComponentVisitedRoute,
-        AddPredicatesRequest.class, this::processAddPredicatesRequestRoute
+        AddPredicatesRequest.class, this::processAddPredicatesRequestRoute,
+        CheckPredicateValuationsRequest.class, this::processCheckPredicateValuationsRequestRoute
       )
     );
   }

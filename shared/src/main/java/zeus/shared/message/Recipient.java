@@ -35,4 +35,8 @@ public class Recipient {
   public Optional<UUID> getNodeUuid() {
     return Optional.ofNullable(nodeUuid);
   }
+
+  public void setNodeUuid(UUID nodeUuid) {
+    this.nodeUuid = nodeUuid;
+  }
 }

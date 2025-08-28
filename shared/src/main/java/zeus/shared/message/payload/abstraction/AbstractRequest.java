@@ -9,6 +9,8 @@ import java.util.UUID;
 
 public record AbstractRequest(
   UUID uuid,
+  UUID verificationUuid,
+  UUID modelCheckingNodeUuid,
   Map<UUID, Predicate> predicates,
   Map<UUID, PredicateValuation> predicateValuations,
   Formula expression

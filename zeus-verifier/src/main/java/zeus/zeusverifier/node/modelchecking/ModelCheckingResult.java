@@ -6,7 +6,7 @@ import java.util.Optional;
 
 public class ModelCheckingResult {
   private Path path;
-  private ModelCheckingResultStatus status;
+  private final ModelCheckingResultStatus status;
 
   public ModelCheckingResult(Path path) {
     this.path = path;

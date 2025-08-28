@@ -137,6 +137,7 @@ public class CodeModuleModelChecker {
   private Optional<AbstractLiteral> evaluateExpression(Expression expression) {
     try {
       return Optional.of(this.modelCheckingNode.sendAbstractRequest(
+        this.verificationUuid,
         this.predicates,
         this.predicateValuations,
         expression.toFormula(this.variables)
@@ -290,19 +291,17 @@ public class CodeModuleModelChecker {
     Map<UUID, CompletableFuture<AbstractLiteral>> predicateCompletableFutures = relevantPredicatesWeakestPrecondition.stream()
       .map(predicate -> Map.entry(
         predicate.getUuid(), this.modelCheckingNode.sendAbstractRequest(
+          this.verificationUuid,
           this.predicates,
           this.predicateValuations,
           predicate.getFormula())))
       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-    Map<UUID, AbstractLiteral> predicateAbstractLiteral = new HashMap<>();
 
     HashMap<UUID, PredicateValuation> deterministicPredicateValuations = new HashMap<>();
     List<UUID> nonDeterministicPredicateValuations = new ArrayList<>();
     for (Map.Entry<UUID, CompletableFuture<AbstractLiteral>> predicateCompletableFuture : predicateCompletableFutures.entrySet()) {
       try {
         AbstractLiteral abstractLiteral = predicateCompletableFuture.getValue().get();
-        predicateAbstractLiteral.put(predicateCompletableFuture.getKey(), abstractLiteral);
         PredicateValuation predicateValuation = this.predicateValuations.get(predicateCompletableFuture.getKey());
         switch (abstractLiteral) {
           case TRUE -> {

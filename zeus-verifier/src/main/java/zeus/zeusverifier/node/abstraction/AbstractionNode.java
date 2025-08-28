@@ -1,9 +1,5 @@
 package zeus.zeusverifier.node.abstraction;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
-import com.microsoft.z3.Solver;
-import com.microsoft.z3.Status;
 import zeus.shared.message.Message;
 import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
@@ -12,8 +8,8 @@ import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.abstraction.AbstractResponse;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.abstraction.AbstractionFailed;
-import zeus.shared.message.payload.modelchecking.PredicateValuation;
-import zeus.shared.predicate.Predicate;
+import zeus.shared.message.payload.storage.CheckPredicateValuationsRequest;
+import zeus.shared.message.payload.storage.CheckPredicateValuationsResponse;
 import zeus.zeusverifier.config.abstractionnode.AbstractionNodeConfig;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.routing.NodeAction;
@@ -21,77 +17,111 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Stream;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 
 public class AbstractionNode extends Node<AbstractionNodeConfig> {
+  private final ConcurrentHashMap<UUID, CompletableFuture<RouteResult>> pendingAbstractions;
+
   public AbstractionNode(AbstractionNodeConfig config) {
     super(config);
-  }
-
-  private boolean check(List<Expr> formulas, Solver solver, Context context) {
-    return solver.check(context.mkAnd(formulas.toArray(Expr[]::new))) == Status.UNSATISFIABLE;
-  }
-
-  private boolean check(List<Expr> formulars, Expr expression, Solver solver, Context context) {
-    return this.check(Stream.concat(formulars.stream(), Stream.of(expression)).toList(), solver, context);
+    this.pendingAbstractions = new ConcurrentHashMap<>();
   }
 
   private RouteResult processAbstractRequestRoute(Message<AbstractRequest> message, Socket requestSocket) {
     System.out.printf("Running processAbstractRequestRoute for uuid \"%s\"%n", message.getPayload().uuid());
+    UUID uuid = UUID.randomUUID();
+    this.pendingAbstractions.put(uuid, new CompletableFuture<>());
 
-    try (Context context = new Context()) {
-      Solver solver = context.mkSolver();
-      List<Expr> formulas = new ArrayList<>();
+    this.sendMessage(new Message<>(new CheckPredicateValuationsRequest(
+      uuid,
+      message.getPayload().verificationUuid(),
+      this.getUuid(),
+      new HashSet<>(message.getPayload().predicateValuations().values())
+    ), new Recipient(NodeType.STORAGE_GATEWAY)));
 
-      for (Map.Entry<UUID, Predicate> uuidPredicate : message.getPayload().predicates().entrySet()) {
-        PredicateValuation predicateValuation = message.getPayload().predicateValuations().get(uuidPredicate.getKey());
+    new Thread(() -> {
+      Abstractor abstractor = new Abstractor();
+      AbstractionResult abstractionResult = abstractor.computeAbstraction(
+        message.getPayload().predicates(),
+        message.getPayload().predicateValuations(),
+        message.getPayload().expression()
+      );
 
-        if (predicateValuation == null) {
-          System.out.printf(
-            "Could not compute abstraction: missing valuation for predicate \"%s\"%n",
-            uuidPredicate.getKey()
-          );
+      pendingAbstractions.get(uuid).complete(switch (abstractionResult.getStatus()) {
+        case MISSING_PREDICATE_VALUATIONS -> new RouteResult(new Message<>(new AbstractionFailed(
+          this.getUuid(),
+          "missing predicate valuations"
+        )));
 
-          return new RouteResult(new Message<>(
-            new AbstractionFailed(
-              this.getUuid(),
-              String.format("missing valuation for predicate \"%s\"", uuidPredicate.getKey())
-            ),
-            new Recipient(NodeType.ROOT)
-          ));
-        }
+        case OK -> new RouteResult((abstractionResult.getAbstractLiteral().isPresent())
+          ? new Message<>(
+              new AbstractResponse(
+                message.getPayload().uuid(),
+                abstractionResult.getAbstractLiteral().get()
+              ),
+              new Recipient(NodeType.MODEL_CHECKING, message.getPayload().modelCheckingNodeUuid())
+            )
+          : new Message<>(
+              new AbstractionFailed(this.getUuid(),"abstract literal not present"),
+              new Recipient(NodeType.ROOT)
+            ));
+      });
+    }).start();
 
-        formulas.add((predicateValuation.getValue())
-          ? uuidPredicate.getValue().getFormula().toFormula(context)
-          : context.mkNot(uuidPredicate.getValue().getFormula().toFormula(context)));
+    try {
+      RouteResult routeResult = pendingAbstractions.get(uuid).get();
+      if (routeResult.getResponseMessage().isEmpty()) {
+        return routeResult;
       }
 
-      Expr expression = message.getPayload().expression().toFormula(context);
+      Message<?> responseMessage = routeResult.getResponseMessage().get();
 
-      if (this.check(formulas, context.mkNot(expression), solver, context)) {
-        return new RouteResult(new Message<>(
-          new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.TRUE),
-          new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
-        ));
+      if (responseMessage.getRecipient().isEmpty()) {
+        return routeResult;
       }
 
-      if (this.check(formulas, expression, solver, context)) {
-        return new RouteResult(new Message<>(
-          new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.FALSE),
-          new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
-        ));
+      Recipient recipient = responseMessage.getRecipient().get();
+
+      if (recipient.getNodeType() == NodeType.MODEL_CHECKING) {
+        recipient.setNodeUuid(message.getPayload().modelCheckingNodeUuid());
       }
 
+      return routeResult;
+    } catch (InterruptedException | ExecutionException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  private RouteResult processCheckPredicateValuationsResponseRoute(
+    Message<CheckPredicateValuationsResponse> message,
+    Socket socket
+  ) {
+    System.out.println("Running processCheckPredicateValuationsResponseRoute");
+    CompletableFuture<RouteResult> completableFuture = this.pendingAbstractions.get(
+      message.getPayload().getRequestUuid()
+    );
+
+    if (completableFuture == null) {
+      return new RouteResult();
     }
 
-    return new RouteResult(new Message<>(
-      new AbstractResponse(message.getPayload().uuid(), AbstractLiteral.NON_DETERMINISTIC),
-      new Recipient(NodeType.MODEL_CHECKING, NodeSelection.ALL)
-    ));
+    if (message.getPayload().getAbstractValue().isEmpty()) {
+      return new RouteResult();
+    }
+
+    completableFuture.complete(new RouteResult(new Message<>(new AbstractResponse(
+      message.getPayload().getRequestUuid(),
+      (message.getPayload().getAbstractValue().get())
+        ? AbstractLiteral.TRUE
+        : AbstractLiteral.FALSE
+    ), new Recipient(NodeType.MODEL_CHECKING))));
+
+    return new RouteResult();
   }
 
   @Override
@@ -100,7 +130,8 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
       message,
       requestSocket,
       Map.of(
-        AbstractRequest.class, this::processAbstractRequestRoute
+        AbstractRequest.class, this::processAbstractRequestRoute,
+        CheckPredicateValuationsResponse.class, this::processCheckPredicateValuationsResponseRoute
       )
     );
   }
