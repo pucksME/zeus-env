@@ -140,7 +140,8 @@ public class CodeModuleModelChecker {
         this.verificationUuid,
         this.predicates,
         this.predicateValuations,
-        expression.toFormula(this.variables)
+        expression.toFormula(this.variables),
+        new Location(expression.getLine(), expression.getLinePosition())
       ).get());
     } catch (InterruptedException | ExecutionException e) {
       this.modelCheckingNode.sendMessage(new Message<>(
@@ -294,7 +295,8 @@ public class CodeModuleModelChecker {
           this.verificationUuid,
           this.predicates,
           this.predicateValuations,
-          predicate.getFormula())))
+          predicate.getFormula(),
+          new Location(expression.getLine(), expression.getLinePosition()))))
       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     HashMap<UUID, PredicateValuation> deterministicPredicateValuations = new HashMap<>();

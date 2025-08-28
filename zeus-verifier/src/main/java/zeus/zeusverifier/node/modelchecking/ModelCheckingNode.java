@@ -67,12 +67,21 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     UUID verificationUuid,
     Map<UUID, Predicate> predicates,
     Map<UUID, PredicateValuation> predicateValuations,
-    Formula expression
+    Formula expression,
+    Location expressionLocation
   ) {
     System.out.println("Running sendAbstractRequest route");
     UUID uuid = UUID.randomUUID();
     this.sendMessage(new Message<>(
-      new AbstractRequest(uuid, verificationUuid, this.getUuid(), predicates, predicateValuations, expression),
+      new AbstractRequest(
+        uuid,
+        verificationUuid,
+        this.getUuid(),
+        predicates,
+        predicateValuations,
+        expression,
+        expressionLocation
+      ),
       new Recipient(NodeType.ABSTRACTION, NodeSelection.ANY)
     ));
     CompletableFuture<AbstractLiteral> completableFuture = new CompletableFuture<>();

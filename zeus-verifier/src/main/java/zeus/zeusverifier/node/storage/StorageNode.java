@@ -6,8 +6,10 @@ import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
+import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.modelchecking.Location;
 import zeus.shared.message.payload.modelchecking.PredicateValuation;
+import zeus.shared.message.payload.modelchecking.Valuation;
 import zeus.shared.message.payload.storage.*;
 import zeus.shared.predicate.Predicate;
 import zeus.zeusverifier.config.storagenode.StorageNodeConfig;
@@ -26,13 +28,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class StorageNode extends Node<StorageNodeConfig> {
   private final ConcurrentHashMap<UUID, ConcurrentHashMap<Location, Set<Set<PredicateValuation>>>> visitedComponents;
   private final ConcurrentHashMap<UUID, Set<Predicate>> predicates;
-  private final ConcurrentHashMap<UUID, ConcurrentHashMap<Set<PredicateValuation>, Boolean>> predicateValuationsAbstractValues;
+  private final ConcurrentHashMap<UUID, ConcurrentHashMap<Set<Valuation>, AbstractLiteral>> valuationsAbstractLiterals;
 
   public StorageNode(StorageNodeConfig config) {
     super(config);
     this.visitedComponents = new ConcurrentHashMap<>();
     this.predicates = new ConcurrentHashMap<>();
-    this.predicateValuationsAbstractValues = new ConcurrentHashMap<>();
+    this.valuationsAbstractLiterals = new ConcurrentHashMap<>();
   }
 
   private RouteResult processAddVisitedComponentRoute(Message<AddVisitedComponentRequest> message, Socket socket) {
@@ -168,36 +170,54 @@ public class StorageNode extends Node<StorageNodeConfig> {
     }
   }
 
-  private RouteResult processCheckPredicateValuationsRequestRoute(
-    Message<CheckPredicateValuationsRequest> message,
+  private RouteResult processGetAbstractLiteralRequestRoute(
+    Message<GetAbstractLiteralRequest> message,
     Socket socket
   ) {
-    System.out.println("Running CheckPredicateValuationsRequestRoute route");
+    System.out.println("Running processGetAbstractLiteralRequestRoute route");
 
-    Map<Set<PredicateValuation>, Boolean> predicateValuationsAbstractValue = this.predicateValuationsAbstractValues.get(
+    Map<Set<Valuation>, AbstractLiteral> predicateValuationsAbstractValue = this.valuationsAbstractLiterals.get(
       message.getPayload().verificationUuid()
     );
 
     if (predicateValuationsAbstractValue == null) {
       return new RouteResult(new Message<>(
-        new CheckPredicateValuationsResponse(message.getPayload().uuid()),
+        new GetAbstractLiteralResponse(message.getPayload().uuid()),
         new Recipient(NodeType.STORAGE_GATEWAY)
       ));
     }
 
-    Boolean abstractValue = predicateValuationsAbstractValue.get(message.getPayload().predicateValuations());
+    AbstractLiteral abstractLiteral = predicateValuationsAbstractValue.get(message.getPayload().predicateValuations());
 
-    if (abstractValue == null) {
+    if (abstractLiteral == null) {
       return new RouteResult(new Message<>(
-        new CheckPredicateValuationsResponse(message.getPayload().uuid()),
+        new GetAbstractLiteralResponse(message.getPayload().uuid()),
         new Recipient(NodeType.STORAGE_GATEWAY)
       ));
     }
 
-    return new RouteResult(new Message<>(new CheckPredicateValuationsResponse(
+    return new RouteResult(new Message<>(new GetAbstractLiteralResponse(
       message.getPayload().uuid(),
-      abstractValue
+      abstractLiteral
     ), new Recipient(NodeType.STORAGE_GATEWAY)));
+  }
+
+  private RouteResult processAddAbstractLiteralRoute(Message<AddAbstractLiteral> message, Socket socket) {
+    System.out.println("Running processAddValuations route");
+    ConcurrentHashMap<Set<Valuation>, AbstractLiteral> valuations = this.valuationsAbstractLiterals.get(
+      message.getPayload().verificationUuid()
+    );
+
+    if (valuations == null) {
+      this.valuationsAbstractLiterals.put(
+        message.getPayload().verificationUuid(),
+        new ConcurrentHashMap<>(Map.of(message.getPayload().valuations(), message.getPayload().abstractLiteral()))
+      );
+      return new RouteResult();
+    }
+
+    valuations.put(message.getPayload().valuations(), message.getPayload().abstractLiteral());
+    return new RouteResult();
   }
 
   @Override
@@ -209,7 +229,8 @@ public class StorageNode extends Node<StorageNodeConfig> {
         AddVisitedComponentRequest.class, this::processAddVisitedComponentRoute,
         CheckIfComponentVisitedRequest.class, this::processCheckIfComponentVisitedRoute,
         AddPredicatesRequest.class, this::processAddPredicatesRequestRoute,
-        CheckPredicateValuationsRequest.class, this::processCheckPredicateValuationsRequestRoute
+        GetAbstractLiteralRequest.class, this::processGetAbstractLiteralRequestRoute,
+        AddAbstractLiteral.class, this::processAddAbstractLiteralRoute
       )
     );
   }

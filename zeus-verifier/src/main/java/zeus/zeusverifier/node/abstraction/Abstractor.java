@@ -5,17 +5,28 @@ import com.microsoft.z3.Expr;
 import com.microsoft.z3.Solver;
 import com.microsoft.z3.Status;
 import zeus.shared.formula.Formula;
+import zeus.shared.formula.unary.NotFormula;
+import zeus.shared.message.Message;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
+import zeus.shared.message.payload.modelchecking.ExpressionValuation;
+import zeus.shared.message.payload.modelchecking.Location;
 import zeus.shared.message.payload.modelchecking.PredicateValuation;
+import zeus.shared.message.payload.modelchecking.Valuation;
+import zeus.shared.message.payload.storage.AddAbstractLiteral;
 import zeus.shared.predicate.Predicate;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class Abstractor {
+  private final UUID verificationUuid;
+  private final AbstractionNode abstractionNode;
+
+  public Abstractor(UUID verificationUuid, AbstractionNode abstractionNode) {
+    this.verificationUuid = verificationUuid;
+    this.abstractionNode = abstractionNode;
+  }
+
   private boolean check(List<Expr> formulas, Solver solver, Context context) {
     return solver.check(context.mkAnd(formulas.toArray(Expr[]::new))) == Status.UNSATISFIABLE;
   }
@@ -27,11 +38,12 @@ public class Abstractor {
   public AbstractionResult computeAbstraction(
     Map<UUID, Predicate> predicates,
     Map<UUID, PredicateValuation> predicateValuations,
-    Formula expression
+    Formula expression,
+    Location expressionLocation
   ) {
     try (Context context = new Context()) {
       Solver solver = context.mkSolver();
-      List<Expr> formulas = new ArrayList<>();
+      List<Formula> formulas = new ArrayList<>();
 
       for (Map.Entry<UUID, Predicate> uuidPredicate : predicates.entrySet()) {
         PredicateValuation predicateValuation = predicateValuations.get(uuidPredicate.getKey());
@@ -46,18 +58,50 @@ public class Abstractor {
         }
 
         formulas.add((predicateValuation.getValue())
-          ? uuidPredicate.getValue().getFormula().toFormula(context)
-          : context.mkNot(uuidPredicate.getValue().getFormula().toFormula(context)));
+          ? uuidPredicate.getValue().getFormula()
+          : new NotFormula(uuidPredicate.getValue().getFormula()));
       }
 
-      Expr expressionFormula = expression.toFormula(context);
+      Set<Integer> unsatisfiableCore = Formula.getUnsatisfiableCore(
+        Stream.concat(formulas.stream(), Stream.of(new NotFormula(expression))).toList(),
+        context,
+        solver
+      );
 
-      if (this.check(formulas, context.mkNot(expressionFormula), solver, context)) {
-        return new AbstractionResult(AbstractLiteral.TRUE);
+      if (!unsatisfiableCore.isEmpty()) {
+        AbstractLiteral abstractLiteral = AbstractLiteral.TRUE;
+
+        this.abstractionNode.sendMessage(new Message<>(new AddAbstractLiteral(
+          this.verificationUuid,
+          Valuation.filter(Stream.concat(
+            predicateValuations.values().stream(),
+            Stream.of(new ExpressionValuation(false, expressionLocation))
+          ).toList(), unsatisfiableCore),
+          abstractLiteral
+        )));
+
+        return new AbstractionResult(abstractLiteral);
       }
 
-      if (this.check(formulas, expressionFormula, solver, context)) {
-        return new AbstractionResult(AbstractLiteral.FALSE);
+      unsatisfiableCore = Formula.getUnsatisfiableCore(
+        Stream.concat(formulas.stream(), Stream.of(expression)).toList(),
+        context,
+        solver
+      );
+
+      if (!unsatisfiableCore.isEmpty()) {
+        AbstractLiteral abstractLiteral = AbstractLiteral.FALSE;
+
+        this.abstractionNode.sendMessage(new Message<>(new AddAbstractLiteral(
+          this.verificationUuid,
+          Valuation.filter(Stream.concat(
+            predicateValuations.values().stream(),
+            Stream.of(new ExpressionValuation(true, expressionLocation))
+          ).toList(), unsatisfiableCore),
+          abstractLiteral
+        )));
+
+        return new AbstractionResult(abstractLiteral);
       }
     }
 

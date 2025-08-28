@@ -1,15 +1,13 @@
 package zeus.zeusverifier.node.abstraction;
 
 import zeus.shared.message.Message;
-import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.abstraction.AbstractResponse;
-import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.abstraction.AbstractionFailed;
-import zeus.shared.message.payload.storage.CheckPredicateValuationsRequest;
-import zeus.shared.message.payload.storage.CheckPredicateValuationsResponse;
+import zeus.shared.message.payload.storage.GetAbstractLiteralRequest;
+import zeus.shared.message.payload.storage.GetAbstractLiteralResponse;
 import zeus.zeusverifier.config.abstractionnode.AbstractionNodeConfig;
 import zeus.zeusverifier.node.Node;
 import zeus.zeusverifier.routing.NodeAction;
@@ -37,7 +35,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
     UUID uuid = UUID.randomUUID();
     this.pendingAbstractions.put(uuid, new CompletableFuture<>());
 
-    this.sendMessage(new Message<>(new CheckPredicateValuationsRequest(
+    this.sendMessage(new Message<>(new GetAbstractLiteralRequest(
       uuid,
       message.getPayload().verificationUuid(),
       this.getUuid(),
@@ -45,11 +43,12 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
     ), new Recipient(NodeType.STORAGE_GATEWAY)));
 
     new Thread(() -> {
-      Abstractor abstractor = new Abstractor();
+      Abstractor abstractor = new Abstractor(message.getPayload().verificationUuid(), this);
       AbstractionResult abstractionResult = abstractor.computeAbstraction(
         message.getPayload().predicates(),
         message.getPayload().predicateValuations(),
-        message.getPayload().expression()
+        message.getPayload().expression(),
+        message.getPayload().expressionLocation()
       );
 
       pendingAbstractions.get(uuid).complete(switch (abstractionResult.getStatus()) {
@@ -97,11 +96,11 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
     }
   }
 
-  private RouteResult processCheckPredicateValuationsResponseRoute(
-    Message<CheckPredicateValuationsResponse> message,
+  private RouteResult processGetAbstractLiteralResponseRoute(
+    Message<GetAbstractLiteralResponse> message,
     Socket socket
   ) {
-    System.out.println("Running processCheckPredicateValuationsResponseRoute");
+    System.out.println("Running processGetAbstractLiteralResponseRoute");
     CompletableFuture<RouteResult> completableFuture = this.pendingAbstractions.get(
       message.getPayload().getRequestUuid()
     );
@@ -110,15 +109,13 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
       return new RouteResult();
     }
 
-    if (message.getPayload().getAbstractValue().isEmpty()) {
+    if (message.getPayload().getAbstractLiteral().isEmpty()) {
       return new RouteResult();
     }
 
     completableFuture.complete(new RouteResult(new Message<>(new AbstractResponse(
       message.getPayload().getRequestUuid(),
-      (message.getPayload().getAbstractValue().get())
-        ? AbstractLiteral.TRUE
-        : AbstractLiteral.FALSE
+      message.getPayload().getAbstractLiteral().get()
     ), new Recipient(NodeType.MODEL_CHECKING))));
 
     return new RouteResult();
@@ -131,7 +128,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
       requestSocket,
       Map.of(
         AbstractRequest.class, this::processAbstractRequestRoute,
-        CheckPredicateValuationsResponse.class, this::processCheckPredicateValuationsResponseRoute
+        GetAbstractLiteralResponse.class, this::processGetAbstractLiteralResponseRoute
       )
     );
   }

@@ -6,13 +6,12 @@ import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 import java.util.stream.Stream;
 
-public class PredicateValuation {
+public class PredicateValuation extends Valuation {
   UUID predicateUuid;
-  boolean value;
 
   public PredicateValuation(UUID predicateUuid, boolean value) {
+    super(value);
     this.predicateUuid = predicateUuid;
-    this.value = value;
   }
 
   public static List<Map<UUID, PredicateValuation>> getCombinations(

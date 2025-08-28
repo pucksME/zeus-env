@@ -5,10 +5,11 @@ import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.storage.CheckIfComponentVisitedRequest;
 import zeus.shared.message.payload.storage.CheckIfComponentVisitedResponse;
-import zeus.shared.message.payload.storage.CheckPredicateValuationsRequest;
-import zeus.shared.message.payload.storage.CheckPredicateValuationsResponse;
+import zeus.shared.message.payload.storage.GetAbstractLiteralRequest;
+import zeus.shared.message.payload.storage.GetAbstractLiteralResponse;
 import zeus.zeusverifier.config.storagenode.StorageGatewayNodeConfig;
 import zeus.zeusverifier.node.GatewayNode;
 import zeus.zeusverifier.routing.NodeAction;
@@ -28,12 +29,12 @@ import java.util.stream.IntStream;
 
 public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
   private final ConcurrentHashMap<UUID, Set<CompletableFuture<Boolean>>> pendingCheckIfComponentVisitedRequests;
-  private final ConcurrentHashMap<UUID, Set<CompletableFuture<Optional<Boolean>>>> pendingCheckPredicateValuationsRequests;
+  private final ConcurrentHashMap<UUID, Set<CompletableFuture<Optional<AbstractLiteral>>>> pendingGetAbstractLiteralRequests;
 
   public StorageGatewayNode(StorageGatewayNodeConfig config) {
     super(config, NodeType.STORAGE);
     this.pendingCheckIfComponentVisitedRequests = new ConcurrentHashMap<>();
-    this.pendingCheckPredicateValuationsRequests = new ConcurrentHashMap<>();
+    this.pendingGetAbstractLiteralRequests = new ConcurrentHashMap<>();
   }
 
   private <T> Set<CompletableFuture<T>> getCompletableFuturesForAllNodes() {
@@ -105,26 +106,26 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
     return new RouteResult();
   }
 
-  private RouteResult processCheckPredicateValuationsRequestRoute(
-    Message<CheckPredicateValuationsRequest> message,
+  private RouteResult processGetAbstractLiteralRequestRoute(
+    Message<GetAbstractLiteralRequest> message,
     Socket socket
   ) {
-    System.out.println("Running processCheckPredicateValuationsRoute");
-    this.pendingCheckPredicateValuationsRequests.put(
+    System.out.println("Running processGetAbstractLiteralRequestRoute");
+    this.pendingGetAbstractLiteralRequests.put(
       message.getPayload().uuid(),
       this.getCompletableFuturesForAllNodes()
     );
 
-    this.sendMessage(new Message<>(new CheckPredicateValuationsRequest(
+    this.sendMessage(new Message<>(new GetAbstractLiteralRequest(
       message.getPayload().uuid(),
       message.getPayload().verificationUuid(),
       message.getPayload().abstractionNodeUuid(),
       message.getPayload().predicateValuations()
     ), new Recipient(NodeType.STORAGE, NodeSelection.ALL)));
 
-    Optional<Boolean> abstractValueOptional = Optional.empty();
+    Optional<AbstractLiteral> abstractValueOptional = Optional.empty();
 
-    for (CompletableFuture<Optional<Boolean>> completableFuture : this.pendingCheckPredicateValuationsRequests.get(
+    for (CompletableFuture<Optional<AbstractLiteral>> completableFuture : this.pendingGetAbstractLiteralRequests.get(
       message.getPayload().uuid()
     )) {
       try {
@@ -138,18 +139,18 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
       }
     }
 
-    return new RouteResult(new Message<>(new CheckPredicateValuationsResponse(
+    return new RouteResult(new Message<>(new GetAbstractLiteralResponse(
       message.getPayload().uuid(),
       abstractValueOptional.orElse(null)
     ), new Recipient(NodeType.ABSTRACTION, message.getPayload().abstractionNodeUuid())));
   }
 
-  private RouteResult processCheckPredicateValuationsResponseRoute(
-    Message<CheckPredicateValuationsResponse> message,
+  private RouteResult processGetAbstractLiteralResponseRoute(
+    Message<GetAbstractLiteralResponse> message,
     Socket socket
   ) {
-    System.out.println("Running processCheckPredicateValuationsResponseRoute");
-    Set<CompletableFuture<Optional<Boolean>>> completableFutures = this.pendingCheckPredicateValuationsRequests.get(
+    System.out.println("Running processGetAbstractLiteralResponseRoute");
+    Set<CompletableFuture<Optional<AbstractLiteral>>> completableFutures = this.pendingGetAbstractLiteralRequests.get(
       message.getPayload().getRequestUuid()
     );
 
@@ -157,9 +158,9 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
       return new RouteResult(NodeAction.TERMINATE);
     }
 
-    for (CompletableFuture<Optional<Boolean>> completableFuture : completableFutures) {
+    for (CompletableFuture<Optional<AbstractLiteral>> completableFuture : completableFutures) {
       if (!completableFuture.isDone()) {
-        completableFuture.complete(message.getPayload().getAbstractValue());
+        completableFuture.complete(message.getPayload().getAbstractLiteral());
         break;
       }
     }
@@ -175,7 +176,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
       Map.of(
         RegisterNode.class, this::registerNodeRoute,
         CheckIfComponentVisitedResponse.class, this::processCheckIfComponentVisitedResponseRoute,
-        CheckPredicateValuationsResponse.class, this::processCheckPredicateValuationsResponseRoute
+        GetAbstractLiteralResponse.class, this::processGetAbstractLiteralResponseRoute
       )
     );
   }
@@ -187,7 +188,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
       requestSocket,
       Map.of(
         CheckIfComponentVisitedRequest.class, this::processCheckIfComponentVisitedRequestRoute,
-        CheckPredicateValuationsRequest.class, this::processCheckPredicateValuationsRequestRoute
+        GetAbstractLiteralRequest.class, this::processGetAbstractLiteralRequestRoute
       )
     );
   }
