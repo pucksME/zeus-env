@@ -288,22 +288,32 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     System.out.println(message.getPayload().path());
     System.out.println("Valid path");
     System.out.println(message.getPayload().validPath());
-    Node.sendMessage(new Message<>(
+
+    return new RouteResult(new Message<>(
       new DistributeModelCheckingRequest(
+        UUID.randomUUID(),
         message.getPayload().verificationUuid(),
         message.getPayload().validPath(),
         PredicateValuation.getCombinations(
           message.getPayload().validPath().getPredicates().stream()
             .map(Predicate::getUuid)
             .toList()
-        )),
+        ),
+        message.getPayload().modelCheckingTaskUuid()),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
-    ), this.modelCheckingGatewayNodeSocket);
+    ));
+  }
+
+  private RouteResult processDistributeModelCheckingResponseRoute(
+    Message<DistributeModelCheckingResponse> message,
+    Socket requestSocket
+  ) {
+    System.out.println("Running processDistributeModelCheckingResponseRoute");
 
     return new RouteResult(new Message<>(
       new StopModelCheckingTaskRequest(
         message.getPayload().verificationUuid(),
-        message.getPayload().modelCheckingTaskUuid(),
+        message.getPayload().invalidCounterexampleModelCheckingTaskUuid(),
         StopModelCheckingTaskRequestStatus.INVALID_COUNTEREXAMPLE
       ),
       new Recipient(NodeType.MODEL_CHECKING_GATEWAY)
@@ -354,6 +364,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
         Map.entry(CounterexampleAnalysisFailed.class, this::processCounterexampleAnalysisFailedRoute),
         Map.entry(ValidCounterexample.class, this::processValidCounterexampleRoute),
         Map.entry(InvalidCounterexample.class, this::processInvalidCounterexampleRoute),
+        Map.entry(DistributeModelCheckingResponse.class, this::processDistributeModelCheckingResponseRoute),
         Map.entry(VerificationResult.class, this::processVerificationResultRoute)
       )
     );

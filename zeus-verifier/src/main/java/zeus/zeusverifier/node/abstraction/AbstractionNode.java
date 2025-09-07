@@ -33,10 +33,10 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
   private RouteResult processAbstractRequestRoute(Message<AbstractRequest> message, Socket requestSocket) {
     System.out.printf("Running processAbstractRequestRoute for uuid \"%s\"%n", message.getPayload().uuid());
     UUID uuid = UUID.randomUUID();
-    this.pendingAbstractions.put(uuid, new CompletableFuture<>());
+    this.pendingAbstractions.put(message.getPayload().uuid(), new CompletableFuture<>());
 
     this.sendMessage(new Message<>(new GetAbstractLiteralRequest(
-      uuid,
+      message.getPayload().uuid(),
       message.getPayload().verificationUuid(),
       this.getUuid(),
       new HashSet<>(message.getPayload().predicateValuations().values())
@@ -51,11 +51,11 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
         message.getPayload().expressionLocation()
       );
 
-      pendingAbstractions.get(uuid).complete(switch (abstractionResult.getStatus()) {
+      pendingAbstractions.get(message.getPayload().uuid()).complete(switch (abstractionResult.getStatus()) {
         case MISSING_PREDICATE_VALUATIONS -> new RouteResult(new Message<>(new AbstractionFailed(
           this.getUuid(),
           "missing predicate valuations"
-        )));
+        ), new Recipient(NodeType.ROOT)));
 
         case OK -> new RouteResult((abstractionResult.getAbstractLiteral().isPresent())
           ? new Message<>(
@@ -73,7 +73,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
     }).start();
 
     try {
-      RouteResult routeResult = pendingAbstractions.get(uuid).get();
+      RouteResult routeResult = pendingAbstractions.get(message.getPayload().uuid()).get();
       if (routeResult.getResponseMessage().isEmpty()) {
         return routeResult;
       }

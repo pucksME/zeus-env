@@ -121,6 +121,34 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
     return new RouteResult();
   }
 
+  private RouteResult processDistributeModelCheckingRequestGatewayRoute(
+    Message<DistributeModelCheckingRequest> message,
+    Socket socket
+  ) {
+    System.out.println("Running processDistributeModelCheckingRequestGatewayRoute");
+
+    Optional<UUID> uuidOptional = message.getPayload().getInvalidCounterexampleModelCheckingTaskUuid();
+
+    if (uuidOptional.isEmpty()) {
+      System.out.printf(
+        "Could not create distributed model checking response from request \"%s\": missing invalid counterexample model checking task uuid%n",
+        message.getPayload().getUuid()
+      );
+      return new RouteResult(NodeAction.TERMINATE);
+    }
+
+    this.processDistributeModelCheckingRequestRoute(message, socket);
+
+    return new RouteResult(new Message<>(
+      new DistributeModelCheckingResponse(
+        message.getPayload().getUuid(),
+        message.getPayload().getVerificationUuid(),
+        uuidOptional.get()
+      ),
+      new Recipient(NodeType.ROOT)
+    ));
+  }
+
   private RouteResult processStopModelCheckingTaskRoute(Message<StopModelCheckingTaskRequest> message, Socket requestSocket) {
     this.stopModelCheckingTask(
       message.getPayload().verificationUuid(),
@@ -151,7 +179,7 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
       Map.of(
         ClientCodeModule.class, this::processClientCodeModuleRoute,
         StartModelCheckingTaskRequest.class, this::processStartModelCheckingRequestRoute,
-        DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute,
+        DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestGatewayRoute,
         StopModelCheckingTaskRequest.class, this::processStopModelCheckingTaskRoute
       )
     );

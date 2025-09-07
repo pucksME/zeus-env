@@ -9,6 +9,7 @@ import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.RegisterNode;
 import zeus.shared.message.payload.RegisterNodeResponse;
+import zeus.shared.message.payload.modelchecking.Valuation;
 import zeus.shared.message.utils.MessageJsonDeserializer;
 import zeus.shared.message.utils.MessageUtils;
 import zeus.shared.message.utils.ObjectJsonDeserializer;
@@ -72,6 +73,7 @@ public abstract class Node<T extends Config> {
       .registerTypeAdapter(BodyComponent.class, new ObjectJsonDeserializer<BodyComponent>())
       .registerTypeAdapter(Expression.class, new ObjectJsonDeserializer<Expression>())
       .registerTypeAdapter(Formula.class, new ObjectJsonDeserializer<Formula>())
+      .registerTypeAdapter(Valuation.class, new ObjectJsonDeserializer<Valuation>())
       .create();
 
     try {
@@ -85,7 +87,7 @@ public abstract class Node<T extends Config> {
     }
   }
 
-  protected <T> Optional<Message<T>> getMessage(BufferedReader bufferedReader) throws IOException {
+  protected <T> Optional<Message<T>> getMessage(BufferedReader bufferedReader) {
     String message = MessageUtils.readMessage(bufferedReader);
     if (message == null) {
       System.out.println("Received empty message: closing socket");
@@ -327,7 +329,7 @@ public abstract class Node<T extends Config> {
       if (this.handleMessageWithRecipient(responseMessage)) {
         return routeResult.getNodeAction();
       }
-      this.sendMessage(responseMessage, requestSocket);
+      Node.sendMessage(responseMessage, requestSocket);
     }
 
     return routeResult.getNodeAction();

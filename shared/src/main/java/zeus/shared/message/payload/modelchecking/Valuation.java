@@ -7,8 +7,10 @@ import java.util.stream.IntStream;
 
 public abstract class Valuation {
   boolean value;
+  final String className;
 
   public Valuation(boolean value) {
+    this.className = this.getClass().getName();
     this.value = value;
   }
 

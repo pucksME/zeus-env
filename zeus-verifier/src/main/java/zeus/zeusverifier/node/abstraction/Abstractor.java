@@ -7,6 +7,9 @@ import com.microsoft.z3.Status;
 import zeus.shared.formula.Formula;
 import zeus.shared.formula.unary.NotFormula;
 import zeus.shared.message.Message;
+import zeus.shared.message.NodeSelection;
+import zeus.shared.message.Recipient;
+import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.modelchecking.ExpressionValuation;
 import zeus.shared.message.payload.modelchecking.Location;
@@ -78,7 +81,7 @@ public class Abstractor {
             Stream.of(new ExpressionValuation(false, expressionLocation))
           ).toList(), unsatisfiableCore),
           abstractLiteral
-        )));
+        ), new Recipient(NodeType.STORAGE, NodeSelection.ANY)));
 
         return new AbstractionResult(abstractLiteral);
       }
@@ -99,7 +102,7 @@ public class Abstractor {
             Stream.of(new ExpressionValuation(true, expressionLocation))
           ).toList(), unsatisfiableCore),
           abstractLiteral
-        )));
+        ), new Recipient(NodeType.STORAGE, NodeSelection.ANY)));
 
         return new AbstractionResult(abstractLiteral);
       }

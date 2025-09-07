@@ -222,6 +222,7 @@ public class CodeModuleModelChecker {
 
         if (modelCheckingResultOptional.isEmpty()) {
           this.modelCheckingNode.sendMessage(new Message<>(new DistributeModelCheckingRequest(
+            UUID.randomUUID(),
             this.verificationUuid,
             new Path(Stream.concat(
               this.path.getStates().stream(),
@@ -362,6 +363,7 @@ public class CodeModuleModelChecker {
 
     this.modelCheckingNode.sendMessage(new Message<>(
       new DistributeModelCheckingRequest(
+        UUID.randomUUID(),
         this.verificationUuid,
         new Path(Stream.concat(
           this.path.getStates().stream(),
