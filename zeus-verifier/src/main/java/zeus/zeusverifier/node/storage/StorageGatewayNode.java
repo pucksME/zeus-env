@@ -4,7 +4,7 @@ import zeus.shared.message.Message;
 import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.RegisterNodeRequest;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
 import zeus.shared.message.payload.storage.CheckIfComponentVisitedRequest;
 import zeus.shared.message.payload.storage.CheckIfComponentVisitedResponse;
@@ -174,7 +174,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
       message,
       requestSocket,
       Map.of(
-        RegisterNode.class, this::registerNodeRoute,
+        RegisterNodeRequest.class, this::registerNodeRoute,
         CheckIfComponentVisitedResponse.class, this::processCheckIfComponentVisitedResponseRoute,
         GetAbstractLiteralResponse.class, this::processGetAbstractLiteralResponseRoute
       )

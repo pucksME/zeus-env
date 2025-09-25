@@ -2,7 +2,7 @@ package zeus.zeusverifier.node.abstraction;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.RegisterNodeRequest;
 import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.zeusverifier.config.abstractionnode.AbstractionGatewayNodeConfig;
 import zeus.zeusverifier.node.GatewayNode;
@@ -26,7 +26,7 @@ public class AbstractionGatewayNode extends GatewayNode<AbstractionGatewayNodeCo
       message,
       requestSocket,
       Map.of(
-        RegisterNode.class, this::registerNodeRoute
+        RegisterNodeRequest.class, this::registerNodeRoute
       )
     );
   }

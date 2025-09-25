@@ -2,7 +2,7 @@ package zeus.zeusverifier.node;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.RegisterNodeRequest;
 import zeus.shared.message.payload.RegisterNodeResponse;
 import zeus.zeusverifier.Main;
 import zeus.zeusverifier.config.rootnode.GatewayNodeConfig;
@@ -93,7 +93,7 @@ public abstract class GatewayNode<T extends GatewayNodeConfig> extends Node<T>{
     return uuid;
   }
 
-  public RouteResult registerNodeRoute(Message<RegisterNode> message, Socket requestSocket) {
+  public RouteResult registerNodeRoute(Message<RegisterNodeRequest> message, Socket requestSocket) {
     System.out.println("Running registerNode route");
     UUID uuid = null;
     try {

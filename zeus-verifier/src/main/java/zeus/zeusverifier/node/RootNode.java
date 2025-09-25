@@ -57,7 +57,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     }
   }
 
-  private RouteResult registerGatewayNodeRoute(Message<RegisterNode> message, Socket requestSocket) {
+  private RouteResult registerGatewayNodeRoute(Message<RegisterNodeRequest> message, Socket requestSocket) {
     System.out.println("Running registerGatewayNodeRoute");
 
     Optional<PrintWriter> printWriterOptional = this.getPrintWriter(requestSocket);
@@ -354,7 +354,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
       message,
       requestSocket,
       Map.ofEntries(
-        Map.entry(RegisterNode.class, this::registerGatewayNodeRoute),
+        Map.entry(RegisterNodeRequest.class, this::registerGatewayNodeRoute),
         Map.entry(ClientCodeModule.class, this::processClientCodeModuleRoute),
         Map.entry(SynchronizedCodeModule.class, this::processSynchronizedCodeModuleRoute),
         Map.entry(VerificationResponse.class, this::processVerificationResponseRoute),

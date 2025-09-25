@@ -4,7 +4,7 @@ import zeus.shared.message.Message;
 import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.RegisterNodeRequest;
 import zeus.shared.message.payload.VerificationResult;
 import zeus.shared.message.payload.modelchecking.*;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
@@ -164,7 +164,7 @@ public class ModelCheckingGatewayNode extends GatewayNode<ModelCheckingGatewayNo
       message,
       requestSocket,
       Map.of(
-        RegisterNode.class, this::registerNodeRoute,
+        RegisterNodeRequest.class, this::registerNodeRoute,
         DistributeModelCheckingRequest.class, this::processDistributeModelCheckingRequestRoute,
         StopModelCheckingTaskRequest.class, this::processStopModelCheckingTaskRoute
       )

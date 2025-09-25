@@ -7,7 +7,7 @@ import zeus.shared.formula.Formula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.RegisterNodeRequest;
 import zeus.shared.message.payload.RegisterNodeResponse;
 import zeus.shared.message.payload.modelchecking.Valuation;
 import zeus.shared.message.utils.MessageJsonDeserializer;
@@ -128,7 +128,7 @@ public abstract class Node<T extends Config> {
   }
 
   private boolean registerOnGateway(Socket gatewaySocket, BufferedReader bufferedReader) throws IOException {
-    Node.sendMessage(new Message<>(new RegisterNode(switch (this) {
+    Node.sendMessage(new Message<>(new RegisterNodeRequest(switch (this) {
       case ModelCheckingGatewayNode _ -> NodeType.MODEL_CHECKING_GATEWAY;
       case ModelCheckingNode _ -> NodeType.MODEL_CHECKING;
       case AbstractionGatewayNode _ -> NodeType.ABSTRACTION_GATEWAY;
@@ -269,7 +269,7 @@ public abstract class Node<T extends Config> {
     BufferedReader bufferedReader,
     ExecutorService executorService,
     BiFunction<Message<?>, Socket, NodeAction> requestHandler
-  ) throws IOException, RejectedExecutionException {
+  ) throws RejectedExecutionException {
     while (true) {
       this.processRequest(socket, this.getMessage(bufferedReader), executorService, requestHandler);
     }

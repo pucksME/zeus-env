@@ -273,7 +273,6 @@ public class CodeModuleModelChecker {
     }
 
     Formula expressionFormula = expression.toFormula(this.variables);
-    Set<String> expressionRelevantPredicates = expressionFormula.getReferencedVariables();
 
     Set<Predicate> relevantPredicates = this.predicates.values().stream()
       .filter(predicate -> predicate.getFormula().getReferencedVariables().contains(variable))
@@ -332,15 +331,20 @@ public class CodeModuleModelChecker {
       }
     }
 
-    if (deterministicPredicateValuations.size() == this.predicateValuations.size()) {
+    if (deterministicPredicateValuations.size() == relevantPredicates.size()) {
       return;
     }
 
     List<Map<UUID, PredicateValuation>> predicateValuations = PredicateValuation.getCombinations(
-      deterministicPredicateValuations,
+      Stream.concat(
+        deterministicPredicateValuations.entrySet().stream(),
+        this.predicateValuations.entrySet().stream()
+          .filter(predicatesValuationsEntry -> relevantPredicates.stream()
+            .noneMatch(predicate -> predicate.getUuid().equals(predicatesValuationsEntry.getKey())))
+      ).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)),
       nonDeterministicPredicateValuations
     ).stream()
-      .filter(valuations -> this.currentPredicateValuationsInfeasible(
+      .filter(valuations -> this.predicateValuationsInfeasible(
         valuations,
         context,
         solver
@@ -377,7 +381,7 @@ public class CodeModuleModelChecker {
     ));
   }
 
-  private boolean currentPredicateValuationsInfeasible(
+  private boolean predicateValuationsInfeasible(
     Map<UUID, PredicateValuation> predicateValuations,
     Context context,
     Solver solver
@@ -406,7 +410,7 @@ public class CodeModuleModelChecker {
   }
 
   public ModelCheckingResult checkComponents(Context context, Solver solver) {
-    if (!this.currentPredicateValuationsInfeasible(this.predicateValuations, context, solver)) {
+    if (!this.predicateValuationsInfeasible(this.predicateValuations, context, solver)) {
       System.out.println("Infeasible predicate valuations, stopping model checking task");
       return new ModelCheckingResult(ModelCheckingResultStatus.INFEASIBLE_PREDICATE_VALUATIONS);
     }

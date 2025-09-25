@@ -117,8 +117,8 @@ public class IfStatement extends ControlStatement {
     ).toList();
 
     for (int i = 0; i < bodyComponents.size(); i++) {
-      parents = new LinkedList<>(parents);
-      parents.add(new ParentStatement(
+      Queue<ParentStatement> currentParents = new LinkedList<>(parents);
+      currentParents.add(new ParentStatement(
         this,
         (i < this.thenBody.getBodyComponents().size())
           ? this.thenBody.getBodyComponents()
@@ -126,7 +126,13 @@ public class IfStatement extends ControlStatement {
         index
       ));
 
-      componentSearchResultOptional = bodyComponents.get(i).searchComponent(location, i, parents);
+      componentSearchResultOptional = bodyComponents.get(i).searchComponent(
+        location,
+        (i < this.thenBody.getBodyComponents().size())
+          ? i
+          : i - this.thenBody.getBodyComponents().size(),
+        currentParents
+      );
 
       if (componentSearchResultOptional.isPresent()) {
         return componentSearchResultOptional;

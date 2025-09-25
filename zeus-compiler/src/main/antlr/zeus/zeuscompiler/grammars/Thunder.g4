@@ -38,7 +38,7 @@ accessWriteStatement: expression LIST_START expression LIST_END OPERATOR_ASSIGNM
 accessWriteObjectStatement : expression OPERATOR_ACCESS ID OPERATOR_ASSIGNMENT expression ';' ;
 ifStatement : KEYWORD_IF expression BLOCK_START controlStatementBody BLOCK_END (KEYWORD_ELSE BLOCK_START controlStatementBody BLOCK_END)?;
 whileStatement : KEYWORD_WHILE expression BLOCK_START controlStatementBody BLOCK_END ;
-assertStatement : KEYWORD_ASSERT '(' expression ')' ';' ;
+assertStatement : KEYWORD_ASSERT expression ';' ;
 
 expression : ID                                                        # IdentifierExpression
            | literal                                                   # LiteralExpression

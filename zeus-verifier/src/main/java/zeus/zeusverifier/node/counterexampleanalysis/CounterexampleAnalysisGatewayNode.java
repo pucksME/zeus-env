@@ -2,7 +2,7 @@ package zeus.zeusverifier.node.counterexampleanalysis;
 
 import zeus.shared.message.Message;
 import zeus.shared.message.payload.NodeType;
-import zeus.shared.message.payload.RegisterNode;
+import zeus.shared.message.payload.RegisterNodeRequest;
 import zeus.shared.message.payload.counterexampleanalysis.AnalyzeCounterExampleRequest;
 import zeus.zeusverifier.config.counterexampleanalysisnode.CounterExampleAnalysisGatewayNodeConfig;
 import zeus.zeusverifier.node.GatewayNode;
@@ -26,7 +26,7 @@ public class CounterexampleAnalysisGatewayNode extends GatewayNode<CounterExampl
       message,
       requestSocket,
       Map.of(
-        RegisterNode.class, this::registerNodeRoute
+        RegisterNodeRequest.class, this::registerNodeRoute
       )
     );
   }

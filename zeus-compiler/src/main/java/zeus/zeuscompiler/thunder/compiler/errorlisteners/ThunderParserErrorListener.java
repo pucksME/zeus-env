@@ -22,7 +22,7 @@ public class ThunderParserErrorListener extends BaseErrorListener {
     RecognitionException e
   ) {
     ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
-      line,
+      line + ServiceProvider.provide(CompilerErrorService.class).getLineOffset(),
       charPositionInLine,
       e,
       CompilerPhase.PARSER
