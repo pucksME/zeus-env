@@ -252,11 +252,12 @@ public class CodeModuleModelChecker {
       }
 
       AbstractLiteral abstractLiteral = abstractionLiteralOptional.get();
+      ControlStatement controlStatement = parentStatement.getControlStatement();
 
-      if (abstractLiteral != AbstractLiteral.FALSE) {
-        ControlStatement controlStatement = parentStatement.getControlStatement();
-        this.path.getStates().add(new State(new Location(controlStatement.getLine(), controlStatement.getLinePosition())));
-      }
+      this.path.getStates().add(new State(new Location(
+        controlStatement.getLine(),
+        controlStatement.getLinePosition()
+      )));
 
       this.handleControlStatement(parentStatement.getControlStatement(), abstractLiteral);
       return;
