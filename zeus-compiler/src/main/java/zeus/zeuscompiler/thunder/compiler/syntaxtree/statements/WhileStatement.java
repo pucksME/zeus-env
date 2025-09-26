@@ -86,9 +86,9 @@ public class WhileStatement extends ControlStatement {
     List<BodyComponent> bodyComponents = this.body.getBodyComponents();
 
     for (int i = 0; i < bodyComponents.size(); i++) {
-      parents = new LinkedList<>(parents);
-      parents.add(new ParentStatement(this, bodyComponents, index));
-      componentSearchResultOptional = bodyComponents.get(i).searchComponent(location, i, parents);
+      Queue<ParentStatement> currentParents = new LinkedList<>(parents);
+      currentParents.add(new ParentStatement(this, bodyComponents, index));
+      componentSearchResultOptional = bodyComponents.get(i).searchComponent(location, i, currentParents);
       if (componentSearchResultOptional.isPresent()) {
         return componentSearchResultOptional;
       }

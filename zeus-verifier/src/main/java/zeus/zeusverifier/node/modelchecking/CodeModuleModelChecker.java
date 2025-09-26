@@ -239,7 +239,7 @@ public class CodeModuleModelChecker {
   }
 
   private void handleCurrentParentStatement() {
-    ParentStatement parentStatement = ((LinkedList<ParentStatement>) this.currentStatementParents).pop();
+    ParentStatement parentStatement = ((LinkedList<ParentStatement>) this.currentStatementParents).pollLast();
     this.updateCurrentComponents();
 
     if (parentStatement.getControlStatement() instanceof WhileStatement) {
@@ -422,6 +422,10 @@ public class CodeModuleModelChecker {
         }
 
         this.handleCurrentParentStatement();
+
+        if (this.currentIndex >= this.currentComponents.size()) {
+          continue;
+        }
       }
 
       Component component = this.currentComponents.get(this.currentIndex);
