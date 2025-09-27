@@ -366,7 +366,13 @@ public class Project extends Node {
           counterexamples.add(new CodeModuleCounterexampleDto(
             verificationResult.getValidCounterexample().get().getStates().stream()
               .map(state -> new LocationDto(state.getLocation().line(), state.getLocation().linePosition()))
-              .toList()
+              .toList(),
+            verificationResult.getVariableAssignments().orElse(new HashSet<>()).stream()
+              .map(variableAssignment -> new VariableAssignmentDto(
+                variableAssignment.variable(),
+                variableAssignment.value()
+              ))
+              .collect(Collectors.toSet())
           ));
         }
 

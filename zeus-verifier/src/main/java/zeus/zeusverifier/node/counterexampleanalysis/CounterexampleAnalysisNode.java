@@ -25,10 +25,7 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
@@ -138,9 +135,9 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
     }
 
     CounterexampleAnalysisResult counterexampleAnalysisResult = counterexampleOptional.get();
-    Optional<Path> counterExampleValidPathOptional = counterexampleAnalysisResult.getValidPath();
+    Optional<Path> counterExamplePivotPathOptional = counterexampleAnalysisResult.getPivotPath();
 
-    return counterExampleValidPathOptional.map(path -> new RouteResult(new Message<>(
+    return counterExamplePivotPathOptional.map(path -> new RouteResult(new Message<>(
       new InvalidCounterexample(
         message.getPayload().verificationUuid(),
         message.getPayload().modelCheckingTaskUuid(),
@@ -152,7 +149,8 @@ public class CounterexampleAnalysisNode extends Node<CounterExampleAnalysisNodeC
       new ValidCounterexample(
         message.getPayload().verificationUuid(),
         message.getPayload().modelCheckingTaskUuid(),
-        counterexampleAnalysisResult.getPath()
+        counterexampleAnalysisResult.getPath(),
+        counterexampleAnalysisResult.getVariableAssignments().orElse(new HashSet<>())
       ),
       new Recipient(NodeType.ROOT)
     )));

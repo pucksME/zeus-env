@@ -270,7 +270,8 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
 
     verificationResults.getLast().complete(new VerificationResult(
       message.getPayload().verificationUuid(),
-      message.getPayload().path()
+      message.getPayload().path(),
+      message.getPayload().variableAssignments()
     ));
 
     return new RouteResult(new Message<>(
@@ -287,15 +288,15 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     System.out.println("Running processInvalidCounterexampleRoute");
     System.out.println(message.getPayload().path());
     System.out.println("Valid path");
-    System.out.println(message.getPayload().validPath());
+    System.out.println(message.getPayload().pivotPath());
 
     return new RouteResult(new Message<>(
       new DistributeModelCheckingRequest(
         UUID.randomUUID(),
         message.getPayload().verificationUuid(),
-        message.getPayload().validPath(),
+        message.getPayload().pivotPath(),
         PredicateValuation.getCombinations(
-          message.getPayload().validPath().getPredicates().stream()
+          message.getPayload().pivotPath().getPredicates().stream()
             .map(Predicate::getUuid)
             .toList()
         ),

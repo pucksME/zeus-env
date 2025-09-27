@@ -490,11 +490,16 @@ export class ProjectService {
     })).data;
     return {
       counterexamples: Array.from(verifiedCodeModule.counterexamples.values())
-        .map(counterexample => ({ locations: counterexample.locations
-            .map(location => ({
-              line: location.line,
-              linePosition: location.linePosition
-            }))})),
+        .map(counterexample => ({
+          locations: counterexample.locations.map(location => ({
+            line: location.line,
+            linePosition: location.linePosition
+          })),
+          variableAssignments: Array.from(counterexample.variableAssignments.values()).map(variableAssignment => ({
+            variable: variableAssignment.variable,
+            value: variableAssignment.value
+          }))
+        })),
       errors: verifiedCodeModule.errors.map(CodeModuleUtils.buildErrorDto)
     };
   }

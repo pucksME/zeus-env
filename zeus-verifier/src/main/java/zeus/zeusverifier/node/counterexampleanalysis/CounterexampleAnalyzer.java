@@ -1,15 +1,13 @@
 package zeus.zeusverifier.node.counterexampleanalysis;
 
-import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
-import com.microsoft.z3.Solver;
-import com.microsoft.z3.Status;
+import com.microsoft.z3.*;
 import zeus.shared.formula.Formula;
 import zeus.shared.formula.unary.NotFormula;
 import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.counterexampleanalysis.CounterexampleAnalysisFailed;
+import zeus.shared.message.payload.counterexampleanalysis.VariableAssignment;
 import zeus.shared.message.payload.modelchecking.Location;
 import zeus.shared.message.payload.modelchecking.Path;
 import zeus.shared.message.payload.modelchecking.State;
@@ -17,6 +15,7 @@ import zeus.shared.predicate.Predicate;
 import zeus.zeuscompiler.symboltable.VariableInformation;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.ClientCodeModule;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Component;
+import zeus.zeuscompiler.thunder.compiler.syntaxtree.codemodules.Input;
 import zeus.zeuscompiler.thunder.compiler.syntaxtree.statements.*;
 import zeus.zeuscompiler.thunder.compiler.utils.ComponentSearchResult;
 
@@ -27,6 +26,7 @@ import java.util.stream.Stream;
 public class CounterexampleAnalyzer {
   private final UUID verificationUuid;
   Path path;
+  Set<VariableAssignment> variableAssignments;
   Set<Predicate> predicates;
   ClientCodeModule clientCodeModule;
   CounterexampleAnalysisNode counterexampleAnalysisNode;
@@ -39,6 +39,7 @@ public class CounterexampleAnalyzer {
   ) {
     this.verificationUuid = verificationUuid;
     this.path = path;
+    this.variableAssignments = new HashSet<>();
     this.predicates = this.path.getPredicates();
     this.clientCodeModule = clientCodeModule;
     this.counterexampleAnalysisNode = counterexampleAnalysisNode;
@@ -68,6 +69,24 @@ public class CounterexampleAnalyzer {
     return Optional.of(components);
   }
 
+  private void updateModel(Model model) {
+    Optional<Map<String, VariableInformation>> variablesOptional = this.clientCodeModule.getVariables();
+    if (variablesOptional.isEmpty()) {
+      return;
+    }
+
+    this.variableAssignments = new HashSet<>();
+
+    for (FuncDecl<?> funcDecl : model.getConstDecls()) {
+      String variableName = funcDecl.getName().toString();
+      if (!variablesOptional.get().containsKey(variableName)) {
+        continue;
+      }
+
+      this.variableAssignments.add(new VariableAssignment(variableName, model.getConstInterp(funcDecl).toString()));
+    }
+  }
+
   private Optional<Set<Formula>> findNewPredicateCandidates(
     List<Formula> formulas,
     CounterexampleAnalysisHistory counterexampleAnalysisHistory
@@ -81,6 +100,7 @@ public class CounterexampleAnalyzer {
 
       if (solver.check() == Status.SATISFIABLE) {
         counterexampleAnalysisHistory.addFormulas(formulas);
+        this.updateModel(solver.getModel());
         return Optional.of(new HashSet<>());
       }
 
@@ -178,6 +198,7 @@ public class CounterexampleAnalyzer {
             ))
             .toList();
         }
+        case Input _ -> {}
         default -> {
           this.counterexampleAnalysisNode.sendMessage(new Message<>(new CounterexampleAnalysisFailed(
             this.counterexampleAnalysisNode.getUuid(),
@@ -208,7 +229,7 @@ public class CounterexampleAnalyzer {
       .toList());
 
     if (newPredicateCandidates.isEmpty()) {
-      return Optional.of(new CounterexampleAnalysisResult(counterexamplePath));
+      return Optional.of(new CounterexampleAnalysisResult(counterexamplePath, this.variableAssignments));
     }
 
     if (!counterexamplePath.getStates().isEmpty()) {
@@ -218,14 +239,14 @@ public class CounterexampleAnalyzer {
         return Optional.empty();
       }
 
-      Path counterexampleValidPath = new Path(counterexamplePath.getStates().subList(0, componentIndex + 1));
-      counterexampleValidPath.getStates().getLast().setChecked(false);
-      counterexampleValidPath.getStates().getLast().setPredicates(Stream.concat(
+      Path counterexamplePivotPath = new Path(counterexamplePath.getStates().subList(0, componentIndex + 1));
+      counterexamplePivotPath.getStates().getLast().setChecked(false);
+      counterexamplePivotPath.getStates().getLast().setPredicates(Stream.concat(
         this.predicates.stream(),
         newPredicates.stream()
       ).collect(Collectors.toSet()));
 
-      return Optional.of(new CounterexampleAnalysisResult(counterexamplePath, counterexampleValidPath));
+      return Optional.of(new CounterexampleAnalysisResult(counterexamplePath, counterexamplePivotPath));
     }
 
     this.counterexampleAnalysisNode.sendMessage(new Message<>(

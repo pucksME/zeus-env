@@ -58,8 +58,7 @@ public class AssignmentStatement extends Statement {
 
     VariableInformation variableInformation = variableInformationOptional.get();
 
-    if (variableInformation.getVariableType() == VariableType.INPUT ||
-      variableInformation.getVariableType() == VariableType.CONFIG) {
+    if (variableInformation.getVariableType() == VariableType.CONFIG) {
       ServiceProvider.provide(CompilerErrorService.class).addError(new CompilerError(
         this.getLine(),
         this.getLinePosition(),

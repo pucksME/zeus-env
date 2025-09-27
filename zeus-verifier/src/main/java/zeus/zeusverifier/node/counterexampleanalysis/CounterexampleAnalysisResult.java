@@ -1,27 +1,39 @@
 package zeus.zeusverifier.node.counterexampleanalysis;
 
+import zeus.shared.message.payload.counterexampleanalysis.VariableAssignment;
 import zeus.shared.message.payload.modelchecking.Path;
 
 import java.util.Optional;
+import java.util.Set;
 
 public class CounterexampleAnalysisResult {
   private final Path path;
-  private Path validPath;
+  private Path pivotPath;
+  private Set<VariableAssignment> variableAssignments;
 
   public CounterexampleAnalysisResult(Path path) {
     this.path = path;
   }
 
-  public CounterexampleAnalysisResult(Path path, Path validPath) {
+  public CounterexampleAnalysisResult(Path path, Set<VariableAssignment> variableAssignments) {
+    this.path = path;
+    this.variableAssignments = variableAssignments;
+  }
+
+  public CounterexampleAnalysisResult(Path path, Path pivotPath) {
     this(path);
-    this.validPath = validPath;
+    this.pivotPath = pivotPath;
   }
 
   public Path getPath() {
     return path;
   }
 
-  public Optional<Path> getValidPath() {
-    return Optional.ofNullable(validPath);
+  public Optional<Path> getPivotPath() {
+    return Optional.ofNullable(pivotPath);
+  }
+
+  public Optional<Set<VariableAssignment>> getVariableAssignments() {
+    return Optional.ofNullable(variableAssignments);
   }
 }

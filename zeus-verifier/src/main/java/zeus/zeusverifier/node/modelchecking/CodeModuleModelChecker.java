@@ -459,7 +459,7 @@ public class CodeModuleModelChecker {
 
           continue;
         }
-        // case Input input -> {}
+        case Input _ -> {}
         case Output output -> {
           output.getDeclarationExpression().ifPresent(expression -> this.handleAssignment(
             output.getId(),
