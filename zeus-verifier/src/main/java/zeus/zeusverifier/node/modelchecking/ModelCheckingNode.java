@@ -68,7 +68,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
     Map<UUID, Predicate> predicates,
     Map<UUID, PredicateValuation> predicateValuations,
     Formula expression,
-    Location expressionLocation
+    ExpressionIdentifier expressionIdentifier
   ) {
     System.out.println("Running sendAbstractRequest route");
     UUID uuid = UUID.randomUUID();
@@ -80,7 +80,7 @@ public class ModelCheckingNode extends Node<ModelCheckingNodeConfig> {
         predicates,
         predicateValuations,
         expression,
-        expressionLocation
+        expressionIdentifier
       ),
       new Recipient(NodeType.ABSTRACTION, NodeSelection.ANY)
     ));

@@ -7,6 +7,7 @@ import zeus.shared.message.Message;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
+import zeus.shared.message.payload.modelchecking.ExpressionValuation;
 import zeus.shared.message.payload.modelchecking.Location;
 import zeus.shared.message.payload.modelchecking.PredicateValuation;
 import zeus.shared.message.payload.modelchecking.Valuation;
@@ -19,10 +20,7 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class StorageNode extends Node<StorageNodeConfig> {
@@ -176,18 +174,50 @@ public class StorageNode extends Node<StorageNodeConfig> {
   ) {
     System.out.println("Running processGetAbstractLiteralRequestRoute route");
 
-    Map<Set<Valuation>, AbstractLiteral> predicateValuationsAbstractValue = this.valuationsAbstractLiterals.get(
+    Map<Set<Valuation>, AbstractLiteral> valuationsAbstractValue = this.valuationsAbstractLiterals.get(
       message.getPayload().verificationUuid()
     );
 
-    if (predicateValuationsAbstractValue == null) {
+    if (valuationsAbstractValue == null) {
       return new RouteResult(new Message<>(
         new GetAbstractLiteralResponse(message.getPayload().uuid()),
         new Recipient(NodeType.STORAGE_GATEWAY)
       ));
     }
 
-    AbstractLiteral abstractLiteral = predicateValuationsAbstractValue.get(message.getPayload().predicateValuations());
+    AbstractLiteral abstractLiteral = null;
+
+    ExpressionValuation expressionValuation = null;
+    List<Set<Valuation>> expressionValuationValuations = new ArrayList<>(Set.of(message.getPayload().valuations()));
+
+    for (Valuation valuation : expressionValuationValuations.getFirst()) {
+      if (valuation instanceof ExpressionValuation) {
+        expressionValuation = (ExpressionValuation) valuation;
+        break;
+      }
+    }
+
+    if (expressionValuation != null) {
+      expressionValuationValuations.getFirst().remove(expressionValuation);
+      expressionValuationValuations.add(new HashSet<>(expressionValuationValuations.getFirst()));
+
+      expressionValuationValuations.getFirst().add(new ExpressionValuation(
+        false,
+        expressionValuation.getExpressionIdentifier()
+      ));
+
+      expressionValuationValuations.getLast().add(new ExpressionValuation(
+        true,
+        expressionValuation.getExpressionIdentifier()
+      ));
+    }
+
+    for (Set<Valuation> valuations : valuationsAbstractValue.keySet()) {
+      if (expressionValuationValuations.stream().anyMatch(valuations::containsAll)) {
+        abstractLiteral = valuationsAbstractValue.get(valuations);
+        break;
+      }
+    }
 
     if (abstractLiteral == null) {
       return new RouteResult(new Message<>(
@@ -204,11 +234,11 @@ public class StorageNode extends Node<StorageNodeConfig> {
 
   private RouteResult processAddAbstractLiteralRoute(Message<AddAbstractLiteral> message, Socket socket) {
     System.out.println("Running processAddValuations route");
-    ConcurrentHashMap<Set<Valuation>, AbstractLiteral> valuations = this.valuationsAbstractLiterals.get(
+    ConcurrentHashMap<Set<Valuation>, AbstractLiteral> valuationsAbstractLiterals = this.valuationsAbstractLiterals.get(
       message.getPayload().verificationUuid()
     );
 
-    if (valuations == null) {
+    if (valuationsAbstractLiterals == null) {
       this.valuationsAbstractLiterals.put(
         message.getPayload().verificationUuid(),
         new ConcurrentHashMap<>(Map.of(message.getPayload().valuations(), message.getPayload().abstractLiteral()))
@@ -216,7 +246,13 @@ public class StorageNode extends Node<StorageNodeConfig> {
       return new RouteResult();
     }
 
-    valuations.put(message.getPayload().valuations(), message.getPayload().abstractLiteral());
+    for (Set<Valuation> valuations : valuationsAbstractLiterals.keySet()) {
+      if (valuations.containsAll(message.getPayload().valuations())) {
+        return new RouteResult();
+      }
+    }
+
+    valuationsAbstractLiterals.put(message.getPayload().valuations(), message.getPayload().abstractLiteral());
     return new RouteResult();
   }
 

@@ -1,20 +1,30 @@
 package zeus.shared.message.payload.modelchecking;
 
 public class ExpressionValuation extends Valuation {
-  private Location location;
+  private final ExpressionIdentifier expressionIdentifier;
 
-  public ExpressionValuation(boolean value, Location location) {
+  public ExpressionValuation(ExpressionIdentifier expressionIdentifier) {
+    super(false);
+    this.expressionIdentifier = expressionIdentifier;
+  }
+
+  public ExpressionValuation(boolean value, ExpressionIdentifier expressionIdentifier) {
     super(value);
-    this.location = location;
+    this.expressionIdentifier = expressionIdentifier;
+  }
+
+  public ExpressionIdentifier getExpressionIdentifier() {
+    return expressionIdentifier;
   }
 
   @Override
   public int hashCode() {
-    return location.hashCode();
+    return expressionIdentifier.hashCode();
   }
 
   @Override
   public boolean equals(Object obj) {
-    return obj instanceof ExpressionValuation && ((ExpressionValuation) obj).location.equals(location);
+    return obj instanceof ExpressionValuation &&
+      ((ExpressionValuation) obj).expressionIdentifier.equals(expressionIdentifier);
   }
 }

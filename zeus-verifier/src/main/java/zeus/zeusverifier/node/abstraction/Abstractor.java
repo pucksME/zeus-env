@@ -1,9 +1,7 @@
 package zeus.zeusverifier.node.abstraction;
 
 import com.microsoft.z3.Context;
-import com.microsoft.z3.Expr;
 import com.microsoft.z3.Solver;
-import com.microsoft.z3.Status;
 import zeus.shared.formula.Formula;
 import zeus.shared.formula.unary.NotFormula;
 import zeus.shared.message.Message;
@@ -11,10 +9,7 @@ import zeus.shared.message.NodeSelection;
 import zeus.shared.message.Recipient;
 import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractLiteral;
-import zeus.shared.message.payload.modelchecking.ExpressionValuation;
-import zeus.shared.message.payload.modelchecking.Location;
-import zeus.shared.message.payload.modelchecking.PredicateValuation;
-import zeus.shared.message.payload.modelchecking.Valuation;
+import zeus.shared.message.payload.modelchecking.*;
 import zeus.shared.message.payload.storage.AddAbstractLiteral;
 import zeus.shared.predicate.Predicate;
 
@@ -30,19 +25,11 @@ public class Abstractor {
     this.abstractionNode = abstractionNode;
   }
 
-  private boolean check(List<Expr> formulas, Solver solver, Context context) {
-    return solver.check(context.mkAnd(formulas.toArray(Expr[]::new))) == Status.UNSATISFIABLE;
-  }
-
-  private boolean check(List<Expr> formulars, Expr expression, Solver solver, Context context) {
-    return this.check(Stream.concat(formulars.stream(), Stream.of(expression)).toList(), solver, context);
-  }
-
   public AbstractionResult computeAbstraction(
     Map<UUID, Predicate> predicates,
     Map<UUID, PredicateValuation> predicateValuations,
     Formula expression,
-    Location expressionLocation
+    ExpressionIdentifier expressionIdentifier
   ) {
     try (Context context = new Context()) {
       Solver solver = context.mkSolver();
@@ -78,7 +65,7 @@ public class Abstractor {
           this.verificationUuid,
           Valuation.filter(Stream.concat(
             predicateValuations.values().stream(),
-            Stream.of(new ExpressionValuation(false, expressionLocation))
+            Stream.of(new ExpressionValuation(false, expressionIdentifier))
           ).toList(), unsatisfiableCore),
           abstractLiteral
         ), new Recipient(NodeType.STORAGE, NodeSelection.ANY)));
@@ -99,7 +86,7 @@ public class Abstractor {
           this.verificationUuid,
           Valuation.filter(Stream.concat(
             predicateValuations.values().stream(),
-            Stream.of(new ExpressionValuation(true, expressionLocation))
+            Stream.of(new ExpressionValuation(true, expressionIdentifier))
           ).toList(), unsatisfiableCore),
           abstractLiteral
         ), new Recipient(NodeType.STORAGE, NodeSelection.ANY)));

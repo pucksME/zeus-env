@@ -6,6 +6,7 @@ import zeus.shared.message.payload.NodeType;
 import zeus.shared.message.payload.abstraction.AbstractRequest;
 import zeus.shared.message.payload.abstraction.AbstractResponse;
 import zeus.shared.message.payload.abstraction.AbstractionFailed;
+import zeus.shared.message.payload.modelchecking.ExpressionValuation;
 import zeus.shared.message.payload.storage.GetAbstractLiteralRequest;
 import zeus.shared.message.payload.storage.GetAbstractLiteralResponse;
 import zeus.zeusverifier.config.abstractionnode.AbstractionNodeConfig;
@@ -15,12 +16,13 @@ import zeus.zeusverifier.routing.RouteResult;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AbstractionNode extends Node<AbstractionNodeConfig> {
   private final ConcurrentHashMap<UUID, CompletableFuture<RouteResult>> pendingAbstractions;
@@ -32,14 +34,16 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
 
   private RouteResult processAbstractRequestRoute(Message<AbstractRequest> message, Socket requestSocket) {
     System.out.printf("Running processAbstractRequestRoute for uuid \"%s\"%n", message.getPayload().uuid());
-    UUID uuid = UUID.randomUUID();
     this.pendingAbstractions.put(message.getPayload().uuid(), new CompletableFuture<>());
 
     this.sendMessage(new Message<>(new GetAbstractLiteralRequest(
       message.getPayload().uuid(),
       message.getPayload().verificationUuid(),
       this.getUuid(),
-      new HashSet<>(message.getPayload().predicateValuations().values())
+      Stream.concat(
+        message.getPayload().predicateValuations().values().stream(),
+        Stream.of(new ExpressionValuation(message.getPayload().expressionIdentifier()))
+      ).collect(Collectors.toSet())
     ), new Recipient(NodeType.STORAGE_GATEWAY)));
 
     new Thread(() -> {
@@ -48,7 +52,7 @@ public class AbstractionNode extends Node<AbstractionNodeConfig> {
         message.getPayload().predicates(),
         message.getPayload().predicateValuations(),
         message.getPayload().expression(),
-        message.getPayload().expressionLocation()
+        message.getPayload().expressionIdentifier()
       );
 
       pendingAbstractions.get(message.getPayload().uuid()).complete(switch (abstractionResult.getStatus()) {

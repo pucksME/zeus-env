@@ -120,7 +120,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
       message.getPayload().uuid(),
       message.getPayload().verificationUuid(),
       message.getPayload().abstractionNodeUuid(),
-      message.getPayload().predicateValuations()
+      message.getPayload().valuations()
     ), new Recipient(NodeType.STORAGE, NodeSelection.ALL)));
 
     Optional<AbstractLiteral> abstractValueOptional = Optional.empty();

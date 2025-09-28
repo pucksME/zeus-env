@@ -1,7 +1,7 @@
 package zeus.shared.message.payload.abstraction;
 
 import zeus.shared.formula.Formula;
-import zeus.shared.message.payload.modelchecking.Location;
+import zeus.shared.message.payload.modelchecking.ExpressionIdentifier;
 import zeus.shared.message.payload.modelchecking.PredicateValuation;
 import zeus.shared.predicate.Predicate;
 
@@ -15,6 +15,6 @@ public record AbstractRequest(
   Map<UUID, Predicate> predicates,
   Map<UUID, PredicateValuation> predicateValuations,
   Formula expression,
-  Location expressionLocation
+  ExpressionIdentifier expressionIdentifier
 ) {
 }
