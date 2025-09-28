@@ -30,6 +30,13 @@ public abstract class Formula {
   public abstract Set<Formula> extractPredicateFormulas();
 
   public boolean equals(Formula formula, Context context, Solver solver) {
+    if (solver.check(context.mkNot(context.mkEq(
+      this.toFormula(context),
+      context.mkNot(formula.toFormula(context))
+    ))) == Status.UNSATISFIABLE) {
+      return true;
+    }
+
     return solver.check(context.mkNot(context.mkEq(
       this.toFormula(context),
       formula.toFormula(context)
