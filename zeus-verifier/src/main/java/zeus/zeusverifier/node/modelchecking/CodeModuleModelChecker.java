@@ -243,6 +243,7 @@ public class CodeModuleModelChecker {
     this.updateCurrentComponents();
 
     if (parentStatement.getControlStatement() instanceof WhileStatement) {
+      this.currentIndex = parentStatement.getIndex();
       Optional<AbstractLiteral> abstractionLiteralOptional = this.evaluateExpression(
         parentStatement.getControlStatement().getConditionExpression()
       );
