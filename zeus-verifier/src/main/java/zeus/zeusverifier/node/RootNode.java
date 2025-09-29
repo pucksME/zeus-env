@@ -179,12 +179,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
     );
 
     if (pendingCodeModuleSynchronization == null) {
-      System.out.printf(
-        "Pending code module synchronization for verification uuid \"%s\" received from node \"%s\" does not exist%n",
-        message.getPayload().verificationUuid(),
-        message.getPayload().nodeUuid()
-      );
-      return new RouteResult(NodeAction.TERMINATE);
+      return new RouteResult();
     }
 
     for (CompletableFuture<UUID> completableFuture : pendingCodeModuleSynchronization) {
