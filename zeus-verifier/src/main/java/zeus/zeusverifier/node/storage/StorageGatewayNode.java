@@ -93,7 +93,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
     );
 
     if (completableFutures == null) {
-      return new RouteResult(NodeAction.TERMINATE);
+      return new RouteResult();
     }
 
     for (CompletableFuture<Boolean> completableFuture : completableFutures) {
@@ -139,6 +139,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
       }
     }
 
+    this.pendingGetAbstractLiteralRequests.remove(message.getPayload().uuid());
     return new RouteResult(new Message<>(new GetAbstractLiteralResponse(
       message.getPayload().uuid(),
       abstractValueOptional.orElse(null)
@@ -155,7 +156,7 @@ public class StorageGatewayNode extends GatewayNode<StorageGatewayNodeConfig> {
     );
 
     if (completableFutures == null) {
-      return new RouteResult(NodeAction.TERMINATE);
+      return new RouteResult();
     }
 
     for (CompletableFuture<Optional<AbstractLiteral>> completableFuture : completableFutures) {
