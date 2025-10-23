@@ -282,7 +282,7 @@ public class RootNode extends GatewayNode<GatewayNodeConfig> {
   private RouteResult processInvalidCounterexampleRoute(Message<InvalidCounterexample> message, Socket requestSocket) {
     System.out.println("Running processInvalidCounterexampleRoute");
     System.out.println(message.getPayload().path());
-    System.out.println("Valid path");
+    System.out.println("Pivot path");
     System.out.println(message.getPayload().pivotPath());
 
     return new RouteResult(new Message<>(
