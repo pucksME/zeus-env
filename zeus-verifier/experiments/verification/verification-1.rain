@@ -2,7 +2,7 @@
 [server Experimental@localhost:8000]
 route GET ExampleRoute {
     code modules {`
-        module Verify::verification example {
+        module Verify::example program {
             input x: int;
             var y: int = 1;
 

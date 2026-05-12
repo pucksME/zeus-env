@@ -2,13 +2,14 @@
 [server Experimental@localhost:8000]
 route GET ExampleRoute {
     code modules {`
-        module Extract::constraint extraction example {
+        module Extract::example program {
             input vehicle: string;
             input env: string;
 
             // program code
 
-            if (vehicle == "car") && (env == "air") {
+            if (vehicle == "car") &&
+                (env == "air") {
                 assert(false);
             }
 

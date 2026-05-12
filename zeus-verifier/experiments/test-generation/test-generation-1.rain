@@ -2,7 +2,7 @@
 [server Experimental@localhost:8000]
 route GET ExampleRoute {
     code modules {`
-        module Generate::test generation example {
+        module Generate::example program {
             input a: int;
             var i: int = 0;
 
