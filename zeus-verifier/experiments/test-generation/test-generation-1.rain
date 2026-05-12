@@ -1,0 +1,17 @@
+[project ConstraintExtraction]
+[server Experimental@localhost:8000]
+route GET ExampleRoute {
+    code modules {`
+        module Generate::test generation example {
+            input a: int;
+            var i: int = 0;
+
+            while a > 0 {
+                a = a - 1;
+            }
+
+            // Condition negated
+            assert !(a <= i);
+        }
+    `}
+}
