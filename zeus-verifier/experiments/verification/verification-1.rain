@@ -6,9 +6,9 @@ route GET ExampleRoute {
             input x: int;
             var y: int = 1;
 
-            while x > 10 {
-                x = x - 2;
-                if x == 5 {
+            while x < 3 {
+                x = x + 2;
+                if x == 4 {
                     y = y + 1;
                 }
             }
