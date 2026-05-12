@@ -1,6 +1,6 @@
 plugins {
   id 'java'
-  id 'org.springframework.boot' version '3.2.4'
+  id 'org.springframework.boot' version '3.5.5'
   id 'io.spring.dependency-management' version '1.1.4'
   id 'antlr'
   id 'idea'
@@ -10,7 +10,7 @@ group = 'zeus'
 version = '0.0.1-SNAPSHOT'
 
 java {
-  sourceCompatibility = '23'
+  sourceCompatibility = '25'
 }
 
 repositories {
@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-  implementation 'org.springframework.boot:spring-boot-starter-web:3.2.4'
+  implementation 'org.springframework.boot:spring-boot-starter-web:3.5.5'
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
   antlr 'org.antlr:antlr4:4.11.1'
@@ -42,4 +42,10 @@ generateGrammarSource {
 
 idea.module {
   generatedSourceDirs += file('${buildDir}/generated-src/antlr/main')
+}
+
+tasks.named('jar') {
+  manifest {
+    attributes 'Main-Class': 'zeus.zeuscompiler.ZeusCompilerApplication'
+  }
 }

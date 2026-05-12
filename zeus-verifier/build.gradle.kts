@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version ("9.0.0-beta11")
+    id("com.gradleup.shadow") version ("9.3.0")
 }
 
 group = "zeus"
@@ -20,7 +20,7 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_23
+    sourceCompatibility = JavaVersion.VERSION_25
 }
 
 tasks.withType<Jar> {
